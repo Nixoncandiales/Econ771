@@ -1,17 +1,17 @@
-# I adapt the code presented in 
+# I adapt the code presented in: 
 # https://opensourceoptions.com/blog/use-python-to-download-multiple-files-or-urls-in-parallel/
 # for downloading the Raw data from CMS
 
-#Call libraries
+#libraries
 import requests
 import time
 from multiprocessing import cpu_count
 from multiprocessing.pool import ThreadPool
 import numpy as np
 
-######## Functions ###############
+################## Functions #########################
 
-#Function to download a URL
+# download a URL
 def download_url(args):
     t0 = time.time()
     url, fn = args[0], args[1]
@@ -23,16 +23,16 @@ def download_url(args):
     except Exception as e:
         print('Exception in download_url():', e)
 
- #Function to handle the parallel download
+# handle the parallel download
 def download_parallel(args):
     cpus = cpu_count()
     results = ThreadPool(cpus - 1).imap_unordered(download_url, args)
     for result in results:
         print('url:', result[0], 'time (s):', result[1])
 
-##### CReate the lists
+############### Create the lists ####################
 
-# Create a list with the files URL to download HHAFY
+# Create a list with the URL to download from CSM
 csm = 'https://downloads.cms.gov/Files/hcris/'
 types = ['HHAFY', 'HHA20FY', 'SNFFY', 'SNF10F', 'HOSPFY', 'HOSP10FY']
 years = list(range(1994, 2022+1))
@@ -45,6 +45,7 @@ fns = [local + '\\' + str(i) + '_' + str(j) + '.zip' for i in types for j in yea
 #zip both in one argument, neccesary for the next step
 inputs = zip(urls, fns)
 
+#Call the function and download the data bases
 download_parallel(inputs)
 
 
