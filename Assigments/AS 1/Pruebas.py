@@ -46,5 +46,3 @@ fns = [local + '\\' + str(i) + '_' + str(j) + '.zip' for i in types for j in yea
 inputs = zip(urls, fns)
 
 download_parallel(inputs)
-
-
