@@ -34,7 +34,7 @@ def download_parallel(args):
 
 # Create a list with the URL to download from CSM
 csm = 'https://downloads.cms.gov/Files/hcris/'
-types = ['HHAFY', 'HHA20FY', 'SNFFY', 'SNF10F', 'HOSPFY', 'HOSP10FY']
+types = ['HHAFY', 'HHA20FY', 'SNFFY', 'SNF10FY', 'HOSPFY', 'HOSP10FY']
 years = list(range(1994, 2022+1))
 urls = [csm + str(i) + str(j) + '.zip' for i in types for j in years]
 
