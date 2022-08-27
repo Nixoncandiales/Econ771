@@ -8,9 +8,9 @@ in a local directory.
 This Shell script will unzip the compressed files and delete the zip version. It has suggested code for Windows and Mac OS. Works faster in Mac. Make sure to update the relative paths.
 
 3) HCRIS_Data.r
-This R script will combine the multiple cvs files into a unique data set. It takes into account the 2 versions of the reporting form (1996, 2010) the 1996 version rund from 1998-2011 and the 2010 runs from 2011-2022.
+This R script will combine the multiple cvs files into a unique data set. It takes into account the 2 versions of the reporting form (1996, 2010) the 1996 version goes from 1998-2011 and the 2010 runs from 2011-2022.
 	Note this file will source H1_HCRISv1996.r and H2_HCRISv2010.r so, update the lrelative paths and working directory accordingly. 
 
-This is script is authored by Dr. Ian McCarthy, forked from his  (repo)[https://github.com/imccart/HCRIS]
+This is script is authored by Dr. Ian McCarthy, forked from his  (repo)[https://github.com/imccart/HCRIS] I just updated the relative paths 
 
 
