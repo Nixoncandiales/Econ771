@@ -15,8 +15,10 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate)
 # Import data -------------------------------------------------------------
 
 ## create v1996 and v2010 data
-source('~/GitHub/Econ771/Assigments/AS 1/Code/H1_HCRISv1996.R')
-source('~/GitHub/Econ771/Assigments/AS 1/Code/H2_HCRISv2010.R')
+setwd("/Users/nix/Documents/GitHub/Econ771/Assigments/AS\ 1/Code")
+source('H1_HCRISv1996.r')
+setwd("/Users/nix/Documents/GitHub/Econ771/Assigments/AS\ 1/Code")
+source('H2_HCRISv2010.r')
 
 ## create missing variables for columns introduced in v2010 of hcris forms
 final.hcris.v1996 = final.hcris.v1996 %>%
@@ -166,4 +168,6 @@ final.hcris.data =
   rename(year=fyear) %>%
   arrange(provider_number, year)
 
-write_tsv(final.hcris.data,'~/GitHub/Econ771/Assigments/AS 1/Data/HCRIS_Data.txt',append=FALSE,col_names=TRUE)
+write_tsv(final.hcris.data,'/Users/nix/Documents/GitHub/Econ771/Assigments/AS\ 1/Output/HCRIS_Data.txt',append=FALSE,col_names=TRUE)
+
+

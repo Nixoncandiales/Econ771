@@ -31,12 +31,20 @@ colnames(hcris.vars)=c("variable","WKSHT_CD","LINE_NUM","CLMN_NUM","source")
 
 # Import data -------------------------------------------------------------
 
+## Working Directory for MAC
+# ~/GitHub/Econ771/Assigments/AS\ 1/Data/
+## Working Directory for WINDOWS
+# ~/GitHub/Econ771/Assigments/AS 1/Data/
+
+#for Mac
+setwd("/Users/nix/Documents")
+
 for (i in 1998:2011) {
-  HCRIS.alpha=read_csv(paste0("~/GitHub/Econ771/Assigments/AS 1/Data/HOSP_",i,"_ALPHA.CSV"),
+  HCRIS.alpha=read_csv(paste0("GitHub/Econ771/Assigments/AS\ 1/Data/HOSP_",i,"_ALPHA.CSV"),
                        col_names=c('RPT_REC_NUM','WKSHT_CD','LINE_NUM','CLMN_NUM','ITM_VAL_NUM'))
-  HCRIS.numeric=read_csv(paste0("~/GitHub/Econ771/Assigments/AS 1/Data/HOSP_",i,"_NMRC.CSV"),
+  HCRIS.numeric=read_csv(paste0("GitHub/Econ771/Assigments/AS\ 1/Data/HOSP_",i,"_NMRC.CSV"),
                          col_names=c('RPT_REC_NUM','WKSHT_CD','LINE_NUM','CLMN_NUM','ITM_VAL_NUM'))
-  HCRIS.report=read_csv(paste0("~/GitHub/Econ771/Assigments/AS 1/Data/HOSP_",i,"_RPT.CSV"),
+  HCRIS.report=read_csv(paste0("GitHub/Econ771/Assigments/AS\ 1/Data/HOSP_",i,"_RPT.CSV"),
                         col_names=c('RPT_REC_NUM','PRVDR_CTRL_TYPE_CD','PRVDR_NUM','NPI',
                                     'RPT_STUS_CD','FY_BGN_DT','FY_END_DT','PROC_DT',
                                     'INITL_RPT_SW','LAST_RPT_SW','TRNSMTL_NUM','FI_NUM',
@@ -67,5 +75,7 @@ for (i in 1998:2011) {
   }
   
 }
-write_tsv(final.hcris.v1996,'~/GitHub/Econ771/Assigments/AS 1/Data/HCRIS_Data_v1996.txt',append=FALSE,col_names=TRUE)
+
+# Mac
+write_tsv(final.hcris.v1996,'GitHub/Econ771/Assigments/AS\ 1/Output/HCRIS_Data_v1996.txt',append=FALSE,col_names=TRUE)
 
