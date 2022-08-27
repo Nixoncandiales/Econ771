@@ -6,6 +6,7 @@ in a local directory.
 
 2) unzip_files.sh
 This Shell script will unzip the compressed files and delete the zip version. It has suggested code for Windows and Mac OS. Works faster in Mac. Make sure to update the relative paths.
+You have to run those lines directly into the shell or terminal. 
 
 3) HCRIS_Data.r
 This R script will combine the multiple cvs files into a unique data set. It takes into account the 2 versions of the reporting form (1996, 2010) the 1996 version goes from 1998-2011 and the 2010 runs from 2011-2022.
