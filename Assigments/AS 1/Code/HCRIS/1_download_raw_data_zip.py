@@ -32,9 +32,10 @@ def download_parallel(args):
 
 ############### Create the lists ####################
 
+############### Create the lists ####################
+
 # Create a list with the URL to download from CSM
 csm = 'https://downloads.cms.gov/Files/hcris/'
-types = ['HHAFY', 'HHA20FY', 'SNFFY', 'SNF10FY', 'HOSPFY', 'HOSP10FY']
 years = list(range(1994, 2022+1))
 urls = [csm + str(i) + str(j) + '.zip' for i in types for j in years]
 
@@ -43,16 +44,11 @@ local = r'C:\Users\16083\Downloads\Data'
 fns = [local + '\\' + str(i) + '_' + str(j) + '.zip' for i in types for j in years] 
 
 # Create a list for the local path to download the files for Mac
-local = r'/Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Data'
-fns2 = [local + '/' + str(i) + '_' + str(j) + '.zip' for i in types for j in years] 
-
-
-
+#local = r'/Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Data'
+#fns2 = [local + '/' + str(i) + '_' + str(j) + '.zip' for i in types for j in years] 
 
 #zip both in one argument, neccesary for the next step
-inputs = zip(urls, fns2)
+inputs = zip(urls, fns)
 
 #Call the function and download the data bases
 download_parallel(inputs)
-
-
