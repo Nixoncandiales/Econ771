@@ -39,7 +39,7 @@ years = list(range(1993, 2017+1))
 urls = [nber + str(i) + '/pos' + str(i) + '.dta.zip' for i in years]
 
 # Create a list for the local path to download the files for windows
-local = r'C:\Users\16083\Downloads\Data'
+local = r'C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\Data\POS'
 fns = [local + '\\pos' + str(i) + '.dta.zip' for i in years] 
 
 # Create a list for the local path to download the files for Mac

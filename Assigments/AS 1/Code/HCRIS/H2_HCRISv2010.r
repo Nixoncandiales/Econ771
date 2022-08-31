@@ -79,6 +79,6 @@ for (i in 2010:2021) {
     final.hcris.v2010=rbind(final.hcris.v2010,get(paste0("final.reports.",i)))
   }
 }
-write_tsv(final.hcris.v2010,'GitHub/Econ771/Assigments/AS\ 1/Output/HCRIS_Data_v2010.txt',append=FALSE,col_names=TRUE)
+write_tsv(final.hcris.v2010,'GitHub/Econ771/Assigments/AS\ 1/Output/HCRIS/HCRIS_Data_v2010.txt',append=FALSE,col_names=TRUE)
 
 

@@ -1,6 +1,7 @@
 
-#windows path
-Get-ChildItem 'C:\Users\16083\Downloads\Data\' -Filter *.zip | Expand-Archive -DestinationPath 'C:\Users\16083\Downloads\Data\' -Force
+######  Windows ######
+Get-ChildItem 'C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\Data' -Filter *.zip | Expand-Archive -DestinationPath 'C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\Data\HCRIS' -Force
+Get-ChildItem 'C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\Data' -Filter *.zip | rm
 
 ######  Mac ######
 # set the path

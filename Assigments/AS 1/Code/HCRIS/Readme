@@ -1,6 +1,6 @@
 To use this code run the following scrpits in the following order:
 
-1) download_raw_data_zip.py
+1) download_CMS_HCRIS.py
 This python script will download all the zip files in [CMS](https://www.cms.gov/Research-Statistics-Data-and-Systems/Downloadable-Public-Use-Files/Cost-Reports/Cost-Reports-by-Fiscal-Year)
 in a local directory.
 

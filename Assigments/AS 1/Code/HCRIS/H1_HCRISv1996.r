@@ -77,5 +77,5 @@ for (i in 1998:2011) {
 }
 
 # Mac
-write_tsv(final.hcris.v1996,'GitHub/Econ771/Assigments/AS\ 1/Output/HCRIS_Data_v1996.txt',append=FALSE,col_names=TRUE)
+write_tsv(final.hcris.v1996,'GitHub/Econ771/Assigments/AS\ 1/Output/HCRIS/HCRIS_Data_v1996.txt',append=FALSE,col_names=TRUE)
 
