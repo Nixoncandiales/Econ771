@@ -1,0 +1,2850 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
+> put/POS/pos.log
+  log type:  text
+ opened on:  31 Aug 2022, 19:17:57
+
+. clear
+
+. 
+. cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
+C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
+
+. * use POS data from these years
+. global STARTYEAR = 1993
+
+. global ENDYEAR = 2017
+
+. 
+. **** source of POS data ***
+. 
+. * the repository includes a script, download_source.sh, which you can
+. * use to pull the source data from the NBER website
+. * (if you are an NBER affiliate, the script can download it through rsync over
+. * ssh)
+. 
+. * however, if you don't want to use the script, the data files are available
+. * here:
+. * http://www.nber.org/data/provider-of-services.html
+. * they are the 'Stata' 'Other' files. For pre-2011 years, use the PROV link.
+. 
+. * each year's file assumed to have the following path:
+. * $POSBASE/pos`year'.dta
+. * edit the 'use ... using' statement below if your POS data follows a
+. * different directory structure
+. 
+. * base directory where POS data stored WINDOWS
+. 
+. global POSBASE = "../Data/POS"
+
+. 
+. * make the output folder if it doesn't exist
+. capture mkdir ../Output
+
+. 
+. forvalues year = $STARTYEAR/$ENDYEAR {
+  2.         
+.         if (`year'<2011) {
+  3.                 local category_provider "prov0075"
+  4.                 local city "prov3225"
+  5.                 local name "prov0475"
+  6.                 local address "prov2720"
+  7.                 local tel "prov1605"
+  8.                 
+.                 if (`year' == 1993) {
+  9.                         local termcode = "prov2805"
+ 10.                         local termdate "prov2810"
+ 11.                 }
+ 12.                 else {
+ 13.                         local termcode = "prov4770"
+ 14.                         local termdate "prov4500"
+ 15.                 }
+ 16.                 
+.                 local partdate "prov1565"
+ 17. 
+.                 local prev_pn "prov0300"
+ 18.                                 
+.                 local zip "prov2905"
+ 19.                 local urbancbsa ""
+ 20.                 local medaffil "prov0645"
+ 21.                 local resprog_ada "prov1805"
+ 22.                 local resprog_ama "prov1810"
+ 23.                 local resprog_aoa "prov1815"
+ 24.                 local resprog_oth "prov1820"
+ 25.                 local residents "prov1165"
+ 26.                 local pn "prov1680"
+ 27.                 local provider_subtype "prov0085"
+ 28.                 local typ_control "prov2885"
+ 29.                 local state "prov3230"
+ 30.                 local beds_tot "prov0740"
+ 31.                 local beds_cert "prov0755"
+ 32.                 
+. 
+.         }
+ 33.         else {
+ 34.                 local category_provider "prvdr_ctgry_cd"
+ 35.                 local city "city_name"
+ 36.                 local name "fac_name"
+ 37.                 local address "st_adr"
+ 38.                 local tel "phne_num"
+ 39.                 
+.                 local termcode "pgm_trmntn_cd"
+ 40.                 local termdate "trmntn_exprtn_dt"
+ 41.                 local partdate "orgnl_prtcptn_dt"
+ 42.                 
+.                 * uses a different name but only in 2011!
+.                 if (`year'==2011) {
+ 43.                         local prev_pn "cross_ref_provider_number"
+ 44.                 }
+ 45.                 else {
+ 46.                         local prev_pn "cross_rfrnc_prvdr_num"
+ 47.                 }
+ 48. 
+.                 local zip "zip_cd"
+ 49.                 local urbancbsa "cbsa_urbn_rrl_ind"
+ 50.                 local medaffil "mdcl_schl_afltn_cd"
+ 51.                 if (`year'<=2012) {
+ 52.                         local resprog_ada "rsdnt_pgm_ada_aprvd_sw"
+ 53.                         local resprog_ama "rsdnt_pgm_ama_aprvd_sw"
+ 54.                         local resprog_aoa "rsdnt_pgm_aoa_aprvd_sw"
+ 55.                         local resprog_oth "rsdnt_pgm_othr_aprvd_sw"
+ 56.                 }
+ 57.                 else {
+ 58.                         local resprog_ada "rsdnt_pgm_dntl_sw"
+ 59.                         local resprog_ama "rsdnt_pgm_alpthc_sw"
+ 60.                         local resprog_aoa "rsdnt_pgm_ostpthc_sw"
+ 61.                         local resprog_oth "rsdnt_pgm_othr_sw"
+ 62.                 }
+ 63.                 
+.                 local residents "rsdnt_physn_cnt"
+ 64.                 local pn "prvdr_num"
+ 65.                 local provider_subtype "prvdr_ctgry_sbtyp_cd"
+ 66.                 local typ_control "gnrl_cntl_type_cd"
+ 67.                 local state "state_cd"
+ 68.                 local beds_tot "bed_cnt"
+ 69.                 local beds_cert "crtfd_bed_cnt"
+ 70.                 
+. 
+.         }
+ 71. 
+.         use `category_provider' `city' `name' `address' `tel' ///
+>                 `prev_pn' `termcode' `termdate' `partdate' `zip' `urbancbsa' `
+> medaffil' ///
+>                 `resprog_ada' `resprog_ama' `resprog_aoa' `resprog_oth' `resid
+> ents' ///
+>                 `pn' `provider_subtype' `typ_control' `state' `beds_tot' `beds
+> _cert'  ///
+>                 if `category_provider'=="01" ///
+>                 using $POSBASE/pos`year'.dta
+ 72.         gen year = `year'
+ 73. 
+.         * already restricting to hospitals in 'use' statement
+.         * i.e. category_provider==01
+.         rename `category_provider' category_provider
+ 74.         drop category_provider
+ 75. 
+.         rename `city' city
+ 76.         rename `name' name
+ 77.         rename `address' address
+ 78. 
+.         * sometimes tel is set to .
+.         rename `tel' tel
+ 79.         replace tel = "" if tel=="."
+ 80.         
+.         * zero pad the zip code
+.         rename `zip' zip
+ 81.         tostring zip, replace format(%05.0f)
+ 82.         assert length(zip)==5 if !missing(zip)
+ 83. 
+.         if ("`urbancbsa'"!="") {
+ 84.                 rename `urbancbsa' urbancbsa
+ 85.                 replace urbancbsa = "1" if urbancbsa=="U"
+ 86.                 replace urbancbsa = "0" if urbancbsa=="R"
+ 87.                 destring urbancbsa, replace
+ 88.         }
+ 89.         else {
+ 90.                 gen byte urbancbsa = .
+ 91.         }
+ 92.         rename `termcode' termcode
+ 93.         rename `termdate' termdate
+ 94.         rename `partdate' partdate
+ 95.         rename `prev_pn' prev_pn
+ 96. 
+.         * fix date variables stored as strings
+.         
+.         * in 1993-1995, termdate and partdate are stored as YYMMDD not YYYYMMD
+> D like later
+.         * years. change to YYYYMMDD
+.         * NOTE: doing this for any year <=1995, assuming that years before 199
+> 3 did this too
+.         if (`year'<=1995) {
+ 97.                 replace termdate = "19"+termdate if length(termdate)==6
+ 98.                 replace partdate = "19"+partdate if length(partdate)==6
+ 99.         }
+100.         
+.         * deal with termdate and partdate
+.         *
+.         * weirdly, in 2011 and 2011 alone, termdate and partdate as stored pro
+> perly
+.         * as stata internal date format
+.         * otherwise they are stored as strings YYYYMMDD (pre 2011) or as longs
+>  in
+.         * the format YYYYMMDD (post 2011), both of which need to be converted 
+> to
+.         * stata internal date format
+.         if (`year'!=2011) {
+101.                 if (`year'>=2012) {
+102.                         tostring termdate partdate, replace
+103.                 }
+104.                 
+.                 * fix the variables
+.                 foreach var of varlist termdate partdate {
+105.                         gen `var'dt = mdy(real(substr(`var',5,2)),real(subs
+> tr(`var',7,2)),real(substr(`var',1,4)))
+106.                         drop `var'
+107.                         rename `var'dt `var'
+108.                 }
+109.         }
+110.         
+.         format termdate %td
+111.         format partdate %td
+112.                         
+.         rename `medaffil' medaffil
+113.         rename `resprog_ada' resprog_ada
+114.         rename `resprog_ama' resprog_ama
+115.         rename `resprog_aoa' resprog_aoa
+116.         rename `resprog_oth' resprog_oth
+117.         rename `residents' residents
+118.         rename `pn' pn
+119.         rename `provider_subtype' provider_subtype
+120.         rename `typ_control' typ_control
+121.         rename `state' state
+122.         rename `beds_tot' beds_tot
+123.         rename `beds_cert' beds_cert
+124. 
+.         destring zip medaffil, replace
+125. 
+.         * prov1810 - AMA-approved resident program
+.         * prov1805 - ADA
+.         * prov1815 - AOA
+.         * prov1820 - other
+. 
+.         * resident programs variables are Y/N
+.         foreach var of varlist resprog_* {
+126.                 replace `var' = "0" if `var'=="N"
+127.                 replace `var' = "1" if `var'=="Y"
+128.         }
+129.         destring resprog_*, replace
+130. 
+.         * TERMINATION CODE
+.         *     VALUES:   00                  ACTIVE
+.         *               01                  VOL-MERG,CLOSE
+.         *               02                  VOL-REIMBURSE
+.         *               03                  VOL-RISK INVOL
+.         *               04                  VOL-OTHER
+.         *               05                  INVOL-FAIL REQ
+.         *               06                  INVOL-AGREEMNT
+.         *               07                  OTH-STATUS CHG
+. 
+.         * LABELS CHANGED IN 2011
+.         *                  01=VOLUNTARY-MERGER, CLOSURE
+.         *                  02=VOLUNTARY-DISSATISFACTION WITH REIMBURSEMENT
+.         *                  03=VOLUNTARY-RISK OF INVOLUNTARY TERMINATION
+.         *                  04=VOLUNTARY-OTHER REASON FOR WITHDRAWAL
+.         *                  05=INVOLUNTARY-FAILURE TO MEET HEALTH/SAFETY REQ
+.         *                  06=INVOLUNTARY-FAILURE TO MEET AGREEMENT
+.         *                  07=OTHER-PROVIDER STATUS CHANGE
+. 
+.         label define termcode 0 "active" 1 "vol-merg,close" 2 "vol-reimburse" 
+> 3 "vol-risk invol" ///
+>                 4 "vol-other" 5 "invol-fail req" 6 "invol-agreemnt" 7 "oth-sta
+> tus chg"
+131.         destring termcode, replace
+132.         label values termcode termcode
+133.         gen active = termcode==0
+134. 
+.         * prov0645 - med school affiliation
+.         *     VALUES:   1                   MAJOR
+.         *               2                   LIMITED
+.         *               3                   GRADUATE
+.         *               4                   NO AFFILIATION
+. 
+.         label define medaffil 1 "major" 2 "limited" 3 "graduate" 4 "no affilia
+> tion"
+135.         label values medaffil medaffil
+136. 
+. 
+.         * prov0655 - medicare vendor number
+. 
+.         * drop if pn==""
+.         * drop if length(pn) != 6
+. 
+.         * prov0085 - type of hospital
+.         * 01 short term
+.         * 11 cah
+.         *     VALUES:      01=SHORT TERM
+.         *                  02=LONG TERM
+.         *                  03=RELIGIOUS NONMEDICAL HEALTH CARE INSTITUTIONS
+.         *                  04=PSYCHIATRIC
+.         *                  05=REHABILITATION
+.         *                  06=CHILDRENS'
+.         *                  07=DISTINCT PART PSYCHIATRIC HOSPITAL
+.         *                  11=CRITICAL ACCESS HOSPITALS
+.         *                  20=TRANSPLANT HOSPITALS
+.         *                  22=MEDICAID ONLY NON-PSYCHIATRIC HOSPITAL
+.         *                  23=MEDICAID ONLY PSYCHIATRIC HOSPITAL
+.         destring provider_subtype, replace
+137.         label define subtype 1 "short term" 2 "long term" 3 "religious nonm
+> edical" ///
+>                 4 "psych" 5 "rehab" 6 "childrens" 7 "distinct part psych" 11 "
+> cah" ///
+>                 20 "transplant" 22 "mcaid only non-psych" 23 "mcaid only psych
+> "
+138.         label values provider_subtype subtype
+139.         gen shortterm = provider_subtype==1
+140.         gen cah = provider_subtype==11
+141. 
+.         * prov2885 - type of control
+.         * 01                  VOLUNTARY NON-PROFIT - CHURCH
+.         * 02                  VOLUNTARY NON-PROFIT - PRIVATE
+.         * 03                  VOLUNTARY NON-PROFIT - OTHER
+.         * 04                  PROPRIETARY
+.         * 05                  GOVERNMENT - FEDERAL
+.         * 06                  GOVERNMENT - STATE
+.         * 07                  GOVERNMENT - LOCAL
+.         * 08                       GOV. - HOSP. DIST. OR AUTH.
+. 
+.         * new labels in 2011
+.         *   VALUES:      01=CHURCH
+.         *                  02=PRIVATE (NOT FOR PROFIT)
+.         *                  03=OTHER (SPECIFY)
+.         *                  04=PRIVATE (FOR PROFIT)
+.         *                  05=FEDERAL
+.         *                  06=STATE
+.         *                  07=LOCAL
+.         *                  08=HOSPITAL DISTRICT OR AUTHORITY
+.         *                  09=PHYSICIAN OWNERSHIP
+.         *                  10=TRIBAL
+. 
+. 
+.         destring typ_control, replace
+142.         label define control 1 "non-profit church" 2 "non-profit private" 3
+>  "non-profit other" ///
+>                 4 "for-profit proprietary" 5 "government federal" 6 "governmen
+> t state" ///
+>                 7 "government local" 8 "government hosp district/authority" 9 
+> "for-profit phys owned" ///
+>                 10 "government tribal"
+143.         label values typ_control control
+144. 
+.         gen nonprofit = typ_control>=1 & typ_control<=3
+145.         gen forprofit = typ_control==4 | typ_control==9
+146.         gen govt = (typ_control>=5 & typ_control <= 8) | typ_control==10
+147. 
+.         * prov3230 - state abbreviation
+.         gen maryland = state=="MD"
+148.         gen nonstate = state=="AS"|state=="CN"|state=="GU"|state=="MP"|stat
+> e=="MX"|state=="PR"|state=="VI"
+149. 
+.         compress
+150.         save pos`year'.dta, replace
+151.         clear
+152. }
+(0 real changes made)
+zip already string; no replace
+(8,651 missing values generated)
+variable termdate was str6 now str8
+(1,217 real changes made)
+variable partdate was str6 now str8
+(7,645 real changes made)
+(7,434 missing values generated)
+(1,006 missing values generated)
+zip: all characters numeric; replaced as long
+(249 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1035 missing values generated)
+(7,403 real changes made)
+(213 real changes made)
+(6,433 real changes made)
+(1,183 real changes made)
+(7,412 real changes made)
+(204 real changes made)
+(6,883 real changes made)
+(733 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1035 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1035 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1035 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1035 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(30 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1032 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable city was str28 now str27
+  variable prev_pn was str10 now str6
+  variable pn was str10 now str6
+  (337,389 bytes saved)
+(file pos1993.dta not found)
+file pos1993.dta saved
+(0 real changes made)
+zip already string; no replace
+(8,794 missing values generated)
+variable termdate was str6 now str8
+(1,346 real changes made)
+variable partdate was str6 now str8
+(7,784 real changes made)
+(7,448 missing values generated)
+(1,010 missing values generated)
+zip: all characters numeric; replaced as long
+(251 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1041 missing values generated)
+(7,536 real changes made)
+(217 real changes made)
+(6,570 real changes made)
+(1,183 real changes made)
+(7,535 real changes made)
+(218 real changes made)
+(7,048 real changes made)
+(705 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1041 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1041 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1041 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1041 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(36 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1038 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable prev_pn was str10 now str6
+  variable pn was str10 now str6
+  (334,172 bytes saved)
+(file pos1994.dta not found)
+file pos1994.dta saved
+(0 real changes made)
+zip already string; no replace
+(8,872 missing values generated)
+variable termdate was str6 now str8
+(1,438 real changes made)
+variable partdate was str6 now str8
+(7,856 real changes made)
+(7,434 missing values generated)
+(1,016 missing values generated)
+zip: all characters numeric; replaced as long
+(257 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1047 missing values generated)
+(7,605 real changes made)
+(220 real changes made)
+(6,649 real changes made)
+(1,176 real changes made)
+(7,611 real changes made)
+(214 real changes made)
+(7,050 real changes made)
+(775 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1047 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1047 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1047 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1047 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(42 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1044 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (301,648 bytes saved)
+(file pos1995.dta not found)
+file pos1995.dta saved
+(0 real changes made)
+zip already string; no replace
+(8,949 missing values generated)
+(7,318 missing values generated)
+(1,020 missing values generated)
+zip: all characters numeric; replaced as long
+(261 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1055 missing values generated)
+(7,672 real changes made)
+(222 real changes made)
+(6,743 real changes made)
+(1,151 real changes made)
+(7,684 real changes made)
+(210 real changes made)
+(7,059 real changes made)
+(835 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1055 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1055 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1055 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1055 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(50 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1052 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (304,266 bytes saved)
+(file pos1996.dta not found)
+file pos1996.dta saved
+(0 real changes made)
+zip already string; no replace
+(9,032 missing values generated)
+(7,242 missing values generated)
+(1,023 missing values generated)
+zip: all characters numeric; replaced as long
+(263 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1060 missing values generated)
+(7,748 real changes made)
+(224 real changes made)
+(6,827 real changes made)
+(1,145 real changes made)
+(7,761 real changes made)
+(211 real changes made)
+(7,047 real changes made)
+(925 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1060 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1060 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1060 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1060 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(55 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1057 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (307,088 bytes saved)
+(file pos1997.dta not found)
+file pos1997.dta saved
+(0 real changes made)
+zip already string; no replace
+(9,137 missing values generated)
+(7,176 missing values generated)
+(1,024 missing values generated)
+zip: all characters numeric; replaced as long
+(263 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1061 missing values generated)
+(7,843 real changes made)
+(233 real changes made)
+(6,926 real changes made)
+(1,150 real changes made)
+(7,849 real changes made)
+(227 real changes made)
+(7,103 real changes made)
+(973 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1061 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1061 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1061 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1061 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(43 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1058 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (310,658 bytes saved)
+(file pos1998.dta not found)
+file pos1998.dta saved
+(0 real changes made)
+zip already string; no replace
+(9,313 missing values generated)
+(7,102 missing values generated)
+(1,030 missing values generated)
+zip: all characters numeric; replaced as long
+(264 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1068 missing values generated)
+(8,017 real changes made)
+(228 real changes made)
+(7,108 real changes made)
+(1,137 real changes made)
+(8,013 real changes made)
+(232 real changes made)
+(7,227 real changes made)
+(1,018 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1068 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1068 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1068 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1068 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(50 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1065 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (316,642 bytes saved)
+(file pos1999.dta not found)
+file pos1999.dta saved
+(0 real changes made)
+zip already string; no replace
+(9,580 missing values generated)
+(7,046 missing values generated)
+(1,044 missing values generated)
+zip: all characters numeric; replaced as long
+(264 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1056 missing values generated)
+(8,299 real changes made)
+(225 real changes made)
+(7,392 real changes made)
+(1,132 real changes made)
+(8,291 real changes made)
+(233 real changes made)
+(7,446 real changes made)
+(1,078 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1056 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1056 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1056 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1056 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(63 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1053 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  variable address was str50 now str49
+  (335,300 bytes saved)
+(file pos2000.dta not found)
+file pos2000.dta saved
+(0 real changes made)
+zip already string; no replace
+(9,961 missing values generated)
+(7,021 missing values generated)
+(1,046 missing values generated)
+zip: all characters numeric; replaced as long
+(265 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1058 missing values generated)
+(8,679 real changes made)
+(224 real changes made)
+(7,777 real changes made)
+(1,126 real changes made)
+(8,666 real changes made)
+(237 real changes made)
+(7,751 real changes made)
+(1,152 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1058 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1058 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1058 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1058 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(65 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1055 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (338,674 bytes saved)
+(file pos2001.dta not found)
+file pos2001.dta saved
+(0 real changes made)
+zip already string; no replace
+(10,275 missing values generated)
+(6,996 missing values generated)
+(1,050 missing values generated)
+zip: all characters numeric; replaced as long
+(265 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1062 missing values generated)
+(8,982 real changes made)
+(231 real changes made)
+(8,087 real changes made)
+(1,126 real changes made)
+(8,957 real changes made)
+(256 real changes made)
+(7,985 real changes made)
+(1,228 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1062 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1062 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1062 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1062 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(69 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1059 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (349,350 bytes saved)
+(file pos2002.dta not found)
+file pos2002.dta saved
+(0 real changes made)
+zip already string; no replace
+(10,585 missing values generated)
+(7,038 missing values generated)
+(1,060 missing values generated)
+zip: all characters numeric; replaced as long
+(268 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1072 missing values generated)
+(9,281 real changes made)
+(232 real changes made)
+(8,409 real changes made)
+(1,104 real changes made)
+(9,255 real changes made)
+(258 real changes made)
+(8,145 real changes made)
+(1,368 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1072 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1072 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1072 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1072 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(78 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1069 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (359,890 bytes saved)
+(file pos2003.dta not found)
+file pos2003.dta saved
+(0 real changes made)
+zip already string; no replace
+(10,856 missing values generated)
+(7,098 missing values generated)
+(1,063 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1063 missing values generated)
+(9,570 real changes made)
+(223 real changes made)
+(8,706 real changes made)
+(1,087 real changes made)
+(9,528 real changes made)
+(265 real changes made)
+(8,374 real changes made)
+(1,419 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1063 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1063 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1063 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1063 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1063 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1063 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (369,104 bytes saved)
+(file pos2004.dta not found)
+file pos2004.dta saved
+(0 real changes made)
+zip already string; no replace
+(11,093 missing values generated)
+(6,983 missing values generated)
+(1,004 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1004 missing values generated)
+(9,869 real changes made)
+(220 real changes made)
+(9,008 real changes made)
+(1,081 real changes made)
+(9,808 real changes made)
+(281 real changes made)
+(8,672 real changes made)
+(1,417 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1004 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1004 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1004 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (377,162 bytes saved)
+(file pos2005.dta not found)
+file pos2005.dta saved
+(0 real changes made)
+zip already string; no replace
+(11,260 missing values generated)
+(6,981 missing values generated)
+(1,004 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1004 missing values generated)
+(10,039 real changes made)
+(217 real changes made)
+(9,170 real changes made)
+(1,086 real changes made)
+(9,930 real changes made)
+(326 real changes made)
+(8,885 real changes made)
+(1,371 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1004 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1004 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1004 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (382,840 bytes saved)
+(file pos2006.dta not found)
+file pos2006.dta saved
+(0 real changes made)
+zip already string; no replace
+(11,388 missing values generated)
+(6,958 missing values generated)
+(1,004 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1004 missing values generated)
+(10,164 real changes made)
+(220 real changes made)
+(9,296 real changes made)
+(1,088 real changes made)
+(10,038 real changes made)
+(346 real changes made)
+(9,052 real changes made)
+(1,332 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1004 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1004 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1004 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (387,192 bytes saved)
+(file pos2007.dta not found)
+file pos2007.dta saved
+(0 real changes made)
+zip already string; no replace
+(11,515 missing values generated)
+(6,964 missing values generated)
+(1,004 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1004 missing values generated)
+(10,288 real changes made)
+(223 real changes made)
+(9,418 real changes made)
+(1,093 real changes made)
+(10,147 real changes made)
+(364 real changes made)
+(9,217 real changes made)
+(1,294 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1004 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1004 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1004 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1004 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (391,510 bytes saved)
+(file pos2008.dta not found)
+file pos2008.dta saved
+(0 real changes made)
+zip already string; no replace
+(11,632 missing values generated)
+(6,967 missing values generated)
+(1,006 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1006 missing values generated)
+(10,393 real changes made)
+(233 real changes made)
+(9,514 real changes made)
+(1,112 real changes made)
+(10,239 real changes made)
+(387 real changes made)
+(9,340 real changes made)
+(1,286 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1006 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1006 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1006 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1006 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1006 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1006 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (395,488 bytes saved)
+(file pos2009.dta not found)
+file pos2009.dta saved
+(0 real changes made)
+zip already string; no replace
+(11,736 missing values generated)
+(6,963 missing values generated)
+(1,007 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1007 missing values generated)
+(10,479 real changes made)
+(250 real changes made)
+(9,618 real changes made)
+(1,111 real changes made)
+(10,305 real changes made)
+(424 real changes made)
+(9,443 real changes made)
+(1,286 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(1007 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(1007 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(1007 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(1007 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1007 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1007 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (399,024 bytes saved)
+(file pos2010.dta not found)
+file pos2010.dta saved
+(0 real changes made)
+zip already string; no replace
+(7,620 real changes made)
+(4,133 real changes made)
+urbancbsa: all characters numeric; replaced as byte
+(303 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1241 missing values generated)
+(11,727 real changes made)
+(269 real changes made)
+(10,888 real changes made)
+(1,108 real changes made)
+(11,550 real changes made)
+(446 real changes made)
+(10,721 real changes made)
+(1,275 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(60 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(60 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(60 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(60 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1007 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1241 missing values generated)
+  variable partdate was long now int
+  variable termdate was long now int
+  variable year was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  variable name was strL now str50
+  variable address was strL now str50
+  (1,495,209 bytes saved)
+(file pos2011.dta not found)
+file pos2011.dta saved
+(623 real changes made)
+zip already string; no replace
+(7,685 real changes made)
+(4,143 real changes made)
+urbancbsa: all characters numeric; replaced as byte
+(302 missing values generated)
+termdate was long now str8
+partdate was long now str8
+(7,203 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1250 missing values generated)
+(11,824 real changes made)
+(271 real changes made)
+(10,988 real changes made)
+(1,107 real changes made)
+(11,635 real changes made)
+(460 real changes made)
+(10,829 real changes made)
+(1,266 real changes made)
+resprog_ada: all characters numeric; replaced as byte
+(35 missing values generated)
+resprog_ama: all characters numeric; replaced as byte
+(35 missing values generated)
+resprog_aoa: all characters numeric; replaced as byte
+(35 missing values generated)
+resprog_oth: all characters numeric; replaced as byte
+(35 missing values generated)
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1007 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1250 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (412,420 bytes saved)
+(file pos2012.dta not found)
+file pos2012.dta saved
+(622 real changes made)
+zip already string; no replace
+(7,744 real changes made)
+(4,159 real changes made)
+urbancbsa: all characters numeric; replaced as byte
+(302 missing values generated)
+termdate was long now str8
+partdate was long now str8
+(7,194 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1254 missing values generated)
+(11,087 real changes made)
+(1,118 real changes made)
+(11,924 real changes made)
+(281 real changes made)
+(11,735 real changes made)
+(470 real changes made)
+(10,977 real changes made)
+(1,228 real changes made)
+resprog_ama: all characters numeric; replaced as byte
+resprog_ada: all characters numeric; replaced as byte
+resprog_aoa: all characters numeric; replaced as byte
+resprog_oth: all characters numeric; replaced as byte
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1007 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1254 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (414,970 bytes saved)
+(file pos2013.dta not found)
+file pos2013.dta saved
+(616 real changes made)
+zip already string; no replace
+(7,803 real changes made)
+(4,181 real changes made)
+urbancbsa: all characters numeric; replaced as byte
+(302 missing values generated)
+termdate was long now str8
+partdate was long now str8
+(7,182 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1256 missing values generated)
+(11,181 real changes made)
+(1,105 real changes made)
+(12,008 real changes made)
+(278 real changes made)
+(11,799 real changes made)
+(487 real changes made)
+(11,065 real changes made)
+(1,221 real changes made)
+resprog_ama: all characters numeric; replaced as byte
+resprog_ada: all characters numeric; replaced as byte
+resprog_aoa: all characters numeric; replaced as byte
+resprog_oth: all characters numeric; replaced as byte
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1007 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1256 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (417,724 bytes saved)
+(file pos2014.dta not found)
+file pos2014.dta saved
+(615 real changes made)
+zip already string; no replace
+(7,882 real changes made)
+(4,191 real changes made)
+urbancbsa: all characters numeric; replaced as byte
+(302 missing values generated)
+termdate was long now str8
+partdate was long now str8
+(7,169 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1256 missing values generated)
+(11,272 real changes made)
+(1,103 real changes made)
+(12,095 real changes made)
+(280 real changes made)
+(11,891 real changes made)
+(484 real changes made)
+(11,168 real changes made)
+(1,207 real changes made)
+resprog_ama: all characters numeric; replaced as byte
+resprog_ada: all characters numeric; replaced as byte
+resprog_aoa: all characters numeric; replaced as byte
+resprog_oth: all characters numeric; replaced as byte
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1007 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1256 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (420,750 bytes saved)
+(file pos2015.dta not found)
+file pos2015.dta saved
+(576 real changes made)
+zip already string; no replace
+(8,172 real changes made)
+(3,990 real changes made)
+urbancbsa: all characters numeric; replaced as byte
+(299 missing values generated)
+termdate was long now str8
+partdate was long now str8
+(7,176 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1259 missing values generated)
+(11,342 real changes made)
+(1,119 real changes made)
+(12,177 real changes made)
+(284 real changes made)
+(11,968 real changes made)
+(493 real changes made)
+(11,254 real changes made)
+(1,207 real changes made)
+resprog_ama: all characters numeric; replaced as byte
+resprog_ada: all characters numeric; replaced as byte
+resprog_aoa: all characters numeric; replaced as byte
+resprog_oth: all characters numeric; replaced as byte
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1007 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1259 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (423,674 bytes saved)
+(file pos2016.dta not found)
+file pos2016.dta saved
+(554 real changes made)
+zip already string; no replace
+(8,223 real changes made)
+(4,001 real changes made)
+urbancbsa: all characters numeric; replaced as byte
+(299 missing values generated)
+termdate was long now str8
+partdate was long now str8
+(7,165 missing values generated)
+zip: all characters numeric; replaced as long
+(270 missing values generated)
+medaffil: all characters numeric; replaced as byte
+(1262 missing values generated)
+(11,398 real changes made)
+(1,125 real changes made)
+(12,238 real changes made)
+(285 real changes made)
+(12,020 real changes made)
+(503 real changes made)
+(11,310 real changes made)
+(1,213 real changes made)
+resprog_ama: all characters numeric; replaced as byte
+resprog_ada: all characters numeric; replaced as byte
+resprog_aoa: all characters numeric; replaced as byte
+resprog_oth: all characters numeric; replaced as byte
+termcode: all characters numeric; replaced as byte
+provider_subtype: all characters numeric; replaced as byte
+(1008 missing values generated)
+typ_control: all characters numeric; replaced as byte
+(1262 missing values generated)
+  variable year was float now int
+  variable termdate was float now int
+  variable partdate was float now int
+  variable active was float now byte
+  variable shortterm was float now byte
+  variable cah was float now byte
+  variable nonprofit was float now byte
+  variable forprofit was float now byte
+  variable govt was float now byte
+  variable maryland was float now byte
+  variable nonstate was float now byte
+  variable pn was str10 now str6
+  (425,782 bytes saved)
+(file pos2017.dta not found)
+file pos2017.dta saved
+
+. 
+. forvalues year = $STARTYEAR/$ENDYEAR {
+  2.         if (_N==0) {
+  3.                 use pos`year'.dta
+  4.         }
+  5.         else {
+  6.                 append using pos`year'.dta
+  7.         }
+  8.         
+.         rm pos`year'.dta
+  9. }
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(variable prev_pn was str6, now str10 to accommodate using data's values)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(variable address was str38, now str49 to accommodate using data's values)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(variable address was str49, now str50 to accommodate using data's values)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(variable name was str38, now str50 to accommodate using data's values)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(variable residents was float, now double to accommodate using data's values)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+(label control already defined)
+(label subtype already defined)
+(label medaffil already defined)
+(label termcode already defined)
+
+. 
+. 
+. label variable pn "hospital medicare provider number"
+
+. label variable year "year of POS data"
+
+. label variable active "is hospital active"
+
+. label variable termcode "termination code"
+
+. label variable termdate "termination date"
+
+. label variable partdate "participation date"
+
+. label variable prev_pn "previous provider number"
+
+. label variable name "name of hospital"
+
+. label variable address "address"
+
+. label variable city "city"
+
+. label variable state "state"
+
+. label variable urbancbsa "urban CBSA (2011-)"
+
+. label variable zip "zip code"
+
+. label variable tel "telephone number"
+
+. label variable medaffil "affiliation with medical school"
+
+. label variable resprog_ada "ADA-approved resident program / dental residency (
+> 2013-)"
+
+. label variable resprog_ama "AMA-approved resident program / allopathic residen
+> cy (2013-)"
+
+. label variable resprog_aoa "AOA-approved resident program / osteopathic reside
+> ncy (2013-)"
+
+. label variable resprog_oth "other resident program"
+
+. label variable residents "number of residents"
+
+. label variable shortterm "is hospital short term"
+
+. label variable cah "is hospital critical access (CAH)"
+
+. label variable provider_subtype "subtype of provider"
+
+. label variable typ_control "type of hospital control"
+
+. label variable nonprofit "is hospital non-profit"
+
+. label variable forprofit "is hospital for-profit"
+
+. label variable govt "is hospital government-run"
+
+. label variable maryland "is hospital located in maryland"
+
+. label variable nonstate "is hospital located in a US territory or Canada, not 
+> a state/DC"
+
+. label variable beds_tot "total hospital beds"
+
+. label variable beds_cert "certified hospital beds"
+
+. 
+. * some data checks
+. foreach var of varlist _all {
+  2.         gen byte MISS_`var' = missing(`var')
+  3.         mean MISS_`var', over(year)
+  4.         drop MISS_`var'
+  5. }
+
+Mean estimation                                        Number of obs = 268,665
+
+------------------------------------------------------------------------------
+                             |       Mean   Std. err.     [95% conf. interval]
+-----------------------------+------------------------------------------------
+c.MISS_provider_subtype@year |
+                       1993  |   .0034678   .0006321       .002229    .0047066
+                       1994  |   .0040937   .0006809      .0027591    .0054283
+                       1995  |    .004734   .0007288      .0033056    .0061624
+                       1996  |   .0055872    .000788      .0040428    .0071316
+                       1997  |   .0060895   .0008186      .0044849     .007694
+                       1998  |   .0047061    .000716      .0033027    .0061095
+                       1999  |   .0053688   .0007573      .0038846    .0068531
+                       2000  |   .0065762   .0008258      .0049576    .0081948
+                       2001  |   .0065254   .0008068      .0049442    .0081067
+                       2002  |   .0067153   .0008058      .0051361    .0082946
+                       2003  |   .0073689   .0008313      .0057395    .0089983
+                       2004  |   .0979182   .0028526      .0923272    .1035092
+                       2005  |   .0905075   .0027242      .0851682    .0958469
+                       2006  |   .0891652   .0026858      .0839012    .0944292
+                       2007  |    .088163    .002657      .0829553    .0933707
+                       2008  |   .0871906   .0026291      .0820376    .0923436
+                       2009  |   .0864856   .0026063      .0813773    .0915938
+                       2010  |   .0858044   .0025854       .080737    .0908717
+                       2011  |   .0835269   .0025199      .0785879    .0884659
+                       2012  |   .0830173   .0025053      .0781071    .0879275
+                       2013  |   .0825072   .0024906      .0776257    .0873886
+                       2014  |   .0819632   .0024749      .0771125    .0868139
+                       2015  |   .0813737   .0024579      .0765564    .0861911
+                       2016  |   .0808121   .0024416      .0760266    .0855977
+                       2017  |   .0804919   .0024312      .0757268    .0852569
+------------------------------------------------------------------------------
+
+Mean estimation                            Number of obs = 268,665
+
+------------------------------------------------------------------
+                 |       Mean   Std. err.     [95% conf. interval]
+-----------------+------------------------------------------------
+c.MISS_city@year |
+           1993  |          0  (omitted)
+           1994  |          0  (omitted)
+           1995  |          0  (omitted)
+           1996  |          0  (omitted)
+           1997  |          0  (omitted)
+           1998  |          0  (omitted)
+           1999  |          0  (omitted)
+           2000  |          0  (omitted)
+           2001  |          0  (omitted)
+           2002  |          0  (omitted)
+           2003  |          0  (omitted)
+           2004  |          0  (omitted)
+           2005  |          0  (omitted)
+           2006  |          0  (omitted)
+           2007  |          0  (omitted)
+           2008  |          0  (omitted)
+           2009  |          0  (omitted)
+           2010  |          0  (omitted)
+           2011  |          0  (omitted)
+           2012  |          0  (omitted)
+           2013  |          0  (omitted)
+           2014  |          0  (omitted)
+           2015  |          0  (omitted)
+           2016  |          0  (omitted)
+           2017  |          0  (omitted)
+------------------------------------------------------------------
+
+Mean estimation                               Number of obs = 268,665
+
+---------------------------------------------------------------------
+                    |       Mean   Std. err.     [95% conf. interval]
+--------------------+------------------------------------------------
+c.MISS_prev_pn@year |
+              1993  |   .9500636   .0023419      .9454734    .9546537
+              1994  |   .9438253   .0024555      .9390125    .9486381
+              1995  |   .9373309   .0025733      .9322874    .9423745
+              1996  |   .9277014   .0027378      .9223354    .9330675
+              1997  |    .918512   .0028789      .9128695    .9241545
+              1998  |   .9077378   .0030277      .9018035     .913672
+              1999  |   .8892945   .0032515      .8829217    .8956674
+              2000  |   .8514614   .0036336      .8443395    .8585832
+              2001  |   .7967072   .0040326      .7888035    .8046109
+              2002  |   .7598054   .0042147      .7515447     .768066
+              2003  |   .7297119   .0043168       .721251    .7381727
+              2004  |   .6974945   .0044088      .6888533    .7061356
+              2005  |   .6714144   .0044598      .6626733    .6801555
+              2006  |   .6633215   .0044537      .6545924    .6720506
+              2007  |    .663242   .0044288      .6545616    .6719224
+              2008  |   .6646114   .0043999      .6559876    .6732351
+              2009  |   .6633425   .0043818      .6547543    .6719308
+              2010  |   .6613838   .0043686      .6528215    .6699461
+              2011  |   .6703716   .0042814      .6619802     .678763
+              2012  |   .6722176   .0042622      .6638638    .6805715
+              2013  |   .7051209   .0041276      .6970308    .7132109
+              2014  |    .724239    .004032      .7163364    .7321416
+              2015  |   .7348687   .0039681      .7270914     .742646
+              2016  |    .741353   .0039229      .7336642    .7490418
+              2017  |   .7388006   .0039257      .7311064    .7464948
+---------------------------------------------------------------------
+
+Mean estimation                            Number of obs = 268,665
+
+------------------------------------------------------------------
+                 |       Mean   Std. err.     [95% conf. interval]
+-----------------+------------------------------------------------
+c.MISS_name@year |
+           1993  |          0  (omitted)
+           1994  |          0  (omitted)
+           1995  |          0  (omitted)
+           1996  |          0  (omitted)
+           1997  |          0  (omitted)
+           1998  |          0  (omitted)
+           1999  |          0  (omitted)
+           2000  |          0  (omitted)
+           2001  |          0  (omitted)
+           2002  |          0  (omitted)
+           2003  |          0  (omitted)
+           2004  |          0  (omitted)
+           2005  |          0  (omitted)
+           2006  |          0  (omitted)
+           2007  |          0  (omitted)
+           2008  |          0  (omitted)
+           2009  |          0  (omitted)
+           2010  |          0  (omitted)
+           2011  |          0  (omitted)
+           2012  |          0  (omitted)
+           2013  |          0  (omitted)
+           2014  |          0  (omitted)
+           2015  |          0  (omitted)
+           2016  |          0  (omitted)
+           2017  |          0  (omitted)
+------------------------------------------------------------------
+
+Mean estimation                          Number of obs = 268,665
+
+----------------------------------------------------------------
+               |       Mean   Std. err.     [95% conf. interval]
+---------------+------------------------------------------------
+c.MISS_pn@year |
+         1993  |          0  (omitted)
+         1994  |          0  (omitted)
+         1995  |          0  (omitted)
+         1996  |          0  (omitted)
+         1997  |          0  (omitted)
+         1998  |          0  (omitted)
+         1999  |          0  (omitted)
+         2000  |          0  (omitted)
+         2001  |          0  (omitted)
+         2002  |          0  (omitted)
+         2003  |          0  (omitted)
+         2004  |          0  (omitted)
+         2005  |          0  (omitted)
+         2006  |          0  (omitted)
+         2007  |          0  (omitted)
+         2008  |          0  (omitted)
+         2009  |          0  (omitted)
+         2010  |          0  (omitted)
+         2011  |          0  (omitted)
+         2012  |          0  (omitted)
+         2013  |          0  (omitted)
+         2014  |          0  (omitted)
+         2015  |          0  (omitted)
+         2016  |          0  (omitted)
+         2017  |          0  (omitted)
+----------------------------------------------------------------
+
+Mean estimation                             Number of obs = 268,665
+
+-------------------------------------------------------------------
+                  |       Mean   Std. err.     [95% conf. interval]
+------------------+------------------------------------------------
+c.MISS_state@year |
+            1993  |          0  (omitted)
+            1994  |          0  (omitted)
+            1995  |          0  (omitted)
+            1996  |          0  (omitted)
+            1997  |          0  (omitted)
+            1998  |          0  (omitted)
+            1999  |          0  (omitted)
+            2000  |          0  (omitted)
+            2001  |          0  (omitted)
+            2002  |          0  (omitted)
+            2003  |          0  (omitted)
+            2004  |          0  (omitted)
+            2005  |          0  (omitted)
+            2006  |          0  (omitted)
+            2007  |          0  (omitted)
+            2008  |          0  (omitted)
+            2009  |          0  (omitted)
+            2010  |          0  (omitted)
+            2011  |          0  (omitted)
+            2012  |          0  (omitted)
+            2013  |          0  (omitted)
+            2014  |          0  (omitted)
+            2015  |          0  (omitted)
+            2016  |          0  (omitted)
+            2017  |          0  (omitted)
+-------------------------------------------------------------------
+
+Mean estimation                               Number of obs = 268,665
+
+---------------------------------------------------------------------
+                    |       Mean   Std. err.     [95% conf. interval]
+--------------------+------------------------------------------------
+c.MISS_address@year |
+              1993  |   .0262397   .0017187      .0228712    .0296083
+              1994  |   .0258131   .0016911      .0224985    .0291276
+              1995  |   .0254734   .0016728      .0221947    .0287521
+              1996  |   .0252542   .0016586      .0220033    .0285051
+              1997  |   .0248007   .0016365      .0215933    .0280082
+              1998  |   .0244063   .0016144      .0212421    .0275704
+              1999  |   .0236229   .0015738      .0205383    .0267075
+              2000  |   .0228601   .0015271      .0198671    .0258531
+              2001  |   .0219857   .0014693      .0191059    .0248656
+              2002  |   .0211192   .0014185       .018339    .0238995
+              2003  |   .0188002   .0013202      .0162127    .0213877
+              2004  |   .0182388   .0012844      .0157215    .0207561
+              2005  |   .0134319    .001093      .0112896    .0155742
+              2006  |   .0131439   .0010733      .0110401    .0152476
+              2007  |   .0127327   .0010507      .0106734     .014792
+              2008  |   .0125923   .0010392      .0105555     .014629
+              2009  |   .0121217   .0010147       .010133    .0141105
+              2010  |   .0117587   .0009951      .0098083    .0137091
+              2011  |   .0114466   .0009688      .0095477    .0133455
+              2012  |   .0113768    .000963      .0094894    .0132641
+              2013  |   .0113068   .0009571       .009431    .0131827
+              2014  |   .0112323   .0009508      .0093687    .0130959
+              2015  |   .0111515    .000944      .0093013    .0130017
+              2016  |   .0110746   .0009375       .009237    .0129121
+              2017  |   .0110197   .0009329      .0091912    .0128482
+---------------------------------------------------------------------
+
+Mean estimation                           Number of obs = 268,665
+
+-----------------------------------------------------------------
+                |       Mean   Std. err.     [95% conf. interval]
+----------------+------------------------------------------------
+c.MISS_tel@year |
+          1993  |   .1071552   .0033257      .1006369    .1136736
+          1994  |   .1054128   .0032748      .0989942    .1118314
+          1995  |    .104486   .0032477      .0981206    .1108515
+          1996  |   .1032518   .0032168       .096947    .1095566
+          1997  |   .1020815   .0031858      .0958373    .1083256
+          1998  |   .1007989   .0031498      .0946255    .1069724
+          1999  |   .0991088   .0030965      .0930397    .1051778
+          2000  |   .0934238   .0029735      .0875958    .0992518
+          2001  |   .0895492   .0028611      .0839416    .0951569
+          2002  |   .0868127   .0027778      .0813682    .0922571
+          2003  |    .078035   .0026072      .0729249     .083145
+          2004  |   .0759948   .0025434      .0710099    .0809798
+          2005  |   .0636437   .0023179      .0591007    .0681867
+          2006  |   .0609236   .0022542      .0565054    .0653418
+          2007  |   .0590973   .0022098      .0547662    .0634284
+          2008  |   .0573165   .0021663      .0530707    .0615623
+          2009  |   .0556224   .0021251      .0514572    .0597877
+          2010  |   .0539366   .0020853      .0498496    .0580237
+          2011  |   .0517585   .0020177      .0478037    .0557132
+          2012  |   .0513603   .0020042       .047432    .0552885
+          2013  |   .0509627   .0019908      .0470609    .0548645
+          2014  |   .0501384   .0019689      .0462793    .0539974
+          2015  |    .049697   .0019536      .0458679     .053526
+          2016  |   .0462242    .001881      .0425374     .049911
+          2017  |   .0442386   .0018375      .0406371    .0478401
+-----------------------------------------------------------------
+
+Mean estimation                                Number of obs = 268,665
+
+----------------------------------------------------------------------
+                     |       Mean   Std. err.     [95% conf. interval]
+---------------------+------------------------------------------------
+c.MISS_termcode@year |
+               1993  |          0  (omitted)
+               1994  |          0  (omitted)
+               1995  |          0  (omitted)
+               1996  |          0  (omitted)
+               1997  |          0  (omitted)
+               1998  |          0  (omitted)
+               1999  |          0  (omitted)
+               2000  |          0  (omitted)
+               2001  |          0  (omitted)
+               2002  |          0  (omitted)
+               2003  |          0  (omitted)
+               2004  |          0  (omitted)
+               2005  |          0  (omitted)
+               2006  |          0  (omitted)
+               2007  |          0  (omitted)
+               2008  |          0  (omitted)
+               2009  |          0  (omitted)
+               2010  |          0  (omitted)
+               2011  |          0  (omitted)
+               2012  |          0  (omitted)
+               2013  |          0  (omitted)
+               2014  |          0  (omitted)
+               2015  |          0  (omitted)
+               2016  |          0  (omitted)
+               2017  |          0  (omitted)
+----------------------------------------------------------------------
+
+Mean estimation                                   Number of obs = 268,665
+
+-------------------------------------------------------------------------
+                        |       Mean   Std. err.     [95% conf. interval]
+------------------------+------------------------------------------------
+c.MISS_typ_control@year |
+                  1993  |   .1192926   .0034851      .1124619    .1261233
+                  1994  |    .118035   .0034408      .1112911    .1247789
+                  1995  |   .1176736   .0034211      .1109683    .1243789
+                  1996  |    .117555   .0034049      .1108816    .1242285
+                  1997  |   .1170283   .0033826      .1103985    .1236582
+                  1998  |   .1157929   .0033476      .1092316    .1223542
+                  1999  |   .1143563   .0032979      .1078925    .1208201
+                  2000  |   .1099165   .0031959      .1036527    .1161803
+                  2001  |   .1059131   .0030834      .0998696    .1119565
+                  2002  |   .1030657   .0029996      .0971865    .1089449
+                  2003  |    .100992   .0029289      .0952515    .1067325
+                  2004  |   .0979182   .0028526      .0923272    .1035092
+                  2005  |   .0905075   .0027242      .0851682    .0958469
+                  2006  |   .0891652   .0026858      .0839012    .0944292
+                  2007  |    .088163    .002657      .0829553    .0933707
+                  2008  |   .0871906   .0026291      .0820376    .0923436
+                  2009  |   .0864856   .0026063      .0813773    .0915938
+                  2010  |   .0858044   .0025854       .080737    .0908717
+                  2011  |   .1029363   .0027677      .0975118    .1083608
+                  2012  |   .1030503   .0027606      .0976397    .1084609
+                  2013  |   .1027448   .0027484      .0973579    .1081317
+                  2014  |   .1022302   .0027333       .096873    .1075873
+                  2015  |   .1014949   .0027147      .0961741    .1068158
+                  2016  |   .1010352   .0026999      .0957435     .106327
+                  2017  |   .1007746   .0026901       .095502    .1060472
+-------------------------------------------------------------------------
+
+Mean estimation                           Number of obs = 268,665
+
+-----------------------------------------------------------------
+                |       Mean   Std. err.     [95% conf. interval]
+----------------+------------------------------------------------
+c.MISS_zip@year |
+          1993  |   .0287828   .0017977      .0252594    .0323062
+          1994  |   .0285422   .0017758      .0250617    .0320227
+          1995  |   .0289675   .0017807      .0254774    .0324576
+          1996  |   .0291653   .0017789      .0256787    .0326518
+          1997  |   .0291187   .0017693      .0256509    .0325865
+          1998  |   .0287841   .0017493      .0253556    .0322126
+          1999  |   .0283475   .0017199      .0249766    .0317183
+          2000  |   .0275574   .0016726      .0242792    .0308357
+          2001  |   .0266038   .0016125      .0234434    .0297641
+          2002  |   .0257908   .0015638      .0227257    .0288558
+          2003  |   .0253188    .001527       .022326    .0283117
+          2004  |    .024871   .0014947      .0219414    .0278007
+          2005  |   .0243397   .0014632      .0214719    .0272075
+          2006  |   .0239787   .0014418      .0211529    .0268045
+          2007  |   .0237092   .0014257      .0209147    .0265036
+          2008  |   .0234477   .0014102      .0206837    .0262117
+          2009  |   .0232118   .0013962      .0204753    .0259483
+          2010  |   .0230061    .001384      .0202936    .0257187
+          2011  |   .0223955   .0013477      .0197541    .0250369
+          2012  |   .0222589   .0013395      .0196334    .0248843
+          2013  |   .0221221   .0013314      .0195126    .0247316
+          2014  |   .0219762   .0013227      .0193838    .0245687
+          2015  |   .0218182   .0013133      .0192441    .0243922
+          2016  |   .0216676   .0013043      .0191111    .0242241
+          2017  |   .0215603   .0012979      .0190164    .0241043
+-----------------------------------------------------------------
+
+Mean estimation                                Number of obs = 268,665
+
+----------------------------------------------------------------------
+                     |       Mean   Std. err.     [95% conf. interval]
+---------------------+------------------------------------------------
+c.MISS_beds_tot@year |
+               1993  |          0  (omitted)
+               1994  |          0  (omitted)
+               1995  |          0  (omitted)
+               1996  |          0  (omitted)
+               1997  |          0  (omitted)
+               1998  |          0  (omitted)
+               1999  |          0  (omitted)
+               2000  |          0  (omitted)
+               2001  |          0  (omitted)
+               2002  |          0  (omitted)
+               2003  |          0  (omitted)
+               2004  |          0  (omitted)
+               2005  |          0  (omitted)
+               2006  |          0  (omitted)
+               2007  |          0  (omitted)
+               2008  |          0  (omitted)
+               2009  |          0  (omitted)
+               2010  |          0  (omitted)
+               2011  |   .0192435   .0012512      .0167911    .0216959
+               2012  |   .0147568   .0010949      .0126109    .0169027
+               2013  |          0  (omitted)
+               2014  |          0  (omitted)
+               2015  |          0  (omitted)
+               2016  |          0  (omitted)
+               2017  |          0  (omitted)
+----------------------------------------------------------------------
+
+Mean estimation                                 Number of obs = 268,665
+
+-----------------------------------------------------------------------
+                      |       Mean   Std. err.     [95% conf. interval]
+----------------------+------------------------------------------------
+c.MISS_beds_cert@year |
+                1993  |          0  (omitted)
+                1994  |          0  (omitted)
+                1995  |          0  (omitted)
+                1996  |          0  (omitted)
+                1997  |          0  (omitted)
+                1998  |          0  (omitted)
+                1999  |          0  (omitted)
+                2000  |          0  (omitted)
+                2001  |          0  (omitted)
+                2002  |          0  (omitted)
+                2003  |          0  (omitted)
+                2004  |          0  (omitted)
+                2005  |          0  (omitted)
+                2006  |          0  (omitted)
+                2007  |          0  (omitted)
+                2008  |          0  (omitted)
+                2009  |          0  (omitted)
+                2010  |          0  (omitted)
+                2011  |   .0192435   .0012512      .0167911    .0216959
+                2012  |   .0147568   .0010949      .0126109    .0169027
+                2013  |          0  (omitted)
+                2014  |          0  (omitted)
+                2015  |          0  (omitted)
+                2016  |          0  (omitted)
+                2017  |          0  (omitted)
+-----------------------------------------------------------------------
+
+Mean estimation                                Number of obs = 268,665
+
+----------------------------------------------------------------------
+                     |       Mean   Std. err.     [95% conf. interval]
+---------------------+------------------------------------------------
+c.MISS_medaffil@year |
+               1993  |   .1196393   .0034895      .1128001    .1264786
+               1994  |   .1183762   .0034451      .1116238    .1251285
+               1995  |   .1180117   .0034254      .1112981    .1247254
+               1996  |   .1178903   .0034091      .1112086     .124572
+               1997  |   .1173605   .0033868      .1107225    .1239985
+               1998  |   .1161213   .0033518      .1095519    .1226906
+               1999  |   .1146784   .0033019      .1082067    .1211501
+               2000  |   .1102296   .0031998       .103958    .1165012
+               2001  |   .1062142   .0030873      .1001632    .1122653
+               2002  |   .1033577   .0030034      .0974711    .1092442
+               2003  |   .1012754   .0029325      .0955277     .107023
+               2004  |   .0979182   .0028526      .0923272    .1035092
+               2005  |   .0905075   .0027242      .0851682    .0958469
+               2006  |   .0891652   .0026858      .0839012    .0944292
+               2007  |    .088163    .002657      .0829553    .0933707
+               2008  |   .0871906   .0026291      .0820376    .0923436
+               2009  |   .0864856   .0026063      .0813773    .0915938
+               2010  |   .0858044   .0025854       .080737    .0908717
+               2011  |   .1029363   .0027677      .0975118    .1083608
+               2012  |   .1030503   .0027606      .0976397    .1084609
+               2013  |   .1027448   .0027484      .0973579    .1081317
+               2014  |   .1022302   .0027333       .096873    .1075873
+               2015  |   .1014949   .0027147      .0961741    .1068158
+               2016  |   .1010352   .0026999      .0957435     .106327
+               2017  |   .1007746   .0026901       .095502    .1060472
+----------------------------------------------------------------------
+
+Mean estimation                                   Number of obs = 268,665
+
+-------------------------------------------------------------------------
+                        |       Mean   Std. err.     [95% conf. interval]
+------------------------+------------------------------------------------
+c.MISS_resprog_ada@year |
+                  1993  |   .1196393   .0034895      .1128001    .1264786
+                  1994  |   .1183762   .0034451      .1116238    .1251285
+                  1995  |   .1180117   .0034254      .1112981    .1247254
+                  1996  |   .1178903   .0034091      .1112086     .124572
+                  1997  |   .1173605   .0033868      .1107225    .1239985
+                  1998  |   .1161213   .0033518      .1095519    .1226906
+                  1999  |   .1146784   .0033019      .1082067    .1211501
+                  2000  |   .1102296   .0031998       .103958    .1165012
+                  2001  |   .1062142   .0030873      .1001632    .1122653
+                  2002  |   .1033577   .0030034      .0974711    .1092442
+                  2003  |   .1012754   .0029325      .0955277     .107023
+                  2004  |   .0979182   .0028526      .0923272    .1035092
+                  2005  |   .0905075   .0027242      .0851682    .0958469
+                  2006  |   .0891652   .0026858      .0839012    .0944292
+                  2007  |    .088163    .002657      .0829553    .0933707
+                  2008  |   .0871906   .0026291      .0820376    .0923436
+                  2009  |   .0864856   .0026063      .0813773    .0915938
+                  2010  |   .0858044   .0025854       .080737    .0908717
+                  2011  |   .0049768   .0006409      .0037206     .006233
+                  2012  |   .0028854    .000487      .0019308      .00384
+                  2013  |          0  (omitted)
+                  2014  |          0  (omitted)
+                  2015  |          0  (omitted)
+                  2016  |          0  (omitted)
+                  2017  |          0  (omitted)
+-------------------------------------------------------------------------
+
+Mean estimation                                   Number of obs = 268,665
+
+-------------------------------------------------------------------------
+                        |       Mean   Std. err.     [95% conf. interval]
+------------------------+------------------------------------------------
+c.MISS_resprog_ama@year |
+                  1993  |   .1196393   .0034895      .1128001    .1264786
+                  1994  |   .1183762   .0034451      .1116238    .1251285
+                  1995  |   .1180117   .0034254      .1112981    .1247254
+                  1996  |   .1178903   .0034091      .1112086     .124572
+                  1997  |   .1173605   .0033868      .1107225    .1239985
+                  1998  |   .1161213   .0033518      .1095519    .1226906
+                  1999  |   .1146784   .0033019      .1082067    .1211501
+                  2000  |   .1102296   .0031998       .103958    .1165012
+                  2001  |   .1062142   .0030873      .1001632    .1122653
+                  2002  |   .1033577   .0030034      .0974711    .1092442
+                  2003  |   .1012754   .0029325      .0955277     .107023
+                  2004  |   .0979182   .0028526      .0923272    .1035092
+                  2005  |   .0905075   .0027242      .0851682    .0958469
+                  2006  |   .0891652   .0026858      .0839012    .0944292
+                  2007  |    .088163    .002657      .0829553    .0933707
+                  2008  |   .0871906   .0026291      .0820376    .0923436
+                  2009  |   .0864856   .0026063      .0813773    .0915938
+                  2010  |   .0858044   .0025854       .080737    .0908717
+                  2011  |   .0049768   .0006409      .0037206     .006233
+                  2012  |   .0028854    .000487      .0019308      .00384
+                  2013  |          0  (omitted)
+                  2014  |          0  (omitted)
+                  2015  |          0  (omitted)
+                  2016  |          0  (omitted)
+                  2017  |          0  (omitted)
+-------------------------------------------------------------------------
+
+Mean estimation                                   Number of obs = 268,665
+
+-------------------------------------------------------------------------
+                        |       Mean   Std. err.     [95% conf. interval]
+------------------------+------------------------------------------------
+c.MISS_resprog_aoa@year |
+                  1993  |   .1196393   .0034895      .1128001    .1264786
+                  1994  |   .1183762   .0034451      .1116238    .1251285
+                  1995  |   .1180117   .0034254      .1112981    .1247254
+                  1996  |   .1178903   .0034091      .1112086     .124572
+                  1997  |   .1173605   .0033868      .1107225    .1239985
+                  1998  |   .1161213   .0033518      .1095519    .1226906
+                  1999  |   .1146784   .0033019      .1082067    .1211501
+                  2000  |   .1102296   .0031998       .103958    .1165012
+                  2001  |   .1062142   .0030873      .1001632    .1122653
+                  2002  |   .1033577   .0030034      .0974711    .1092442
+                  2003  |   .1012754   .0029325      .0955277     .107023
+                  2004  |   .0979182   .0028526      .0923272    .1035092
+                  2005  |   .0905075   .0027242      .0851682    .0958469
+                  2006  |   .0891652   .0026858      .0839012    .0944292
+                  2007  |    .088163    .002657      .0829553    .0933707
+                  2008  |   .0871906   .0026291      .0820376    .0923436
+                  2009  |   .0864856   .0026063      .0813773    .0915938
+                  2010  |   .0858044   .0025854       .080737    .0908717
+                  2011  |   .0049768   .0006409      .0037206     .006233
+                  2012  |   .0028854    .000487      .0019308      .00384
+                  2013  |          0  (omitted)
+                  2014  |          0  (omitted)
+                  2015  |          0  (omitted)
+                  2016  |          0  (omitted)
+                  2017  |          0  (omitted)
+-------------------------------------------------------------------------
+
+Mean estimation                                   Number of obs = 268,665
+
+-------------------------------------------------------------------------
+                        |       Mean   Std. err.     [95% conf. interval]
+------------------------+------------------------------------------------
+c.MISS_resprog_oth@year |
+                  1993  |   .1196393   .0034895      .1128001    .1264786
+                  1994  |   .1183762   .0034451      .1116238    .1251285
+                  1995  |   .1180117   .0034254      .1112981    .1247254
+                  1996  |   .1178903   .0034091      .1112086     .124572
+                  1997  |   .1173605   .0033868      .1107225    .1239985
+                  1998  |   .1161213   .0033518      .1095519    .1226906
+                  1999  |   .1146784   .0033019      .1082067    .1211501
+                  2000  |   .1102296   .0031998       .103958    .1165012
+                  2001  |   .1062142   .0030873      .1001632    .1122653
+                  2002  |   .1033577   .0030034      .0974711    .1092442
+                  2003  |   .1012754   .0029325      .0955277     .107023
+                  2004  |   .0979182   .0028526      .0923272    .1035092
+                  2005  |   .0905075   .0027242      .0851682    .0958469
+                  2006  |   .0891652   .0026858      .0839012    .0944292
+                  2007  |    .088163    .002657      .0829553    .0933707
+                  2008  |   .0871906   .0026291      .0820376    .0923436
+                  2009  |   .0864856   .0026063      .0813773    .0915938
+                  2010  |   .0858044   .0025854       .080737    .0908717
+                  2011  |   .0049768   .0006409      .0037206     .006233
+                  2012  |   .0028854    .000487      .0019308      .00384
+                  2013  |          0  (omitted)
+                  2014  |          0  (omitted)
+                  2015  |          0  (omitted)
+                  2016  |          0  (omitted)
+                  2017  |          0  (omitted)
+-------------------------------------------------------------------------
+
+Mean estimation                                 Number of obs = 268,665
+
+-----------------------------------------------------------------------
+                      |       Mean   Std. err.     [95% conf. interval]
+----------------------+------------------------------------------------
+c.MISS_residents@year |
+                1993  |          0  (omitted)
+                1994  |          0  (omitted)
+                1995  |          0  (omitted)
+                1996  |          0  (omitted)
+                1997  |          0  (omitted)
+                1998  |          0  (omitted)
+                1999  |          0  (omitted)
+                2000  |          0  (omitted)
+                2001  |          0  (omitted)
+                2002  |          0  (omitted)
+                2003  |          0  (omitted)
+                2004  |          0  (omitted)
+                2005  |          0  (omitted)
+                2006  |          0  (omitted)
+                2007  |          0  (omitted)
+                2008  |          0  (omitted)
+                2009  |          0  (omitted)
+                2010  |          0  (omitted)
+                2011  |   .0194094   .0012565      .0169467    .0218722
+                2012  |   .0148392   .0010979      .0126875     .016991
+                2013  |          0  (omitted)
+                2014  |          0  (omitted)
+                2015  |          0  (omitted)
+                2016  |          0  (omitted)
+                2017  |          0  (omitted)
+-----------------------------------------------------------------------
+
+Mean estimation                            Number of obs = 268,665
+
+------------------------------------------------------------------
+                 |       Mean   Std. err.     [95% conf. interval]
+-----------------+------------------------------------------------
+c.MISS_year@year |
+           1993  |          0  (omitted)
+           1994  |          0  (omitted)
+           1995  |          0  (omitted)
+           1996  |          0  (omitted)
+           1997  |          0  (omitted)
+           1998  |          0  (omitted)
+           1999  |          0  (omitted)
+           2000  |          0  (omitted)
+           2001  |          0  (omitted)
+           2002  |          0  (omitted)
+           2003  |          0  (omitted)
+           2004  |          0  (omitted)
+           2005  |          0  (omitted)
+           2006  |          0  (omitted)
+           2007  |          0  (omitted)
+           2008  |          0  (omitted)
+           2009  |          0  (omitted)
+           2010  |          0  (omitted)
+           2011  |          0  (omitted)
+           2012  |          0  (omitted)
+           2013  |          0  (omitted)
+           2014  |          0  (omitted)
+           2015  |          0  (omitted)
+           2016  |          0  (omitted)
+           2017  |          0  (omitted)
+------------------------------------------------------------------
+
+Mean estimation                                 Number of obs = 268,665
+
+-----------------------------------------------------------------------
+                      |       Mean   Std. err.     [95% conf. interval]
+----------------------+------------------------------------------------
+c.MISS_urbancbsa@year |
+                1993  |          1          0             .           .
+                1994  |          1          0             .           .
+                1995  |          1          0             .           .
+                1996  |          1          0             .           .
+                1997  |          1          0             .           .
+                1998  |          1          0             .           .
+                1999  |          1          0             .           .
+                2000  |          1          0             .           .
+                2001  |          1          0             .           .
+                2002  |          1          0             .           .
+                2003  |          1          0             .           .
+                2004  |          1          0             .           .
+                2005  |          1          0             .           .
+                2006  |          1          0             .           .
+                2007  |          1          0             .           .
+                2008  |          1          0             .           .
+                2009  |          1          0             .           .
+                2010  |          1          0             .           .
+                2011  |   .0251327   .0014256      .0223385    .0279269
+                2012  |   .0248969   .0014148       .022124    .0276699
+                2013  |    .024744   .0014062      .0219879       .0275
+                2014  |   .0245808    .001397      .0218427     .027319
+                2015  |    .024404   .0013871      .0216853    .0271227
+                2016  |   .0239949    .001371      .0213078    .0266819
+                2017  |   .0238761   .0013643      .0212022      .02655
+-----------------------------------------------------------------------
+
+Mean estimation                                Number of obs = 268,665
+
+----------------------------------------------------------------------
+                     |       Mean   Std. err.     [95% conf. interval]
+---------------------+------------------------------------------------
+c.MISS_termdate@year |
+               1993  |   .8593226   .0037384      .8519955    .8666497
+               1994  |   .8469411   .0038396      .8394156    .8544666
+               1995  |    .837917   .0039128      .8302481    .8455859
+               1996  |    .817745   .0040812       .809746     .825744
+               1997  |   .8018158   .0041947      .7935942    .8100373
+               1998  |   .7853781   .0042953      .7769594    .7937969
+               1999  |   .7625899   .0044093      .7539477    .7712321
+               2000  |   .7354906   .0045066      .7266578    .7443234
+               2001  |   .7048489   .0045703      .6958913    .7138065
+               2002  |   .6808759   .0045988      .6718624    .6898894
+               2003  |   .6649032   .0045882      .6559105    .6738959
+               2004  |    .653832   .0045663      .6448822    .6627817
+               2005  |   .6294961   .0045855      .6205086    .6384836
+               2006  |   .6199822   .0045745      .6110164    .6289481
+               2007  |    .610994   .0045687      .6020395    .6199485
+               2008  |   .6047764   .0045562      .5958463    .6137065
+               2009  |   .5989512   .0045445      .5900441    .6078583
+               2010  |   .5933027   .0045345      .5844151    .6021902
+               2011  |   .5967153   .0044679      .5879583    .6054723
+               2012  |    .593817   .0044594      .5850767    .6025573
+               2013  |   .5894306   .0044531      .5807027    .5981584
+               2014  |   .5845678   .0044461      .5758536    .5932821
+               2015  |   .5793131   .0044379      .5706149    .5880114
+               2016  |   .5758767   .0044274      .5671991    .5845544
+               2017  |   .5721472   .0044214      .5634813    .5808132
+----------------------------------------------------------------------
+
+Mean estimation                                Number of obs = 268,665
+
+----------------------------------------------------------------------
+                     |       Mean   Std. err.     [95% conf. interval]
+---------------------+------------------------------------------------
+c.MISS_partdate@year |
+               1993  |   .1162871   .0034468      .1095315    .1230427
+               1994  |    .114851   .0034002      .1081867    .1215154
+               1995  |   .1145176    .003381       .107891    .1211442
+               1996  |   .1139792   .0033595      .1073947    .1205637
+               1997  |    .113264   .0033348      .1067278    .1198001
+               1998  |   .1120718   .0033003      .1056032    .1185404
+               1999  |   .1105981   .0032501      .1042279    .1169683
+               2000  |    .108977   .0031838      .1027368    .1152173
+               2001  |   .1050095   .0030718      .0989889    .1110302
+               2002  |   .1021898   .0029883      .0963328    .1080468
+               2003  |   .1001417   .0029179      .0944227    .1058607
+               2004  |   .0979182   .0028526      .0923272    .1035092
+               2005  |   .0905075   .0027242      .0851682    .0958469
+               2006  |   .0891652   .0026858      .0839012    .0944292
+               2007  |    .088163    .002657      .0829553    .0933707
+               2008  |   .0871906   .0026291      .0820376    .0923436
+               2009  |   .0864856   .0026063      .0813773    .0915938
+               2010  |   .0858044   .0025854       .080737    .0908717
+               2011  |          0  (omitted)
+               2012  |          0  (omitted)
+               2013  |          0  (omitted)
+               2014  |          0  (omitted)
+               2015  |          0  (omitted)
+               2016  |          0  (omitted)
+               2017  |          0  (omitted)
+----------------------------------------------------------------------
+
+Mean estimation                              Number of obs = 268,665
+
+--------------------------------------------------------------------
+                   |       Mean   Std. err.     [95% conf. interval]
+-------------------+------------------------------------------------
+c.MISS_active@year |
+             1993  |          0  (omitted)
+             1994  |          0  (omitted)
+             1995  |          0  (omitted)
+             1996  |          0  (omitted)
+             1997  |          0  (omitted)
+             1998  |          0  (omitted)
+             1999  |          0  (omitted)
+             2000  |          0  (omitted)
+             2001  |          0  (omitted)
+             2002  |          0  (omitted)
+             2003  |          0  (omitted)
+             2004  |          0  (omitted)
+             2005  |          0  (omitted)
+             2006  |          0  (omitted)
+             2007  |          0  (omitted)
+             2008  |          0  (omitted)
+             2009  |          0  (omitted)
+             2010  |          0  (omitted)
+             2011  |          0  (omitted)
+             2012  |          0  (omitted)
+             2013  |          0  (omitted)
+             2014  |          0  (omitted)
+             2015  |          0  (omitted)
+             2016  |          0  (omitted)
+             2017  |          0  (omitted)
+--------------------------------------------------------------------
+
+Mean estimation                                 Number of obs = 268,665
+
+-----------------------------------------------------------------------
+                      |       Mean   Std. err.     [95% conf. interval]
+----------------------+------------------------------------------------
+c.MISS_shortterm@year |
+                1993  |          0  (omitted)
+                1994  |          0  (omitted)
+                1995  |          0  (omitted)
+                1996  |          0  (omitted)
+                1997  |          0  (omitted)
+                1998  |          0  (omitted)
+                1999  |          0  (omitted)
+                2000  |          0  (omitted)
+                2001  |          0  (omitted)
+                2002  |          0  (omitted)
+                2003  |          0  (omitted)
+                2004  |          0  (omitted)
+                2005  |          0  (omitted)
+                2006  |          0  (omitted)
+                2007  |          0  (omitted)
+                2008  |          0  (omitted)
+                2009  |          0  (omitted)
+                2010  |          0  (omitted)
+                2011  |          0  (omitted)
+                2012  |          0  (omitted)
+                2013  |          0  (omitted)
+                2014  |          0  (omitted)
+                2015  |          0  (omitted)
+                2016  |          0  (omitted)
+                2017  |          0  (omitted)
+-----------------------------------------------------------------------
+
+Mean estimation                           Number of obs = 268,665
+
+-----------------------------------------------------------------
+                |       Mean   Std. err.     [95% conf. interval]
+----------------+------------------------------------------------
+c.MISS_cah@year |
+          1993  |          0  (omitted)
+          1994  |          0  (omitted)
+          1995  |          0  (omitted)
+          1996  |          0  (omitted)
+          1997  |          0  (omitted)
+          1998  |          0  (omitted)
+          1999  |          0  (omitted)
+          2000  |          0  (omitted)
+          2001  |          0  (omitted)
+          2002  |          0  (omitted)
+          2003  |          0  (omitted)
+          2004  |          0  (omitted)
+          2005  |          0  (omitted)
+          2006  |          0  (omitted)
+          2007  |          0  (omitted)
+          2008  |          0  (omitted)
+          2009  |          0  (omitted)
+          2010  |          0  (omitted)
+          2011  |          0  (omitted)
+          2012  |          0  (omitted)
+          2013  |          0  (omitted)
+          2014  |          0  (omitted)
+          2015  |          0  (omitted)
+          2016  |          0  (omitted)
+          2017  |          0  (omitted)
+-----------------------------------------------------------------
+
+Mean estimation                                 Number of obs = 268,665
+
+-----------------------------------------------------------------------
+                      |       Mean   Std. err.     [95% conf. interval]
+----------------------+------------------------------------------------
+c.MISS_nonprofit@year |
+                1993  |          0  (omitted)
+                1994  |          0  (omitted)
+                1995  |          0  (omitted)
+                1996  |          0  (omitted)
+                1997  |          0  (omitted)
+                1998  |          0  (omitted)
+                1999  |          0  (omitted)
+                2000  |          0  (omitted)
+                2001  |          0  (omitted)
+                2002  |          0  (omitted)
+                2003  |          0  (omitted)
+                2004  |          0  (omitted)
+                2005  |          0  (omitted)
+                2006  |          0  (omitted)
+                2007  |          0  (omitted)
+                2008  |          0  (omitted)
+                2009  |          0  (omitted)
+                2010  |          0  (omitted)
+                2011  |          0  (omitted)
+                2012  |          0  (omitted)
+                2013  |          0  (omitted)
+                2014  |          0  (omitted)
+                2015  |          0  (omitted)
+                2016  |          0  (omitted)
+                2017  |          0  (omitted)
+-----------------------------------------------------------------------
+
+Mean estimation                                 Number of obs = 268,665
+
+-----------------------------------------------------------------------
+                      |       Mean   Std. err.     [95% conf. interval]
+----------------------+------------------------------------------------
+c.MISS_forprofit@year |
+                1993  |          0  (omitted)
+                1994  |          0  (omitted)
+                1995  |          0  (omitted)
+                1996  |          0  (omitted)
+                1997  |          0  (omitted)
+                1998  |          0  (omitted)
+                1999  |          0  (omitted)
+                2000  |          0  (omitted)
+                2001  |          0  (omitted)
+                2002  |          0  (omitted)
+                2003  |          0  (omitted)
+                2004  |          0  (omitted)
+                2005  |          0  (omitted)
+                2006  |          0  (omitted)
+                2007  |          0  (omitted)
+                2008  |          0  (omitted)
+                2009  |          0  (omitted)
+                2010  |          0  (omitted)
+                2011  |          0  (omitted)
+                2012  |          0  (omitted)
+                2013  |          0  (omitted)
+                2014  |          0  (omitted)
+                2015  |          0  (omitted)
+                2016  |          0  (omitted)
+                2017  |          0  (omitted)
+-----------------------------------------------------------------------
+
+Mean estimation                            Number of obs = 268,665
+
+------------------------------------------------------------------
+                 |       Mean   Std. err.     [95% conf. interval]
+-----------------+------------------------------------------------
+c.MISS_govt@year |
+           1993  |          0  (omitted)
+           1994  |          0  (omitted)
+           1995  |          0  (omitted)
+           1996  |          0  (omitted)
+           1997  |          0  (omitted)
+           1998  |          0  (omitted)
+           1999  |          0  (omitted)
+           2000  |          0  (omitted)
+           2001  |          0  (omitted)
+           2002  |          0  (omitted)
+           2003  |          0  (omitted)
+           2004  |          0  (omitted)
+           2005  |          0  (omitted)
+           2006  |          0  (omitted)
+           2007  |          0  (omitted)
+           2008  |          0  (omitted)
+           2009  |          0  (omitted)
+           2010  |          0  (omitted)
+           2011  |          0  (omitted)
+           2012  |          0  (omitted)
+           2013  |          0  (omitted)
+           2014  |          0  (omitted)
+           2015  |          0  (omitted)
+           2016  |          0  (omitted)
+           2017  |          0  (omitted)
+------------------------------------------------------------------
+
+Mean estimation                                Number of obs = 268,665
+
+----------------------------------------------------------------------
+                     |       Mean   Std. err.     [95% conf. interval]
+---------------------+------------------------------------------------
+c.MISS_maryland@year |
+               1993  |          0  (omitted)
+               1994  |          0  (omitted)
+               1995  |          0  (omitted)
+               1996  |          0  (omitted)
+               1997  |          0  (omitted)
+               1998  |          0  (omitted)
+               1999  |          0  (omitted)
+               2000  |          0  (omitted)
+               2001  |          0  (omitted)
+               2002  |          0  (omitted)
+               2003  |          0  (omitted)
+               2004  |          0  (omitted)
+               2005  |          0  (omitted)
+               2006  |          0  (omitted)
+               2007  |          0  (omitted)
+               2008  |          0  (omitted)
+               2009  |          0  (omitted)
+               2010  |          0  (omitted)
+               2011  |          0  (omitted)
+               2012  |          0  (omitted)
+               2013  |          0  (omitted)
+               2014  |          0  (omitted)
+               2015  |          0  (omitted)
+               2016  |          0  (omitted)
+               2017  |          0  (omitted)
+----------------------------------------------------------------------
+
+Mean estimation                                Number of obs = 268,665
+
+----------------------------------------------------------------------
+                     |       Mean   Std. err.     [95% conf. interval]
+---------------------+------------------------------------------------
+c.MISS_nonstate@year |
+               1993  |          0  (omitted)
+               1994  |          0  (omitted)
+               1995  |          0  (omitted)
+               1996  |          0  (omitted)
+               1997  |          0  (omitted)
+               1998  |          0  (omitted)
+               1999  |          0  (omitted)
+               2000  |          0  (omitted)
+               2001  |          0  (omitted)
+               2002  |          0  (omitted)
+               2003  |          0  (omitted)
+               2004  |          0  (omitted)
+               2005  |          0  (omitted)
+               2006  |          0  (omitted)
+               2007  |          0  (omitted)
+               2008  |          0  (omitted)
+               2009  |          0  (omitted)
+               2010  |          0  (omitted)
+               2011  |          0  (omitted)
+               2012  |          0  (omitted)
+               2013  |          0  (omitted)
+               2014  |          0  (omitted)
+               2015  |          0  (omitted)
+               2016  |          0  (omitted)
+               2017  |          0  (omitted)
+----------------------------------------------------------------------
+
+. 
+. order ///
+>         pn year name address city state zip tel active termcode termdate partd
+> ate prev_pn ///
+>         medaffil resprog_* residents ///
+>         shortterm cah provider_subtype typ_control nonprofit forprofit govt //
+> /
+>         maryland nonstate urbancbsa beds_tot beds_cert
+
+. 
+. compress
+  (0 bytes saved)
+
+. sort pn year
+
+. 
+. save ../Output/POS/pos.dta, replace
+file ../Output/POS/pos.dta saved
+
+. saveold ../Output/POS/pos.v12.dta, replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+file ../Output/POS/pos.v12.dta saved
+
+. export delimited ../Output/POS/pos.csv, replace
+file ../Output/POS/pos.csv saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
+> put/POS/pos.log
+  log type:  text
+ closed on:  31 Aug 2022, 19:18:32
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
+> put/POS/pos.log
+  log type:  text
+ opened on:  31 Aug 2022, 19:18:32
+
+. 
+. * file of the first time a record was seen for each pn
+. preserve
+
+. egen firstyear = min(year), by(pn)
+
+. keep if year==firstyear
+(255,975 observations deleted)
+
+. drop year
+
+. 
+. label variable firstyear "year of POS data (and first year pn appeared in data
+> )"
+
+. 
+. sort pn
+
+. save ../Output/POS/pos_firstyear.dta, replace
+file ../Output/POS/pos_firstyear.dta saved
+
+. saveold ../Output/POS/pos_firstyear.v12.dta, replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+file ../Output/POS/pos_firstyear.v12.dta saved
+
+. export delimited ../Output/POS/pos_firstyear.csv, replace
+file ../Output/POS/pos_firstyear.csv saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
+> put/POS/pos.log
+  log type:  text
+ closed on:  31 Aug 2022, 19:18:33
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
+> put/POS/pos.log
+  log type:  text
+ opened on:  31 Aug 2022, 19:18:33
+
+. 
+. restore
+
+. 
+. 
+. * file of the last time a record was seen for each pn
+. egen lastyear = max(year), by(pn)
+
+. keep if year==lastyear
+(255,975 observations deleted)
+
+. drop year
+
+. 
+. label variable lastyear "year of POS data (and last year pn appeared in data)"
+
+. 
+. sort pn
+
+. save ../Output/POS/pos_lastyear.dta, replace
+file ../Output/POS/pos_lastyear.dta saved
+
+. saveold ../Output/POS/pos_lastyear.v12.dta, replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+file ../Output/POS/pos_lastyear.v12.dta saved
+
+. export delimited ../Output/POS/pos_lastyear.csv, replace
+file ../Output/POS/pos_lastyear.csv saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
+> put/POS/pos.log
+  log type:  text
+ closed on:  31 Aug 2022, 19:18:33
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
+> put/POS/pos.log
+  log type:  text
+ opened on:  31 Aug 2022, 19:18:33
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
+> put/POS/pos.log
+  log type:  text
+ closed on:  31 Aug 2022, 19:18:33
+--------------------------------------------------------------------------------

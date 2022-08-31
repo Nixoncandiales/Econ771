@@ -1,10 +1,12 @@
 * process provider of services file
 
+cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
 set more off
 capture log close
-log using pos.log, replace
+log using ../Output/POS/pos.log, replace
 clear
 
+cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
 * use POS data from these years
 global STARTYEAR = 1993
 global ENDYEAR = 2017
@@ -26,12 +28,12 @@ global ENDYEAR = 2017
 * edit the 'use ... using' statement below if your POS data follows a
 * different directory structure
 
-* base directory where POS data stored
-cd "C:\Users\16083\Downloads\Data"
-global POSBASE = "source/"
+* base directory where POS data stored WINDOWS
+
+global POSBASE = "../Data/POS"
 
 * make the output folder if it doesn't exist
-capture mkdir output
+capture mkdir ../Output
 
 forvalues year = $STARTYEAR/$ENDYEAR {
 	
@@ -383,19 +385,19 @@ order ///
 compress
 sort pn year
 
-save output/pos.dta, replace
-saveold output/pos.v12.dta, replace version(12)
-export delimited output/pos.csv, replace
+save ../Output/POS/pos.dta, replace
+saveold ../Output/POS/pos.v12.dta, replace version(12)
+export delimited ../Output/POS/pos.csv, replace
 
 log close
 
 quietly {
-    log using output/pos_codebook.txt, text replace
+    log using ../Output/POS/pos_codebook.txt, text replace
     noisily describe, fullnames
     log close
 }
 
-log using pos.log, append
+log using ../Output/POS/pos.log, append
 
 * file of the first time a record was seen for each pn
 preserve
@@ -406,19 +408,19 @@ drop year
 label variable firstyear "year of POS data (and first year pn appeared in data)"
 
 sort pn
-save output/pos_firstyear.dta, replace
-saveold output/pos_firstyear.v12.dta, replace version(12)
-export delimited output/pos_firstyear.csv, replace
+save ../Output/POS/pos_firstyear.dta, replace
+saveold ../Output/POS/pos_firstyear.v12.dta, replace version(12)
+export delimited ../Output/POS/pos_firstyear.csv, replace
 
 log close
 
 quietly {
-    log using output/pos_firstyear_codebook.txt, text replace
+    log using ../Output/POS/pos_firstyear_codebook.txt, text replace
     noisily describe, fullnames
     log close
 }
 
-log using pos.log, append
+log using ../Output/POS/pos.log, append
 
 restore
 
@@ -431,18 +433,18 @@ drop year
 label variable lastyear "year of POS data (and last year pn appeared in data)"
 
 sort pn
-save output/pos_lastyear.dta, replace
-saveold output/pos_lastyear.v12.dta, replace version(12)
-export delimited output/pos_lastyear.csv, replace
+save ../Output/POS/pos_lastyear.dta, replace
+saveold ../Output/POS/pos_lastyear.v12.dta, replace version(12)
+export delimited ../Output/POS/pos_lastyear.csv, replace
 
 log close
 
 quietly {
-    log using output/pos_lastyear_codebook.txt, text replace
+    log using ../Output/POS/pos_lastyear_codebook.txt, text replace
     noisily describe, fullnames
     log close
 }
 
-log using pos.log, append
+log using ../Output/POS/pos.log, append
 
 log close

@@ -1,0 +1,49 @@
+
+Contains data from ../Output/POS/pos.v12.dta
+ Observations:       268,665                  
+    Variables:            31                  31 Aug 2022 19:18
+                                              (_dta has notes)
+--------------------------------------------------------------------------------
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+--------------------------------------------------------------------------------
+pn              str6    %9s                 * hospital medicare provider number
+year            int     %9.0g                 year of POS data
+name            str50   %50s                * name of hospital
+address         str50   %50s                * address
+city            str27   %27s                * city
+state           str2    %2s                 * state
+zip             long    %10.0g              * zip code
+tel             str10   %10s                * telephone number
+active          byte    %9.0g                 is hospital active
+termcode        byte    %14.0g     termcode * termination code
+termdate        int     %td                   termination date
+partdate        int     %td                   participation date
+prev_pn         str10   %10s                * previous provider number
+medaffil        byte    %14.0g     medaffil * affiliation with medical school
+resprog_ada     byte    %10.0g              * ADA-approved resident program /
+                                                dental residency (2013-)
+resprog_ama     byte    %10.0g              * AMA-approved resident program /
+                                                allopathic residency (2013-)
+resprog_aoa     byte    %10.0g              * AOA-approved resident program /
+                                                osteopathic residency (2013-)
+resprog_oth     byte    %10.0g              * other resident program
+residents       double  %9.0g               * number of residents
+shortterm       byte    %9.0g                 is hospital short term
+cah             byte    %9.0g                 is hospital critical access (CAH)
+provider_subtype
+                byte    %20.0g     subtype  * subtype of provider
+typ_control     byte    %34.0g     control  * type of hospital control
+nonprofit       byte    %9.0g                 is hospital non-profit
+forprofit       byte    %9.0g                 is hospital for-profit
+govt            byte    %9.0g                 is hospital government-run
+maryland        byte    %9.0g                 is hospital located in maryland
+nonstate        byte    %9.0g                 is hospital located in a US
+                                                territory or Canada, not a
+                                                state/DC
+urbancbsa       byte    %8.0g               * urban CBSA (2011-)
+beds_tot        int     %8.0g               * total hospital beds
+beds_cert       int     %8.0g               * certified hospital beds
+                                            * indicated variables have notes
+--------------------------------------------------------------------------------
+Sorted by: pn  year
