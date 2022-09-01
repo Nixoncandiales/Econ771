@@ -1,12 +1,21 @@
 * process provider of services file
 
-cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
+* Windows 
+*cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
+
+* Mac
+cd "/Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code"
 set more off
 capture log close
 log using ../Output/POS/pos.log, replace
 clear
 
-cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
+* Windows
+*cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
+
+* Mac
+cd "/Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code"
+
 * use POS data from these years
 global STARTYEAR = 1993
 global ENDYEAR = 2017

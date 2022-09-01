@@ -40,12 +40,12 @@ years = list(range(1994, 2022+1))
 urls = [csm + str(i) + str(j) + '.zip' for i in types for j in years]
 
 # Create a list for the local path to download the files for windows
-local = r'C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\Data'
-fns = [local + '\\' + str(i) + '_' + str(j) + '.zip' for i in types for j in years] 
+#local = r'C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\Data'
+#fns = [local + '\\' + str(i) + '_' + str(j) + '.zip' for i in types for j in years] 
 
 # Create a list for the local path to download the files for Mac
-#local = r'/Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Data'
-#fns2 = [local + '/' + str(i) + '_' + str(j) + '.zip' for i in types for j in years] 
+local = r'/Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Data/HCRIS'
+fns = [local + '/' + str(i) + '_' + str(j) + '.zip' for i in types for j in years] 
 
 
 #zip both in one argument, neccesary for the next step

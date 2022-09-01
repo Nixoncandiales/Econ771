@@ -1,16 +1,20 @@
---------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
-> put/POS/pos.log
+       log:  /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code/../Output/POS/pos.log
   log type:  text
- opened on:  31 Aug 2022, 19:17:57
+ opened on:  31 Aug 2022, 23:37:51
 
 . clear
 
 . 
-. cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
-C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
+. * Windows
+. *cd "C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code"
+. 
+. * Mac
+. cd "/Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code"
+/Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code
 
+. 
 . * use POS data from these years
 . global STARTYEAR = 1993
 
@@ -129,12 +133,9 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
 .         }
  71. 
 .         use `category_provider' `city' `name' `address' `tel' ///
->                 `prev_pn' `termcode' `termdate' `partdate' `zip' `urbancbsa' `
-> medaffil' ///
->                 `resprog_ada' `resprog_ama' `resprog_aoa' `resprog_oth' `resid
-> ents' ///
->                 `pn' `provider_subtype' `typ_control' `state' `beds_tot' `beds
-> _cert'  ///
+>                 `prev_pn' `termcode' `termdate' `partdate' `zip' `urbancbsa' `medaffil' ///
+>                 `resprog_ada' `resprog_ama' `resprog_aoa' `resprog_oth' `residents' ///
+>                 `pn' `provider_subtype' `typ_control' `state' `beds_tot' `beds_cert'  ///
 >                 if `category_provider'=="01" ///
 >                 using $POSBASE/pos`year'.dta
  72.         gen year = `year'
@@ -173,11 +174,9 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
  96. 
 .         * fix date variables stored as strings
 .         
-.         * in 1993-1995, termdate and partdate are stored as YYMMDD not YYYYMMD
-> D like later
+.         * in 1993-1995, termdate and partdate are stored as YYMMDD not YYYYMMDD like later
 .         * years. change to YYYYMMDD
-.         * NOTE: doing this for any year <=1995, assuming that years before 199
-> 3 did this too
+.         * NOTE: doing this for any year <=1995, assuming that years before 1993 did this too
 .         if (`year'<=1995) {
  97.                 replace termdate = "19"+termdate if length(termdate)==6
  98.                 replace partdate = "19"+partdate if length(partdate)==6
@@ -185,13 +184,10 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
 100.         
 .         * deal with termdate and partdate
 .         *
-.         * weirdly, in 2011 and 2011 alone, termdate and partdate as stored pro
-> perly
+.         * weirdly, in 2011 and 2011 alone, termdate and partdate as stored properly
 .         * as stata internal date format
-.         * otherwise they are stored as strings YYYYMMDD (pre 2011) or as longs
->  in
-.         * the format YYYYMMDD (post 2011), both of which need to be converted 
-> to
+.         * otherwise they are stored as strings YYYYMMDD (pre 2011) or as longs in
+.         * the format YYYYMMDD (post 2011), both of which need to be converted to
 .         * stata internal date format
 .         if (`year'!=2011) {
 101.                 if (`year'>=2012) {
@@ -200,8 +196,7 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
 104.                 
 .                 * fix the variables
 .                 foreach var of varlist termdate partdate {
-105.                         gen `var'dt = mdy(real(substr(`var',5,2)),real(subs
-> tr(`var',7,2)),real(substr(`var',1,4)))
+105.                         gen `var'dt = mdy(real(substr(`var',5,2)),real(substr(`var',7,2)),real(substr(`var',1,4)))
 106.                         drop `var'
 107.                         rename `var'dt `var'
 108.                 }
@@ -256,10 +251,8 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
 .         *                  06=INVOLUNTARY-FAILURE TO MEET AGREEMENT
 .         *                  07=OTHER-PROVIDER STATUS CHANGE
 . 
-.         label define termcode 0 "active" 1 "vol-merg,close" 2 "vol-reimburse" 
-> 3 "vol-risk invol" ///
->                 4 "vol-other" 5 "invol-fail req" 6 "invol-agreemnt" 7 "oth-sta
-> tus chg"
+.         label define termcode 0 "active" 1 "vol-merg,close" 2 "vol-reimburse" 3 "vol-risk invol" ///
+>                 4 "vol-other" 5 "invol-fail req" 6 "invol-agreemnt" 7 "oth-status chg"
 131.         destring termcode, replace
 132.         label values termcode termcode
 133.         gen active = termcode==0
@@ -270,8 +263,7 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
 .         *               3                   GRADUATE
 .         *               4                   NO AFFILIATION
 . 
-.         label define medaffil 1 "major" 2 "limited" 3 "graduate" 4 "no affilia
-> tion"
+.         label define medaffil 1 "major" 2 "limited" 3 "graduate" 4 "no affiliation"
 135.         label values medaffil medaffil
 136. 
 . 
@@ -295,12 +287,9 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
 .         *                  22=MEDICAID ONLY NON-PSYCHIATRIC HOSPITAL
 .         *                  23=MEDICAID ONLY PSYCHIATRIC HOSPITAL
 .         destring provider_subtype, replace
-137.         label define subtype 1 "short term" 2 "long term" 3 "religious nonm
-> edical" ///
->                 4 "psych" 5 "rehab" 6 "childrens" 7 "distinct part psych" 11 "
-> cah" ///
->                 20 "transplant" 22 "mcaid only non-psych" 23 "mcaid only psych
-> "
+137.         label define subtype 1 "short term" 2 "long term" 3 "religious nonmedical" ///
+>                 4 "psych" 5 "rehab" 6 "childrens" 7 "distinct part psych" 11 "cah" ///
+>                 20 "transplant" 22 "mcaid only non-psych" 23 "mcaid only psych"
 138.         label values provider_subtype subtype
 139.         gen shortterm = provider_subtype==1
 140.         gen cah = provider_subtype==11
@@ -329,12 +318,9 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
 . 
 . 
 .         destring typ_control, replace
-142.         label define control 1 "non-profit church" 2 "non-profit private" 3
->  "non-profit other" ///
->                 4 "for-profit proprietary" 5 "government federal" 6 "governmen
-> t state" ///
->                 7 "government local" 8 "government hosp district/authority" 9 
-> "for-profit phys owned" ///
+142.         label define control 1 "non-profit church" 2 "non-profit private" 3 "non-profit other" ///
+>                 4 "for-profit proprietary" 5 "government federal" 6 "government state" ///
+>                 7 "government local" 8 "government hosp district/authority" 9 "for-profit phys owned" ///
 >                 10 "government tribal"
 143.         label values typ_control control
 144. 
@@ -344,8 +330,7 @@ C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code
 147. 
 .         * prov3230 - state abbreviation
 .         gen maryland = state=="MD"
-148.         gen nonstate = state=="AS"|state=="CN"|state=="GU"|state=="MP"|stat
-> e=="MX"|state=="PR"|state=="VI"
+148.         gen nonstate = state=="AS"|state=="CN"|state=="GU"|state=="MP"|state=="MX"|state=="PR"|state=="VI"
 149. 
 .         compress
 150.         save pos`year'.dta, replace
@@ -1645,14 +1630,11 @@ file pos2017.dta saved
 
 . label variable medaffil "affiliation with medical school"
 
-. label variable resprog_ada "ADA-approved resident program / dental residency (
-> 2013-)"
+. label variable resprog_ada "ADA-approved resident program / dental residency (2013-)"
 
-. label variable resprog_ama "AMA-approved resident program / allopathic residen
-> cy (2013-)"
+. label variable resprog_ama "AMA-approved resident program / allopathic residency (2013-)"
 
-. label variable resprog_aoa "AOA-approved resident program / osteopathic reside
-> ncy (2013-)"
+. label variable resprog_aoa "AOA-approved resident program / osteopathic residency (2013-)"
 
 . label variable resprog_oth "other resident program"
 
@@ -1674,8 +1656,7 @@ file pos2017.dta saved
 
 . label variable maryland "is hospital located in maryland"
 
-. label variable nonstate "is hospital located in a US territory or Canada, not 
-> a state/DC"
+. label variable nonstate "is hospital located in a US territory or Canada, not a state/DC"
 
 . label variable beds_tot "total hospital beds"
 
@@ -2714,11 +2695,9 @@ c.MISS_nonstate@year |
 
 . 
 . order ///
->         pn year name address city state zip tel active termcode termdate partd
-> ate prev_pn ///
+>         pn year name address city state zip tel active termcode termdate partdate prev_pn ///
 >         medaffil resprog_* residents ///
->         shortterm cah provider_subtype typ_control nonprofit forprofit govt //
-> /
+>         shortterm cah provider_subtype typ_control nonprofit forprofit govt ///
 >         maryland nonstate urbancbsa beds_tot beds_cert
 
 . 
@@ -2741,17 +2720,15 @@ file ../Output/POS/pos.csv saved
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
-> put/POS/pos.log
+       log:  /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code/../Output/POS/pos.log
   log type:  text
- closed on:  31 Aug 2022, 19:18:32
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+ closed on:  31 Aug 2022, 23:38:23
+--------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
-> put/POS/pos.log
+       log:  /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code/../Output/POS/pos.log
   log type:  text
- opened on:  31 Aug 2022, 19:18:32
+ opened on:  31 Aug 2022, 23:38:23
 
 . 
 . * file of the first time a record was seen for each pn
@@ -2765,8 +2742,7 @@ file ../Output/POS/pos.csv saved
 . drop year
 
 . 
-. label variable firstyear "year of POS data (and first year pn appeared in data
-> )"
+. label variable firstyear "year of POS data (and first year pn appeared in data)"
 
 . 
 . sort pn
@@ -2784,17 +2760,15 @@ file ../Output/POS/pos_firstyear.csv saved
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
-> put/POS/pos.log
+       log:  /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code/../Output/POS/pos.log
   log type:  text
- closed on:  31 Aug 2022, 19:18:33
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+ closed on:  31 Aug 2022, 23:38:23
+--------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
-> put/POS/pos.log
+       log:  /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code/../Output/POS/pos.log
   log type:  text
- opened on:  31 Aug 2022, 19:18:33
+ opened on:  31 Aug 2022, 23:38:23
 
 . 
 . restore
@@ -2828,23 +2802,20 @@ file ../Output/POS/pos_lastyear.csv saved
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
-> put/POS/pos.log
+       log:  /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code/../Output/POS/pos.log
   log type:  text
- closed on:  31 Aug 2022, 19:18:33
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+ closed on:  31 Aug 2022, 23:38:24
+--------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
-> put/POS/pos.log
+       log:  /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code/../Output/POS/pos.log
   log type:  text
- opened on:  31 Aug 2022, 19:18:33
+ opened on:  31 Aug 2022, 23:38:24
 
 . 
 . log close
       name:  <unnamed>
-       log:  C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\code\../Out
-> put/POS/pos.log
+       log:  /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Code/../Output/POS/pos.log
   log type:  text
- closed on:  31 Aug 2022, 19:18:33
---------------------------------------------------------------------------------
+ closed on:  31 Aug 2022, 23:38:24
+--------------------------------------------------------------------------------------------------------------------------------------------

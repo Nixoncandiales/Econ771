@@ -5,8 +5,8 @@ Get-ChildItem 'C:\Users\16083\Documents\GitHub\Econ771\Assigments\AS 1\Data\POS'
 
 ######  Mac ######
 # set the path
-#cd /Users/nix/Documents/GitHub/Econ771/Assigments/AS 1/Data
+cd /Users/nix/Documents/GitHub/Econ771/Assigments/AS\ 1/Data/POS
 # unzip the files
-#unzip \*.zip 
-#delete the zip files
-#rm -rf ./*.zip
+unzip \*.zip 
+# delete the zip files
+rm -rf ./*.zip
