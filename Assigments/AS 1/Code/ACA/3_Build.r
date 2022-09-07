@@ -8,10 +8,10 @@
 
 # Preliminaries -----------------------------------------------------------
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, scales, acs, tidyr, here)
-
-source(here("Assigments", "AS 1", "Code","ACA","1_download_CENSUS_ACA.r"))
-source(here("Assigments", "AS 1", "Code","ACA","2_Medicaid.r"))
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, scales, acs, tidyr)
+library(here)
+source(here("Assigments", "AS 1", "Code","ACA","1_download_CENSUS_ACA.R"))
+source(here("Assigments", "AS 1", "Code","ACA","2_Medicaid.R"))
 
 
 # Tidy --------------------------------------------------------------------
