@@ -62,52 +62,6 @@ ds_screener(data_hcris)
      Rows with Missing Values         142504 
      Columns With Missing Values      29 
 
-``` r
-if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
-ds_screener(data_pos)
-```
-
-    --------------------------------------------------------------------------------------------
-    |  Column Name   |            Data Type             |  Levels  |  Missing  |  Missing (%)  |
-    --------------------------------------------------------------------------------------------
-    |       pn       |            character             |    NA    |     0     |       0       |
-    |      name      |            character             |    NA    |     0     |       0       |
-    |    address     |            character             |    NA    |     0     |       0       |
-    |      city      |            character             |    NA    |     0     |       0       |
-    |     state      |            character             |    NA    |     0     |       0       |
-    |      zip       |             numeric              |    NA    |    270    |     2.13      |
-    |      tel       |            character             |    NA    |     0     |       0       |
-    |     active     |             numeric              |    NA    |     0     |       0       |
-    |    termcode    |haven_labelled, vctrs_vctr, double|    NA    |     0     |       0       |
-    |    termdate    |               Date               |    NA    |   7239    |     57.04     |
-    |    partdate    |               Date               |    NA    |    65     |     0.51      |
-    |    prev_pn     |            character             |    NA    |     0     |       0       |
-    |    medaffil    |haven_labelled, vctrs_vctr, double|    NA    |   1348    |     10.62     |
-    |  resprog_ada   |             numeric              |    NA    |    86     |     0.68      |
-    |  resprog_ama   |             numeric              |    NA    |    86     |     0.68      |
-    |  resprog_aoa   |             numeric              |    NA    |    86     |     0.68      |
-    |  resprog_oth   |             numeric              |    NA    |    86     |     0.68      |
-    |   residents    |             numeric              |    NA    |     0     |       0       |
-    |   shortterm    |             numeric              |    NA    |     0     |       0       |
-    |      cah       |             numeric              |    NA    |     0     |       0       |
-    |provider_subtype|haven_labelled, vctrs_vctr, double|    NA    |   1071    |     8.44      |
-    |  typ_control   |haven_labelled, vctrs_vctr, double|    NA    |   1345    |     10.6      |
-    |   nonprofit    |             numeric              |    NA    |     0     |       0       |
-    |   forprofit    |             numeric              |    NA    |     0     |       0       |
-    |      govt      |             numeric              |    NA    |     0     |       0       |
-    |    maryland    |             numeric              |    NA    |     0     |       0       |
-    |    nonstate    |             numeric              |    NA    |     0     |       0       |
-    |   urbancbsa    |             numeric              |    NA    |    466    |     3.67      |
-    |    beds_tot    |             numeric              |    NA    |     0     |       0       |
-    |   beds_cert    |             numeric              |    NA    |     0     |       0       |
-    |    lastyear    |             numeric              |    NA    |     0     |       0       |
-    --------------------------------------------------------------------------------------------
-
-     Overall Missing Values           12148 
-     Percentage of Missing Values     3.09 %
-     Rows with Missing Values         7581 
-     Columns With Missing Values      11 
-
 ### Summary Statistics
 
 Provide and discuss a table of simple summary statistics showing the

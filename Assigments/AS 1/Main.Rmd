@@ -31,7 +31,7 @@ We start by downloading and processing the [HCRIS](https://github.com/Nixoncandi
 if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
 ds_screener(data_hcris)
 ```
-```{r import-data-pos, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
+```{r import-data-pos, include=FALSE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
 ds_screener(data_pos)
 ```
