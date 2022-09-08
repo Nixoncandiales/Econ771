@@ -10,6 +10,7 @@
 
 
 ## see list of variable names and tables
+api.key.install(key='09bc0b16e31e336650815f541528ed3105fba927')
 acs.lookup(endyear=2012, table.number="B27010", span=1)
 
 

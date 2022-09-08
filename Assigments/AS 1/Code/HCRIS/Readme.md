@@ -3,6 +3,7 @@ To use this code run the following scrpits in the following order:
 1) download_CMS_HCRIS.py
 This python script will download all the zip files in [CMS](https://www.cms.gov/Research-Statistics-Data-and-Systems/Downloadable-Public-Use-Files/Cost-Reports/Cost-Reports-by-Fiscal-Year)
 in a local directory.
+To make this work
 
 2) unzip_files.sh
 This Shell script will unzip the compressed files and delete the zip version. It has suggested code for Windows and Mac OS. Works faster in Mac. Make sure to update the relative paths.
