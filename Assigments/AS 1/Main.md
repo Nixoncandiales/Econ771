@@ -3,7 +3,7 @@ Assigment 1
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
-knitr::opts_chunk$set(error = TRUE, cache = TRUE)
+knitr::opts_chunk$set(error = TRUE, cache = F)
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr)
@@ -254,20 +254,20 @@ data_merged <-
             by="pn") 
 ```
 
-    ## # A tibble: 68,010 × 7
-    ##       pn  year unc_care    hos_rev nonprofit forprofit  govt
-    ##    <int> <int>    <dbl>      <dbl>     <dbl>     <dbl> <dbl>
-    ##  1 10001  2003 41267219  532023593         0         0     1
-    ##  2 10001  2004 37413733  592438087         0         0     1
-    ##  3 10001  2005 37457443  657842984         0         0     1
-    ##  4 10001  2006 41670968  714123644         0         0     1
-    ##  5 10001  2010 90806676 1116894148         0         0     1
-    ##  6 10001  2011 22446946 1208331516         0         0     1
-    ##  7 10001  2012 25683016 1263055782         0         0     1
-    ##  8 10001  2013 23652954 1305720014         0         0     1
-    ##  9 10001  2014 24962490 1451185686         0         0     1
-    ## 10 10001  2015 20412518 1550672017         0         0     1
-    ## # … with 68,000 more rows
+    # A tibble: 68,010 × 7
+          pn  year unc_care    hos_rev nonprofit forprofit  govt
+       <int> <int>    <dbl>      <dbl>     <dbl>     <dbl> <dbl>
+     1 10001  2003 41267219  532023593         0         0     1
+     2 10001  2004 37413733  592438087         0         0     1
+     3 10001  2005 37457443  657842984         0         0     1
+     4 10001  2006 41670968  714123644         0         0     1
+     5 10001  2010 90806676 1116894148         0         0     1
+     6 10001  2011 22446946 1208331516         0         0     1
+     7 10001  2012 25683016 1263055782         0         0     1
+     8 10001  2013 23652954 1305720014         0         0     1
+     9 10001  2014 24962490 1451185686         0         0     1
+    10 10001  2015 20412518 1550672017         0         0     1
+    # … with 68,000 more rows
 
 ``` r
 data_merged %>%
