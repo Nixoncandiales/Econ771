@@ -1,15 +1,15 @@
 Assigment 1
 ================
 
-# Downloading the Raw Data
+## Downloading the Raw Data
 
 We start by downloading and processing the
 [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS),
 [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS),
 and
 [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA)
-raw data sets. Then calling the output data from **HCRIS_Data.txt** and
-**pos_lastyear.v12.dta**
+raw data sets. Then calling the output data from`HCRIS_Data.txt` and
+`pos_lastyear.v12.dta`
 
 ``` r
 if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
@@ -108,34 +108,41 @@ ds_screener(data_pos)
      Rows with Missing Values         7581 
      Columns With Missing Values      11 
 
-## 1
+### Summary Statistics
 
 Provide and discuss a table of simple summary statistics showing the
 mean, standard deviation, min, and max of hospital total revenues and
 uncompensated care over time.
 
-From the HCRIS_data.txt we select the variables *provider_number*,
+From the `HCRIS_data.txt` we select the variables *provider_number*,
 *year*, *tot_uncomp_care_charges*, *tot_pat_rev*
 
 ``` r
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% head() %>% knitr::kable(caption = "Table 1", col.names = c('Provider Number', 'Year', 'Uncompensated Care', 'Income'), align = "llcc")
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% as_tibble()
 ```
 
-| Provider Number | Year | Uncompensated Care |  Income   |
-|:----------------|:-----|:------------------:|:---------:|
-| 10001           | 1998 |         NA         | 304888068 |
-| 10001           | 1999 |         NA         | 330880661 |
-| 10001           | 2000 |         NA         | 359149872 |
-| 10001           | 2001 |         NA         | 437847861 |
-| 10001           | 2002 |         NA         | 509731719 |
-| 10001           | 2003 |         NA         | 532023593 |
-
-Table 1
+    # A tibble: 142,504 × 4
+       provider_number  year tot_uncomp_care_charges tot_pat_rev
+                 <int> <int>                   <dbl>       <dbl>
+     1           10001  1998                      NA   304888068
+     2           10001  1999                      NA   330880661
+     3           10001  2000                      NA   359149872
+     4           10001  2001                      NA   437847861
+     5           10001  2002                      NA   509731719
+     6           10001  2003                      NA   532023593
+     7           10001  2004                      NA   592438087
+     8           10001  2005                      NA   657842984
+     9           10001  2006                      NA   714123644
+    10           10001  2007                      NA   772492758
+    # … with 142,494 more rows
 
 Then we group by year and calculate the summary statistics.
 
 ``` r
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% group_by(year) %>% summarise(Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), Max = max(tot_uncomp_care_charges, na.rm = TRUE)) %>% drop_na(Mean)
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
+  group_by(year) %>% summarise(Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), 
+                               SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), 
+                               Max = max(tot_uncomp_care_charges, na.rm = TRUE)) %>% drop_na(Mean)
 ```
 
     # A tibble: 11 × 5
@@ -154,7 +161,10 @@ data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_re
     11  2021 30474261. 90941820.         1 2655216314
 
 ``` r
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% group_by(year) %>% summarise(Mean = mean(tot_pat_rev, na.rm = TRUE), SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), Max = max(tot_pat_rev, na.rm = TRUE)) %>% drop_na(Mean)
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
+  group_by(year) %>% summarise(Mean = mean(tot_pat_rev, na.rm = TRUE), 
+                               SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), 
+                               Max = max(tot_pat_rev, na.rm = TRUE)) %>% drop_na(Mean)
 ```
 
     # A tibble: 26 × 5

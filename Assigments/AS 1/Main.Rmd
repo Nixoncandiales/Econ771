@@ -1,7 +1,19 @@
 ---
 title: "Assigment 1"
 output: github_document
+code_folding: hide
 ---
+```{css, echo=FALSE}
+pre {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+pre[class] {
+  max-height: 100px;
+}
+```
 
 ```{r setup, include=FALSE, cache=TRUE}
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
@@ -12,8 +24,8 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, de
 use_python("/usr/local/bin/python3")
 ```
 
-# Downloading the Raw Data
-We start by downloading and processing the [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS), [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS), and [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA) raw data sets. Then calling the output data from **HCRIS_Data.txt** and **pos_lastyear.v12.dta**
+## Downloading the Raw Data
+We start by downloading and processing the [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS), [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS), and [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA) raw data sets. Then calling the output data from`HCRIS_Data.txt` and `pos_lastyear.v12.dta`
 
 ```{r import-data-hcris, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
@@ -25,20 +37,26 @@ ds_screener(data_pos)
 ```
 
 
-## 1
+### Summary Statistics
 Provide and discuss a table of simple summary statistics showing the mean, standard deviation, min, and max of hospital total revenues and uncompensated care over time.
 
-From the HCRIS_data.txt we select the variables *provider_number*, *year*, *tot_uncomp_care_charges*, *tot_pat_rev* 
+From the `HCRIS_data.txt` we select the variables *provider_number*, *year*, *tot_uncomp_care_charges*, *tot_pat_rev* 
 
 ```{r select-data, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% head() %>% knitr::kable(caption = "Table 1", col.names = c('Provider Number', 'Year', 'Uncompensated Care', 'Income'), align = "llcc")
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% as_tibble()
 ```
 Then we group by year and calculate the summary statistics.
 
 ```{r summary-statistics-uncoomp-care, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% group_by(year) %>% summarise(Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), Max = max(tot_uncomp_care_charges, na.rm = TRUE)) %>% drop_na(Mean)
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
+  group_by(year) %>% summarise(Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), 
+                               SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), 
+                               Max = max(tot_uncomp_care_charges, na.rm = TRUE)) %>% drop_na(Mean)
 ```
 
 ```{r summary-statistics-tot-rev, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% group_by(year) %>% summarise(Mean = mean(tot_pat_rev, na.rm = TRUE), SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), Max = max(tot_pat_rev, na.rm = TRUE)) %>% drop_na(Mean)
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
+  group_by(year) %>% summarise(Mean = mean(tot_pat_rev, na.rm = TRUE), 
+                               SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), 
+                               Max = max(tot_pat_rev, na.rm = TRUE)) %>% drop_na(Mean)
 ```
