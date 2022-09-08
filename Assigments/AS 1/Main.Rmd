@@ -15,33 +15,41 @@ pre[class] {
 }
 ```
 
-```{r setup, include=TRUE, cache=TRUE, tidy=TRUE}
+```{r setup, include=TRUE, cache=TRUE, tidy=TRUE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
-knitr::opts_chunk$set(error = TRUE, cache = F)
+knitr::opts_chunk$set(error = TRUE, cache = T)
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr)
-
-use_python("/usr/local/bin/python3")
 ```
 
 ## Downloading the Raw Data
-We start by downloading and processing the [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS), [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS), and [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA) raw data sets. Then calling the output data from`HCRIS_Data.txt` and `pos_lastyear.v12.dta`
+We start by downloading and processing the [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS), [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS), and [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA) raw data sets. The processed data sets are located in the [**Output**]((https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Output)) folder under `HCRIS_Data.txt`, `pos_lastyear.v12.dta`, and `acs_medicare.txt` . We import those data sets in our file and inspect them as follows.
 
-```{r import-data-hcris, tidy=TRUE, echo=FALSE, cache=TRUE, comment=NA}
+```{r import-data-hcris, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
 ds_screener(data_hcris)
 ```
+After a quick screening of the HCRIS data we can see the missing values are significantly high which suggest some variables are recorded differently across time and forms. It is of particular interest the variables `uncomp_care` and `tot_uncomp_care_charges` which are of our main interest. After reviewing the codebook we confirmed in fact these two variables are the same but coded different across forms. 
+
 ```{r import-data-pos, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
 ds_screener(data_pos)
 ```
 
+From the provider of services data set we do not evidence missing data problems. We can observe if a particular POS went out of the market by either closing or merging and the respectively date of the event. It is to note the identifier variable is `pn` which is recorded as a character differs in the HCRIS data set `provider_number` which is coded as numerical. 
+
+```{r import-data-medicaid, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
+if (!exists("data_aca")) data_aca <- read.delim(here("Assigments", "As 1", "Output", "ACA", "acs_medicaid.txt"))
+ds_screener(data_aca)
+```
+
+Finally, from the medicare data set we see the states that expanded the mandate and the date of event. Also, it is to note that the state identifier is not recorded in the same format across data sets.
 
 ### Summary Statistics
 Provide and discuss a table of simple summary statistics showing the mean, standard deviation, min, and max of hospital total revenues and uncompensated care over time.
 
-From the `HCRIS_data.txt` we select the variables *provider_number*, *year*, *tot_uncomp_care_charges*, *tot_pat_rev* 
+From the `HCRIS_data.txt` we select the variables `provider_number`, `year`, `uncomp_care`, `tot_uncomp_care_charges`, `tot_pat_rev` 
 
 ```{r select-data, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 data_hcris %>% 

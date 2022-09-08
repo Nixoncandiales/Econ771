@@ -1,16 +1,6 @@
 Assigment 1
 ================
 
-``` r
-knitr::opts_chunk$set(echo = TRUE, comment=NA)
-knitr::opts_chunk$set(error = TRUE, cache = F)
-
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr)
-
-use_python("/usr/local/bin/python3")
-```
-
 ## Downloading the Raw Data
 
 We start by downloading and processing the
@@ -18,8 +8,16 @@ We start by downloading and processing the
 [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS),
 and
 [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA)
-raw data sets. Then calling the output data from`HCRIS_Data.txt` and
-`pos_lastyear.v12.dta`
+raw data sets. The processed data sets are located in the
+[**Output**]((https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Output))
+folder under `HCRIS_Data.txt`, `pos_lastyear.v12.dta`, and
+`acs_medicare.txt` . We import those data sets in our file and inspect
+them as follows.
+
+``` r
+if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
+ds_screener(data_hcris)
+```
 
     -----------------------------------------------------------------------------------
     |        Column Name         |  Data Type  |  Levels  |  Missing  |  Missing (%)  |
@@ -67,6 +65,13 @@ raw data sets. Then calling the output data from`HCRIS_Data.txt` and
      Rows with Missing Values         142504 
      Columns With Missing Values      29 
 
+After a quick screening of the HCRIS data we can see the missing values
+are significantly high which suggest some variables are recorded
+differently across time and forms. It is of particular interest the
+variables `uncomp_care` and `tot_uncomp_care_charges` which are of our
+main interest. After reviewing the codebook we confirmed in fact these
+two variables are the same but coded different across forms.
+
 ``` r
 if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
 ds_screener(data_pos)
@@ -113,14 +118,52 @@ ds_screener(data_pos)
      Rows with Missing Values         7581 
      Columns With Missing Values      11 
 
+From the provider of services data set we do not evidence missing data
+problems. We can observe if a particular POS went out of the market by
+either closing or merging and the respectively date of the event. It is
+to note the identifier variable is `pn` which is recorded as a character
+differs in the HCRIS data set `provider_number` which is coded as
+numerical.
+
+``` r
+if (!exists("data_aca")) data_aca <- read.delim(here("Assigments", "As 1", "Output", "ACA", "acs_medicaid.txt"))
+ds_screener(data_aca)
+```
+
+    ----------------------------------------------------------------------
+    |  Column Name  |  Data Type  |  Levels  |  Missing  |  Missing (%)  |
+    ----------------------------------------------------------------------
+    |     State     |  character  |    NA    |     0     |       0       |
+    |     year      |   integer   |    NA    |     0     |       0       |
+    |   adult_pop   |   integer   |    NA    |     0     |       0       |
+    | ins_employer  |   integer   |    NA    |     0     |       0       |
+    |  ins_direct   |   integer   |    NA    |     0     |       0       |
+    | ins_medicare  |   integer   |    NA    |     0     |       0       |
+    | ins_medicaid  |   integer   |    NA    |     0     |       0       |
+    |   uninsured   |   integer   |    NA    |     0     |       0       |
+    |  expand_ever  |   logical   |    NA    |     8     |     1.92      |
+    | date_adopted  |  character  |    NA    |    104    |      25       |
+    |  expand_year  |   integer   |    NA    |    104    |      25       |
+    |    expand     |   logical   |    NA    |     0     |       0       |
+    ----------------------------------------------------------------------
+
+     Overall Missing Values           216 
+     Percentage of Missing Values     4.33 %
+     Rows with Missing Values         104 
+     Columns With Missing Values      3 
+
+Finally, from the medicare data set we see the states that expanded the
+mandate and the date of event. Also, it is to note that the state
+identifier is not recorded in the same format across data sets.
+
 ### Summary Statistics
 
 Provide and discuss a table of simple summary statistics showing the
 mean, standard deviation, min, and max of hospital total revenues and
 uncompensated care over time.
 
-From the `HCRIS_data.txt` we select the variables *provider_number*,
-*year*, *tot_uncomp_care_charges*, *tot_pat_rev*
+From the `HCRIS_data.txt` we select the variables `provider_number`,
+`year`, `uncomp_care`, `tot_uncomp_care_charges`, `tot_pat_rev`
 
 ``` r
 data_hcris %>% 
@@ -254,20 +297,20 @@ data_merged <-
             by="pn") 
 ```
 
-    # A tibble: 68,010 × 7
-          pn  year unc_care    hos_rev nonprofit forprofit  govt
-       <int> <int>    <dbl>      <dbl>     <dbl>     <dbl> <dbl>
-     1 10001  2003 41267219  532023593         0         0     1
-     2 10001  2004 37413733  592438087         0         0     1
-     3 10001  2005 37457443  657842984         0         0     1
-     4 10001  2006 41670968  714123644         0         0     1
-     5 10001  2010 90806676 1116894148         0         0     1
-     6 10001  2011 22446946 1208331516         0         0     1
-     7 10001  2012 25683016 1263055782         0         0     1
-     8 10001  2013 23652954 1305720014         0         0     1
-     9 10001  2014 24962490 1451185686         0         0     1
-    10 10001  2015 20412518 1550672017         0         0     1
-    # … with 68,000 more rows
+    ## # A tibble: 68,010 × 7
+    ##       pn  year unc_care    hos_rev nonprofit forprofit  govt
+    ##    <int> <int>    <dbl>      <dbl>     <dbl>     <dbl> <dbl>
+    ##  1 10001  2003 41267219  532023593         0         0     1
+    ##  2 10001  2004 37413733  592438087         0         0     1
+    ##  3 10001  2005 37457443  657842984         0         0     1
+    ##  4 10001  2006 41670968  714123644         0         0     1
+    ##  5 10001  2010 90806676 1116894148         0         0     1
+    ##  6 10001  2011 22446946 1208331516         0         0     1
+    ##  7 10001  2012 25683016 1263055782         0         0     1
+    ##  8 10001  2013 23652954 1305720014         0         0     1
+    ##  9 10001  2014 24962490 1451185686         0         0     1
+    ## 10 10001  2015 20412518 1550672017         0         0     1
+    ## # … with 68,000 more rows
 
 ``` r
 data_merged %>%
