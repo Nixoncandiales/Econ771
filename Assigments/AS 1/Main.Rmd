@@ -1,0 +1,26 @@
+---
+title: "Assigment 1"
+output: github_document
+---
+
+```{r setup, include=FALSE, cache=TRUE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate)
+
+use_python("/usr/local/bin/python3")
+```
+
+# Downloading the Raw Data
+We start by downloading the [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS), [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS), and [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA) raw data.
+
+### Example
+
+```{r echo=FALSE, cache=TRUE}
+knitr::read_chunk('Code/Analysis.r')
+```
+
+```{r}
+<<Analysis>>
+```
