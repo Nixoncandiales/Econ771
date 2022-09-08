@@ -17,8 +17,8 @@ pacman::p_load(tidyverse, ggplot2, here, descriptr, haven)
 data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
 data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
 
-print(ds_screener(data_hcris))
-print(ds_screener(data_pos))
+ds_screener(data_hcris)
+ds_screener(data_pos)
 
 # Analysis -----------------------------------------------------------
 

@@ -3,34 +3,17 @@ Assigment 1
 
 # Downloading the Raw Data
 
-We start by downloading the
+We start by downloading and processing the
 [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS),
 [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS),
 and
 [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA)
-raw data.
-
-### Example
+raw data sets. Then calling the output data from **HCRIS_Data.txt** and
+**pos_lastyear.v12.dta**
 
 ``` r
-# Meta --------------------------------------------------------------------
-
-# Title:  Combine ACS and Medicaid Expansion Data
-# Author: Nixon Candiales
-# Date Created: 9/7/2022
-# Date Edited:  ----
-
-
-# Preliminaries -----------------------------------------------------------
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, here, descriptr, haven)
-
-# Read Data -----------------------------------------------------------
-
-data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
-data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
-
-print(ds_screener(data_hcris))
+if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
+ds_screener(data_hcris)
 ```
 
     -----------------------------------------------------------------------------------
@@ -80,7 +63,8 @@ print(ds_screener(data_hcris))
      Columns With Missing Values      29 
 
 ``` r
-print(ds_screener(data_pos))
+if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
+ds_screener(data_pos)
 ```
 
     --------------------------------------------------------------------------------------------
@@ -124,107 +108,66 @@ print(ds_screener(data_pos))
      Rows with Missing Values         7581 
      Columns With Missing Values      11 
 
-``` r
-# Analysis -----------------------------------------------------------
+## 1
 
-ds_summary_stats(data_hcris, tot_uncomp_care_charges, tot_pat_rev)
-```
+Provide and discuss a table of simple summary statistics showing the
+mean, standard deviation, min, and max of hospital total revenues and
+uncompensated care over time.
 
-    ---------------------- Variable: tot_uncomp_care_charges ----------------------
-
-                                Univariate Analysis                              
-
-     N                       142504.00      Variance             4.832795e+15 
-     Missing                  95493.00      Std Deviation         69518308.19 
-     Mean                  22510720.85      Range                2684056720.00 
-     Median                 3491609.00      Interquartile Range   16996816.50 
-     Mode                  46500521.00      Uncorrected SS       2.510117e+20 
-     Trimmed Mean          12202020.53      Corrected SS         2.271897e+20 
-     Skewness                    12.64      Coeff Variation            308.82 
-     Kurtosis                   286.86      Std Error Mean          320626.53 
-
-                                      Quantiles                                   
-
-                    Quantile                                Value                  
-
-                   Max                                  2655216314.00              
-                   99%                                   287182950.80              
-                   95%                                   100081338.50              
-                   90%                                   54789935.00               
-                   Q3                                    17523163.00               
-                   Median                                 3491609.00               
-                   Q1                                     526346.50                
-                   10%                                     97495.00                
-                   5%                                      36983.00                
-                   1%                                      4495.10                 
-                   Min                                   -28840406.00              
-
-                                    Extreme Values                                
-
-                      Low                                    High                  
-
-        Obs                       Value            Obs                       Value    
-        3609                    -28840406         38742                    2655216314 
-       18372                     -7849786         38740                    2495183582 
-       31584                        -2            38741                    2245174712 
-        7484                        1             38737                    2231833221 
-       23074                        1             38739                    2183167185 
-
-
-
-    ---------------------------- Variable: tot_pat_rev ----------------------------
-
-                                Univariate Analysis                              
-
-     N                       142504.00      Variance             7.364722e+17 
-     Missing                   5701.00      Std Deviation        858179571.51 
-     Mean                 384084133.34      Range                34698618762.00 
-     Median                88116196.00      Interquartile Range  343056565.00 
-     Mode                 159399197.00      Uncorrected SS       1.209321e+23 
-     Trimmed Mean         250053449.53      Corrected SS         1.007509e+23 
-     Skewness                     7.65      Coeff Variation            223.44 
-     Kurtosis                   118.16      Std Error Mean         2320226.39 
-
-                                      Quantiles                                   
-
-                    Quantile                                Value                  
-
-                   Max                                  34521586839.00             
-                   99%                                  3827506004.84              
-                   95%                                  1703098756.30              
-                   90%                                  1032935511.20              
-                   Q3                                    370656047.50              
-                   Median                                88116196.00               
-                   Q1                                    27599482.50               
-                   10%                                   10965012.80               
-                   5%                                     6172250.60               
-                   1%                                     1996881.60               
-                   Min                                  -177031923.00              
-
-                                    Extreme Values                                
-
-                      Low                                    High                  
-
-         Obs                      Value             Obs                      Value    
-       115812                  -177031923          82658                  34521586839 
-       134726                   -62618391          82657                  29390141705 
-       111156                   -27582223          12079                  24973914387 
-       123041                   -11799711          20471                  24812982853 
-       123040                   -11146879          82656                  22000932119 
+From the HCRIS_data.txt we select the variables *provider_number*,
+*year*, *tot_uncomp_care_charges*, *tot_pat_rev*
 
 ``` r
-#To do:
-
-# Mean
-# Standard Deviation
-# Min
-# Max
-
-#Over two variables (Hospital Total Reveneus, Uncompensated Care Over Time - tot_uncomp_care_charges)
-
-
-#tidytable(data, info_cols = list(), calc_cols = list(`#missing` =
- # function(x) sum(is.na(x))), num_cols = list(mean = mean, sd = sd),
- # custom_vars = c(), custom_cols = list(), col_order = c(),
- # row_order = list(), digits = 2, add_cat_header_row = TRUE)
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% head() %>% knitr::kable(caption = "Table 1", col.names = c('Provider Number', 'Year', 'Uncompensated Care', 'Income'), align = "llcc")
 ```
+
+| Provider Number | Year | Uncompensated Care |  Income   |
+|:----------------|:-----|:------------------:|:---------:|
+| 10001           | 1998 |         NA         | 304888068 |
+| 10001           | 1999 |         NA         | 330880661 |
+| 10001           | 2000 |         NA         | 359149872 |
+| 10001           | 2001 |         NA         | 437847861 |
+| 10001           | 2002 |         NA         | 509731719 |
+| 10001           | 2003 |         NA         | 532023593 |
+
+Table 1
+
+Then we group by year and calculate the summary statistics.
+
+``` r
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% group_by(year) %>% summarise(Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), Max = max(tot_uncomp_care_charges, na.rm = TRUE)) %>% drop_na(Mean)
+```
+
+    # A tibble: 11 × 5
+        year      Mean        SD       Min        Max
+       <int>     <dbl>     <dbl>     <dbl>      <dbl>
+     1  2011 17217489. 47251398. -28840406 1111027264
+     2  2012 18338225. 55879179.        85 1371421445
+     3  2013 19648564. 57646114.       216 1403146636
+     4  2014 19607345. 63262016.        15 1874409188
+     5  2015 19024979. 61755917.        22 1990560423
+     6  2016 19810030. 66724247.        84 2231833221
+     7  2017 22135100. 69491982.        34 2062118188
+     8  2018 24883218. 74503094.         1 2183167185
+     9  2019 28705587. 83757685.         2 2495183582
+    10  2020 29100316. 82874954.        -2 2245174712
+    11  2021 30474261. 90941820.         1 2655216314
+
+``` r
+data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% group_by(year) %>% summarise(Mean = mean(tot_pat_rev, na.rm = TRUE), SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), Max = max(tot_pat_rev, na.rm = TRUE)) %>% drop_na(Mean)
+```
+
+    # A tibble: 26 × 5
+        year       Mean         SD      Min        Max
+       <int>      <dbl>      <dbl>    <dbl>      <dbl>
+     1  1997  17406411.  25347614.   239580  128092000
+     2  1998 106218796. 169829486.   155387 2255621364
+     3  1999 117511354. 189181015.        1 2586692428
+     4  2000 131767289. 217132934.        1 2823988041
+     5  2001 147463809. 248432404.     2795 3267554934
+     6  2002 170499912. 291278067.      347 3957656325
+     7  2003 196326204. 339256130. -1757898 4722758791
+     8  2004 217080321. 379301539.   154394 5525730727
+     9  2005 237498725. 419216031.        1 6398553843
+    10  2006 262155653. 464190671.  -104189 7784094716
+    # … with 16 more rows
