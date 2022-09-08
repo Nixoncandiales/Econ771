@@ -1,11 +1,11 @@
 ---
 title: "Assigment 1"
 output: github_document
-code_folding: hide
+
 ---
-```{css, echo=FALSE}
+```{css parameter,  echo=FALSE}
 pre {
-  max-height: 300px;
+  max-height: 200px;
   overflow-y: auto;
   overflow-x: auto;
 }
@@ -15,8 +15,9 @@ pre[class] {
 }
 ```
 
-```{r setup, include=FALSE, cache=TRUE}
+```{r setup, include=TRUE, cache=TRUE, tidy=TRUE}
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
+knitr::opts_chunk$set(error = TRUE, cache = TRUE)
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr)
@@ -27,11 +28,11 @@ use_python("/usr/local/bin/python3")
 ## Downloading the Raw Data
 We start by downloading and processing the [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS), [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS), and [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA) raw data sets. Then calling the output data from`HCRIS_Data.txt` and `pos_lastyear.v12.dta`
 
-```{r import-data-hcris, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
+```{r import-data-hcris, tidy=TRUE, echo=FALSE, cache=TRUE, comment=NA}
 if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
 ds_screener(data_hcris)
 ```
-```{r import-data-pos, include=FALSE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
+```{r import-data-pos, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
 ds_screener(data_pos)
 ```
@@ -43,20 +44,107 @@ Provide and discuss a table of simple summary statistics showing the mean, stand
 From the `HCRIS_data.txt` we select the variables *provider_number*, *year*, *tot_uncomp_care_charges*, *tot_pat_rev* 
 
 ```{r select-data, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% as_tibble()
+data_hcris %>% 
+  select(pn=provider_number, year, uncomp_care, tot_uncomp_care_charges, tot_pat_rev) %>% 
+  as_tibble()
 ```
 Then we group by year and calculate the summary statistics.
 
 ```{r summary-statistics-uncoomp-care, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
-  group_by(year) %>% summarise(Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), 
-                               SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), 
-                               Max = max(tot_uncomp_care_charges, na.rm = TRUE)) %>% drop_na(Mean)
+sum_unc_care <- data_hcris %>% 
+  select(provider_number, year, uncomp_care, tot_uncomp_care_charges, tot_pat_rev) %>%
+  mutate(tot_uncomp_care_charges = pmax(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
+  group_by(year) %>% 
+  summarise(
+    Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), 
+    SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), 
+    Max = max(tot_uncomp_care_charges, na.rm = TRUE)
+  ) %>% 
+  drop_na(Mean)
+
+sum_unc_care
 ```
 
 ```{r summary-statistics-tot-rev, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
-  group_by(year) %>% summarise(Mean = mean(tot_pat_rev, na.rm = TRUE), 
-                               SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), 
-                               Max = max(tot_pat_rev, na.rm = TRUE)) %>% drop_na(Mean)
+sum_tot_rev <- data_hcris %>% 
+  select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
+  group_by(year) %>% 
+  summarise(
+    Mean = mean(tot_pat_rev, na.rm = TRUE), 
+    SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), 
+    Max = max(tot_pat_rev, na.rm = TRUE)
+  ) %>% 
+  drop_na(Mean)
+
+sum_tot_rev
+```
+
+```{r plot, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
+plot1 <-
+  sum_unc_care %>% 
+  ggplot(aes(x = year, y = Mean)) + 
+  geom_point()
+plot1
+
+plot2 <-
+  sum_tot_rev %>% 
+  ggplot(aes(x = year, y = Mean)) + 
+  geom_point()
+plot2
+```
+
+### By Ownership Type
+Create a figure showing the mean hospital uncompensated care from 2000 to 2018. Show this trend separately by hospital ownership type (private not for profit and private for profit).
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+```{r merge, warning=FALSE }
+data_merged <- 
+  left_join(data_hcris %>%
+              mutate(unc_care = pmax(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>% 
+              select(pn=provider_number, year, unc_care, hos_rev=tot_pat_rev) %>% 
+              as.tibble() %>%
+              drop_na(unc_care)
+            ,
+            data_pos %>%
+              select(pn, nonprofit, forprofit, govt) %>%
+              mutate_at('pn', as.integer)
+            ,
+            by="pn") 
+```
+
+```{r echo=FALSE}
+data_merged
+```
+```{r plot3, warning=FALSE }
+data_merged %>%
+  filter(year<=2018, nonprofit==1) %>%
+  select(pn, year, unc_care, nonprofit) %>%
+  group_by(year) %>%
+  summarise(Mean = mean(unc_care, na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = Mean)) + 
+  geom_line() -> plot3
+```
+
+```{r echo=FALSE}
+plot3
+```
+
+```{r plot4, warning=FALSE }
+data_merged %>%
+  filter(year<=2018, forprofit==1) %>%
+  select(pn, year, unc_care, nonprofit) %>%
+  group_by(year) %>%
+  summarise(Mean = mean(unc_care, na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = Mean)) + 
+  geom_line() -> plot4
+```
+
+```{r echo=FALSE}
+plot4
+```
+
+```{r delete, include=FALSE}
+rm(data1,data2, sum_tot_rev, sum_unc_care)
 ```

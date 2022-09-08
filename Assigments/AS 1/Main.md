@@ -1,6 +1,16 @@
 Assigment 1
 ================
 
+``` r
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+knitr::opts_chunk$set(error = TRUE, cache = TRUE)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr)
+
+use_python("/usr/local/bin/python3")
+```
+
 ## Downloading the Raw Data
 
 We start by downloading and processing the
@@ -10,11 +20,6 @@ and
 [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA)
 raw data sets. Then calling the output data from`HCRIS_Data.txt` and
 `pos_lastyear.v12.dta`
-
-``` r
-if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
-ds_screener(data_hcris)
-```
 
     -----------------------------------------------------------------------------------
     |        Column Name         |  Data Type  |  Levels  |  Missing  |  Missing (%)  |
@@ -62,6 +67,52 @@ ds_screener(data_hcris)
      Rows with Missing Values         142504 
      Columns With Missing Values      29 
 
+``` r
+if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
+ds_screener(data_pos)
+```
+
+    --------------------------------------------------------------------------------------------
+    |  Column Name   |            Data Type             |  Levels  |  Missing  |  Missing (%)  |
+    --------------------------------------------------------------------------------------------
+    |       pn       |            character             |    NA    |     0     |       0       |
+    |      name      |            character             |    NA    |     0     |       0       |
+    |    address     |            character             |    NA    |     0     |       0       |
+    |      city      |            character             |    NA    |     0     |       0       |
+    |     state      |            character             |    NA    |     0     |       0       |
+    |      zip       |             numeric              |    NA    |    270    |     2.13      |
+    |      tel       |            character             |    NA    |     0     |       0       |
+    |     active     |             numeric              |    NA    |     0     |       0       |
+    |    termcode    |haven_labelled, vctrs_vctr, double|    NA    |     0     |       0       |
+    |    termdate    |               Date               |    NA    |   7239    |     57.04     |
+    |    partdate    |               Date               |    NA    |    65     |     0.51      |
+    |    prev_pn     |            character             |    NA    |     0     |       0       |
+    |    medaffil    |haven_labelled, vctrs_vctr, double|    NA    |   1348    |     10.62     |
+    |  resprog_ada   |             numeric              |    NA    |    86     |     0.68      |
+    |  resprog_ama   |             numeric              |    NA    |    86     |     0.68      |
+    |  resprog_aoa   |             numeric              |    NA    |    86     |     0.68      |
+    |  resprog_oth   |             numeric              |    NA    |    86     |     0.68      |
+    |   residents    |             numeric              |    NA    |     0     |       0       |
+    |   shortterm    |             numeric              |    NA    |     0     |       0       |
+    |      cah       |             numeric              |    NA    |     0     |       0       |
+    |provider_subtype|haven_labelled, vctrs_vctr, double|    NA    |   1071    |     8.44      |
+    |  typ_control   |haven_labelled, vctrs_vctr, double|    NA    |   1345    |     10.6      |
+    |   nonprofit    |             numeric              |    NA    |     0     |       0       |
+    |   forprofit    |             numeric              |    NA    |     0     |       0       |
+    |      govt      |             numeric              |    NA    |     0     |       0       |
+    |    maryland    |             numeric              |    NA    |     0     |       0       |
+    |    nonstate    |             numeric              |    NA    |     0     |       0       |
+    |   urbancbsa    |             numeric              |    NA    |    466    |     3.67      |
+    |    beds_tot    |             numeric              |    NA    |     0     |       0       |
+    |   beds_cert    |             numeric              |    NA    |     0     |       0       |
+    |    lastyear    |             numeric              |    NA    |     0     |       0       |
+    --------------------------------------------------------------------------------------------
+
+     Overall Missing Values           12148 
+     Percentage of Missing Values     3.09 %
+     Rows with Missing Values         7581 
+     Columns With Missing Values      11 
+
 ### Summary Statistics
 
 Provide and discuss a table of simple summary statistics showing the
@@ -72,53 +123,79 @@ From the `HCRIS_data.txt` we select the variables *provider_number*,
 *year*, *tot_uncomp_care_charges*, *tot_pat_rev*
 
 ``` r
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% as_tibble()
+data_hcris %>% 
+  select(pn=provider_number, year, uncomp_care, tot_uncomp_care_charges, tot_pat_rev) %>% 
+  as_tibble()
 ```
 
-    # A tibble: 142,504 × 4
-       provider_number  year tot_uncomp_care_charges tot_pat_rev
-                 <int> <int>                   <dbl>       <dbl>
-     1           10001  1998                      NA   304888068
-     2           10001  1999                      NA   330880661
-     3           10001  2000                      NA   359149872
-     4           10001  2001                      NA   437847861
-     5           10001  2002                      NA   509731719
-     6           10001  2003                      NA   532023593
-     7           10001  2004                      NA   592438087
-     8           10001  2005                      NA   657842984
-     9           10001  2006                      NA   714123644
-    10           10001  2007                      NA   772492758
+    # A tibble: 142,504 × 5
+          pn  year uncomp_care tot_uncomp_care_charges tot_pat_rev
+       <int> <int>       <dbl>                   <dbl>       <dbl>
+     1 10001  1998          NA                      NA   304888068
+     2 10001  1999          NA                      NA   330880661
+     3 10001  2000          NA                      NA   359149872
+     4 10001  2001          NA                      NA   437847861
+     5 10001  2002          NA                      NA   509731719
+     6 10001  2003    41267219                      NA   532023593
+     7 10001  2004    37413733                      NA   592438087
+     8 10001  2005    37457443                      NA   657842984
+     9 10001  2006    41670968                      NA   714123644
+    10 10001  2007          NA                      NA   772492758
     # … with 142,494 more rows
 
 Then we group by year and calculate the summary statistics.
 
 ``` r
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
-  group_by(year) %>% summarise(Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), 
-                               SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), 
-                               Max = max(tot_uncomp_care_charges, na.rm = TRUE)) %>% drop_na(Mean)
+sum_unc_care <- data_hcris %>% 
+  select(provider_number, year, uncomp_care, tot_uncomp_care_charges, tot_pat_rev) %>%
+  mutate(tot_uncomp_care_charges = pmax(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
+  group_by(year) %>% 
+  summarise(
+    Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), 
+    SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), 
+    Max = max(tot_uncomp_care_charges, na.rm = TRUE)
+  ) %>% 
+  drop_na(Mean)
+
+sum_unc_care
 ```
 
-    # A tibble: 11 × 5
+    # A tibble: 20 × 5
         year      Mean        SD       Min        Max
        <int>     <dbl>     <dbl>     <dbl>      <dbl>
-     1  2011 17217489. 47251398. -28840406 1111027264
-     2  2012 18338225. 55879179.        85 1371421445
-     3  2013 19648564. 57646114.       216 1403146636
-     4  2014 19607345. 63262016.        15 1874409188
-     5  2015 19024979. 61755917.        22 1990560423
-     6  2016 19810030. 66724247.        84 2231833221
-     7  2017 22135100. 69491982.        34 2062118188
-     8  2018 24883218. 74503094.         1 2183167185
-     9  2019 28705587. 83757685.         2 2495183582
-    10  2020 29100316. 82874954.        -2 2245174712
-    11  2021 30474261. 90941820.         1 2655216314
+     1  2002        1        NA          1          1
+     2  2003 13557293. 32036098.   -128490  777987403
+     3  2004 15328897. 36661491.         1  820253000
+     4  2005 17409739. 37813838.         1  939134000
+     5  2006 20958801. 47151668.  -2667140 1074625000
+     6  2007 23563868. 51279558.         1 1203374820
+     7  2008 26429603. 57062599.         1 1361805561
+     8  2009 27437058. 46417931.         1  583975318
+     9  2010 29887574. 72408993.         1 2793923000
+    10  2011 17394154. 47222987. -28840406 1111027264
+    11  2012 18338225. 55879179.        85 1371421445
+    12  2013 19648564. 57646114.       216 1403146636
+    13  2014 19607345. 63262016.        15 1874409188
+    14  2015 19024979. 61755917.        22 1990560423
+    15  2016 19810030. 66724247.        84 2231833221
+    16  2017 22135100. 69491982.        34 2062118188
+    17  2018 24883218. 74503094.         1 2183167185
+    18  2019 28705587. 83757685.         2 2495183582
+    19  2020 29100316. 82874954.        -2 2245174712
+    20  2021 30474261. 90941820.         1 2655216314
 
 ``` r
-data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
-  group_by(year) %>% summarise(Mean = mean(tot_pat_rev, na.rm = TRUE), 
-                               SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), 
-                               Max = max(tot_pat_rev, na.rm = TRUE)) %>% drop_na(Mean)
+sum_tot_rev <- data_hcris %>% 
+  select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
+  group_by(year) %>% 
+  summarise(
+    Mean = mean(tot_pat_rev, na.rm = TRUE), 
+    SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), 
+    Max = max(tot_pat_rev, na.rm = TRUE)
+  ) %>% 
+  drop_na(Mean)
+
+sum_tot_rev
 ```
 
     # A tibble: 26 × 5
@@ -135,3 +212,83 @@ data_hcris %>% select(provider_number, year, tot_uncomp_care_charges, tot_pat_re
      9  2005 237498725. 419216031.        1 6398553843
     10  2006 262155653. 464190671.  -104189 7784094716
     # … with 16 more rows
+
+``` r
+plot1 <-
+  sum_unc_care %>% 
+  ggplot(aes(x = year, y = Mean)) + 
+  geom_point()
+plot1
+```
+
+![](Main_files/figure-gfm/plot-1.png)<!-- -->
+
+``` r
+plot2 <-
+  sum_tot_rev %>% 
+  ggplot(aes(x = year, y = Mean)) + 
+  geom_point()
+plot2
+```
+
+![](Main_files/figure-gfm/plot-2.png)<!-- -->
+
+### By Ownership Type
+
+Create a figure showing the mean hospital uncompensated care from 2000
+to 2018. Show this trend separately by hospital ownership type (private
+not for profit and private for profit).
+
+``` r
+data_merged <- 
+  left_join(data_hcris %>%
+              mutate(unc_care = pmax(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>% 
+              select(pn=provider_number, year, unc_care, hos_rev=tot_pat_rev) %>% 
+              as.tibble() %>%
+              drop_na(unc_care)
+            ,
+            data_pos %>%
+              select(pn, nonprofit, forprofit, govt) %>%
+              mutate_at('pn', as.integer)
+            ,
+            by="pn") 
+```
+
+    ## # A tibble: 68,010 × 7
+    ##       pn  year unc_care    hos_rev nonprofit forprofit  govt
+    ##    <int> <int>    <dbl>      <dbl>     <dbl>     <dbl> <dbl>
+    ##  1 10001  2003 41267219  532023593         0         0     1
+    ##  2 10001  2004 37413733  592438087         0         0     1
+    ##  3 10001  2005 37457443  657842984         0         0     1
+    ##  4 10001  2006 41670968  714123644         0         0     1
+    ##  5 10001  2010 90806676 1116894148         0         0     1
+    ##  6 10001  2011 22446946 1208331516         0         0     1
+    ##  7 10001  2012 25683016 1263055782         0         0     1
+    ##  8 10001  2013 23652954 1305720014         0         0     1
+    ##  9 10001  2014 24962490 1451185686         0         0     1
+    ## 10 10001  2015 20412518 1550672017         0         0     1
+    ## # … with 68,000 more rows
+
+``` r
+data_merged %>%
+  filter(year<=2018, nonprofit==1) %>%
+  select(pn, year, unc_care, nonprofit) %>%
+  group_by(year) %>%
+  summarise(Mean = mean(unc_care, na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = Mean)) + 
+  geom_line() -> plot3
+```
+
+![](Main_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
+data_merged %>%
+  filter(year<=2018, forprofit==1) %>%
+  select(pn, year, unc_care, nonprofit) %>%
+  group_by(year) %>%
+  summarise(Mean = mean(unc_care, na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = Mean)) + 
+  geom_line() -> plot4
+```
+
+![](Main_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
