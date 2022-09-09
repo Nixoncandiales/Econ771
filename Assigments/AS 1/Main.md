@@ -163,118 +163,70 @@ mean, standard deviation, min, and max of hospital total revenues and
 uncompensated care over time.
 
 From the `HCRIS_data.txt` we select the variables `provider_number`,
-`year`, `uncomp_care`, `tot_uncomp_care_charges`, `tot_pat_rev`
+`year`, `uncomp_care`, `tot_uncomp_care_charges`, `tot_pat_rev`. We
+create a new variable that stores the uncompensated care records, then
+we group by year and calculate the summary statistics as follows.
 
 ``` r
 data_hcris %>% 
-  select(pn=provider_number, year, uncomp_care, tot_uncomp_care_charges, tot_pat_rev) %>% 
-  as_tibble()
+  rowwise() %>% 
+  mutate(hosp_rev = tot_pat_rev, unc_care = 
+           sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
+  mutate_at(c('unc_care'), ~na_if(., 0)) %>%
+  select(pn=provider_number, year, unc_care, hosp_rev ) -> data1
+
+data1 %>%
+  group_by(year) %>%
+  summarise_at(c('unc_care', 'hosp_rev'),list(mean=mean, sd=sd,min=min,max=max), na.rm=T) -> summ_data
+  
+summ_data %>% 
+  knitr::kable()
 ```
 
-    # A tibble: 142,504 × 5
-          pn  year uncomp_care tot_uncomp_care_charges tot_pat_rev
-       <int> <int>       <dbl>                   <dbl>       <dbl>
-     1 10001  1998          NA                      NA   304888068
-     2 10001  1999          NA                      NA   330880661
-     3 10001  2000          NA                      NA   359149872
-     4 10001  2001          NA                      NA   437847861
-     5 10001  2002          NA                      NA   509731719
-     6 10001  2003    41267219                      NA   532023593
-     7 10001  2004    37413733                      NA   592438087
-     8 10001  2005    37457443                      NA   657842984
-     9 10001  2006    41670968                      NA   714123644
-    10 10001  2007          NA                      NA   772492758
-    # … with 142,494 more rows
-
-Then we group by year and calculate the summary statistics.
+| year | unc_care_mean | hosp_rev_mean | unc_care_sd | hosp_rev_sd | unc_care_min | hosp_rev_min | unc_care_max | hosp_rev_max |
+|-----:|--------------:|--------------:|------------:|------------:|-------------:|-------------:|-------------:|-------------:|
+| 1997 |           NaN |      17406411 |          NA |    25347614 |          Inf |       239580 |         -Inf |    128092000 |
+| 1998 |           NaN |     106218796 |          NA |   169829486 |          Inf |       155387 |         -Inf |   2255621364 |
+| 1999 |           NaN |     117511354 |          NA |   189181015 |          Inf |            1 |         -Inf |   2586692428 |
+| 2000 |           NaN |     131767289 |          NA |   217132934 |          Inf |            1 |         -Inf |   2823988041 |
+| 2001 |           NaN |     147463809 |          NA |   248432404 |          Inf |         2795 |         -Inf |   3267554934 |
+| 2002 |             1 |     170499912 |          NA |   291278067 |            1 |          347 |            1 |   3957656325 |
+| 2003 |      13557293 |     196326204 |    32036098 |   339256130 |      -128490 |     -1757898 |    777987403 |   4722758791 |
+| 2004 |      15328897 |     217080321 |    36661491 |   379301539 |            1 |       154394 |    820253000 |   5525730727 |
+| 2005 |      17409739 |     237498725 |    37813838 |   419216031 |            1 |            1 |    939134000 |   6398553843 |
+| 2006 |      20958801 |     262155653 |    47151668 |   464190671 |     -2667140 |      -104189 |   1074625000 |   7784094716 |
+| 2007 |      23563868 |     285967064 |    51279558 |   508039587 |            1 |        63650 |   1203374820 |   8577046126 |
+| 2008 |      26429603 |     311240216 |    57062599 |   555733346 |            1 |            4 |   1361805561 |   9293788259 |
+| 2009 |      27437058 |     341918436 |    46417931 |   613209280 |            1 |       119236 |    583975318 |   9846464732 |
+| 2010 |      29887574 |     365195409 |    72408993 |   647958858 |            1 |       306861 |   2793923000 |   9857534601 |
+| 2011 |      17394154 |     393805140 |    47222987 |   712227455 |    -28840406 |    -27582223 |   1111027264 |  10572291195 |
+| 2012 |      18338225 |     417753037 |    55879179 |   765536407 |           85 |    -11799711 |   1371421445 |  11865320139 |
+| 2013 |      19648564 |     446296883 |    57646114 |   833905151 |          216 |        94880 |   1403146636 |  12751708196 |
+| 2014 |      19607345 |     478119813 |    63262016 |   905191126 |           15 |         6624 |   1874409188 |  13376352387 |
+| 2015 |      19024979 |     517619678 |    61755917 |   970877276 |           22 |         9368 |   1990560423 |  14143533186 |
+| 2016 |      19810030 |     562218133 |    66724247 |  1070376474 |           84 |   -177031923 |   2231833221 |  15618749067 |
+| 2017 |      22135100 |     603003321 |    69491982 |  1167558591 |           34 |       124513 |   2062118188 |  16863431079 |
+| 2018 |      24883218 |     651712556 |    74503094 |  1283839130 |            1 |       282914 |   2183167185 |  18677245214 |
+| 2019 |      28705587 |     706457120 |    83757685 |  1419791246 |            2 |            3 |   2495183582 |  22000932119 |
+| 2020 |      29100316 |     707845527 |    82874954 |  1450390406 |           -2 |        19212 |   2245174712 |  29390141705 |
+| 2021 |      30474261 |     793550259 |    90941820 |  1641471955 |            1 |    -62618391 |   2655216314 |  34521586839 |
+| 2022 |           NaN |      81138475 |          NA |          NA |          Inf |     81138475 |         -Inf |     81138475 |
 
 ``` r
-sum_unc_care <- data_hcris %>% 
-  select(provider_number, year, uncomp_care, tot_uncomp_care_charges, tot_pat_rev) %>%
-  mutate(tot_uncomp_care_charges = pmax(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
-  group_by(year) %>% 
-  summarise(
-    Mean = mean(tot_uncomp_care_charges, na.rm = TRUE), 
-    SD = sd(tot_uncomp_care_charges, na.rm = TRUE), Min = min(tot_uncomp_care_charges, na.rm = TRUE), 
-    Max = max(tot_uncomp_care_charges, na.rm = TRUE)
-  ) %>% 
-  drop_na(Mean)
+data1 %>%
+  ggplot(aes(x = year, y = unc_care, group=year)) + 
+  geom_boxplot() + 
+  theme_tufte() -> plot1
 
-sum_unc_care
+data1 %>%
+  ggplot(aes(x = year, y = hosp_rev, group=year)) + 
+  geom_boxplot() + 
+  theme_tufte()  -> plot2
+
+plot1 | plot2
 ```
 
-    # A tibble: 20 × 5
-        year      Mean        SD       Min        Max
-       <int>     <dbl>     <dbl>     <dbl>      <dbl>
-     1  2002        1        NA          1          1
-     2  2003 13557293. 32036098.   -128490  777987403
-     3  2004 15328897. 36661491.         1  820253000
-     4  2005 17409739. 37813838.         1  939134000
-     5  2006 20958801. 47151668.  -2667140 1074625000
-     6  2007 23563868. 51279558.         1 1203374820
-     7  2008 26429603. 57062599.         1 1361805561
-     8  2009 27437058. 46417931.         1  583975318
-     9  2010 29887574. 72408993.         1 2793923000
-    10  2011 17394154. 47222987. -28840406 1111027264
-    11  2012 18338225. 55879179.        85 1371421445
-    12  2013 19648564. 57646114.       216 1403146636
-    13  2014 19607345. 63262016.        15 1874409188
-    14  2015 19024979. 61755917.        22 1990560423
-    15  2016 19810030. 66724247.        84 2231833221
-    16  2017 22135100. 69491982.        34 2062118188
-    17  2018 24883218. 74503094.         1 2183167185
-    18  2019 28705587. 83757685.         2 2495183582
-    19  2020 29100316. 82874954.        -2 2245174712
-    20  2021 30474261. 90941820.         1 2655216314
-
-``` r
-sum_tot_rev <- data_hcris %>% 
-  select(provider_number, year, tot_uncomp_care_charges, tot_pat_rev) %>% 
-  group_by(year) %>% 
-  summarise(
-    Mean = mean(tot_pat_rev, na.rm = TRUE), 
-    SD = sd(tot_pat_rev, na.rm = TRUE), Min = min(tot_pat_rev, na.rm = TRUE), 
-    Max = max(tot_pat_rev, na.rm = TRUE)
-  ) %>% 
-  drop_na(Mean)
-
-sum_tot_rev
-```
-
-    # A tibble: 26 × 5
-        year       Mean         SD      Min        Max
-       <int>      <dbl>      <dbl>    <dbl>      <dbl>
-     1  1997  17406411.  25347614.   239580  128092000
-     2  1998 106218796. 169829486.   155387 2255621364
-     3  1999 117511354. 189181015.        1 2586692428
-     4  2000 131767289. 217132934.        1 2823988041
-     5  2001 147463809. 248432404.     2795 3267554934
-     6  2002 170499912. 291278067.      347 3957656325
-     7  2003 196326204. 339256130. -1757898 4722758791
-     8  2004 217080321. 379301539.   154394 5525730727
-     9  2005 237498725. 419216031.        1 6398553843
-    10  2006 262155653. 464190671.  -104189 7784094716
-    # … with 16 more rows
-
-``` r
-plot1 <-
-  sum_unc_care %>% 
-  ggplot(aes(x = year, y = Mean)) + 
-  geom_point()
-plot1
-```
-
-![](Main_files/figure-gfm/plot-1.png)<!-- -->
-
-``` r
-plot2 <-
-  sum_tot_rev %>% 
-  ggplot(aes(x = year, y = Mean)) + 
-  geom_point()
-plot2
-```
-
-![](Main_files/figure-gfm/plot-2.png)<!-- -->
+![](Main_files/figure-gfm/plot-summary-stats-1.png)<!-- -->
 
 ### By Ownership Type
 
@@ -284,11 +236,7 @@ not for profit and private for profit).
 
 ``` r
 data_merged <- 
-  left_join(data_hcris %>%
-              mutate(unc_care = pmax(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>% 
-              select(pn=provider_number, year, unc_care, hos_rev=tot_pat_rev) %>% 
-              as.tibble() %>%
-              drop_na(unc_care)
+  left_join(data1
             ,
             data_pos %>%
               select(pn, nonprofit, forprofit, govt) %>%
@@ -297,20 +245,20 @@ data_merged <-
             by="pn") 
 ```
 
-    ## # A tibble: 68,010 × 7
-    ##       pn  year unc_care    hos_rev nonprofit forprofit  govt
-    ##    <int> <int>    <dbl>      <dbl>     <dbl>     <dbl> <dbl>
-    ##  1 10001  2003 41267219  532023593         0         0     1
-    ##  2 10001  2004 37413733  592438087         0         0     1
-    ##  3 10001  2005 37457443  657842984         0         0     1
-    ##  4 10001  2006 41670968  714123644         0         0     1
-    ##  5 10001  2010 90806676 1116894148         0         0     1
-    ##  6 10001  2011 22446946 1208331516         0         0     1
-    ##  7 10001  2012 25683016 1263055782         0         0     1
-    ##  8 10001  2013 23652954 1305720014         0         0     1
-    ##  9 10001  2014 24962490 1451185686         0         0     1
-    ## 10 10001  2015 20412518 1550672017         0         0     1
-    ## # … with 68,000 more rows
+    # A tibble: 68,010 × 7
+          pn  year unc_care    hos_rev nonprofit forprofit  govt
+       <int> <int>    <dbl>      <dbl>     <dbl>     <dbl> <dbl>
+     1 10001  2003 41267219  532023593         0         0     1
+     2 10001  2004 37413733  592438087         0         0     1
+     3 10001  2005 37457443  657842984         0         0     1
+     4 10001  2006 41670968  714123644         0         0     1
+     5 10001  2010 90806676 1116894148         0         0     1
+     6 10001  2011 22446946 1208331516         0         0     1
+     7 10001  2012 25683016 1263055782         0         0     1
+     8 10001  2013 23652954 1305720014         0         0     1
+     9 10001  2014 24962490 1451185686         0         0     1
+    10 10001  2015 20412518 1550672017         0         0     1
+    # … with 68,000 more rows
 
 ``` r
 data_merged %>%
