@@ -3,7 +3,7 @@ title: "Assigment 1"
 output: github_document
 
 ---
-```{css parameter,  echo=FALSE}
+```{css parameter, include=FALSE}
 pre {
   max-height: 200px;
   overflow-y: auto;
@@ -15,12 +15,12 @@ pre[class] {
 }
 ```
 
-```{r setup, include=TRUE, cache=TRUE, tidy=TRUE, echo=FALSE}
+```{r setup, include=FALSE, cache=TRUE, tidy=TRUE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
 knitr::opts_chunk$set(error = TRUE, cache = T)
 
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr)
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr, HonestDiD, did, fixest)
 ```
 
 ## Downloading the Raw Data
