@@ -173,13 +173,12 @@ data_hcris %>%
   mutate(hosp_rev = tot_pat_rev, unc_care = 
            sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
   mutate_at(c('unc_care'), ~na_if(., 0)) %>%
-  select(pn=provider_number, year, unc_care, hosp_rev ) -> data1
+  select(pn=provider_number, year, unc_care, hosp_rev )  %>%
+  filter(!(is.na(unc_care) & is.na(hosp_rev)) )-> data_hcris1
 
-data1 %>%
+data_hcris1 %>%
   group_by(year) %>%
-  summarise_at(c('unc_care', 'hosp_rev'),list(mean=mean, sd=sd,min=min,max=max), na.rm=T) -> summ_data
-  
-summ_data %>% 
+  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
   knitr::kable()
 ```
 
@@ -213,12 +212,12 @@ summ_data %>%
 | 2022 |           NaN |      81138475 |          NA |          NA |          Inf |     81138475 |         -Inf |     81138475 |
 
 ``` r
-data1 %>%
+data_hcris1 %>%
   ggplot(aes(x = year, y = unc_care, group=year)) + 
   geom_boxplot() + 
   theme_tufte() -> plot1
 
-data1 %>%
+data_hcris1 %>%
   ggplot(aes(x = year, y = hosp_rev, group=year)) + 
   geom_boxplot() + 
   theme_tufte()  -> plot2
@@ -235,51 +234,59 @@ to 2018. Show this trend separately by hospital ownership type (private
 not for profit and private for profit).
 
 ``` r
-data_merged <- 
-  left_join(data1
-            ,
-            data_pos %>%
-              select(pn, nonprofit, forprofit, govt) %>%
-              mutate_at('pn', as.integer)
-            ,
-            by="pn") 
+data_hcris1 <- data_hcris1 %>% filter(year>=2000 & year<=2018) #subset by the years
+
+data_pos1 <- data_pos %>%
+  select(pn = unique('pn'), nonprofit, forprofit, active) %>%
+  mutate_at('pn', as.integer) %>% # This will force strings ID into NA (those are no-hospital POS)
+  filter( pn >0 ) %>% #remove NA cases
+  mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
+                             nonprofit == 0  & forprofit == 1  ~ 'forprofit',
+                             nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>% # Create a factor variable for ownership type
+  filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )  ) %>%  # discard govt and other forms of ownership
+  select(pn, own_typ) # Select the variables to merge
+
+hcris_1 <- left_join(data_hcris1, data_pos1, by="pn") %>% 
+  mutate_at('own_typ',  replace_na, 'other') %>% # replace NA by other
+  select(pn, year, unc_care, own_typ) %>%
+  filter(!(own_typ == 'other'))
+##This last line of code is because if I include other types of ownerships I am getting duplicated cases.. i need to dig a bit more into this behavior. 
 ```
 
-    # A tibble: 68,010 × 7
-          pn  year unc_care    hos_rev nonprofit forprofit  govt
-       <int> <int>    <dbl>      <dbl>     <dbl>     <dbl> <dbl>
-     1 10001  2003 41267219  532023593         0         0     1
-     2 10001  2004 37413733  592438087         0         0     1
-     3 10001  2005 37457443  657842984         0         0     1
-     4 10001  2006 41670968  714123644         0         0     1
-     5 10001  2010 90806676 1116894148         0         0     1
-     6 10001  2011 22446946 1208331516         0         0     1
-     7 10001  2012 25683016 1263055782         0         0     1
-     8 10001  2013 23652954 1305720014         0         0     1
-     9 10001  2014 24962490 1451185686         0         0     1
-    10 10001  2015 20412518 1550672017         0         0     1
-    # … with 68,000 more rows
+|    pn | year | unc_care | own_typ   |
+|------:|-----:|---------:|:----------|
+| 10007 | 2000 |       NA | nonprofit |
+| 10007 | 2001 |       NA | nonprofit |
+| 10007 | 2002 |       NA | nonprofit |
+| 10007 | 2003 |   432407 | nonprofit |
+| 10007 | 2004 |  3140810 | nonprofit |
+| 10007 | 2005 |  5788297 | nonprofit |
 
 ``` r
-data_merged %>%
-  filter(year<=2018, nonprofit==1) %>%
-  select(pn, year, unc_care, nonprofit) %>%
-  group_by(year) %>%
-  summarise(Mean = mean(unc_care, na.rm = TRUE)) %>% 
-  ggplot(aes(x = year, y = Mean)) + 
-  geom_line() -> plot3
+hcris_1 %>%
+  group_by(year, own_typ) %>%
+  summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
+  ggplot(aes(x=year, y=unc_care_mean, group=own_typ, color=own_typ)) -> plot3
+
+plot3 + geom_point(size = 1) +
+  geom_smooth(aes(fill = own_typ), size = 1) +
+  theme_tufte()
 ```
 
-![](Main_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](Main_files/figure-gfm/plot3-1.png)<!-- -->
 
-``` r
-data_merged %>%
-  filter(year<=2018, forprofit==1) %>%
-  select(pn, year, unc_care, nonprofit) %>%
-  group_by(year) %>%
-  summarise(Mean = mean(unc_care, na.rm = TRUE)) %>% 
-  ggplot(aes(x = year, y = Mean)) + 
-  geom_line() -> plot4
-```
+### 3
 
-![](Main_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+### 4
+
+### 5
+
+### 6
+
+### 7
+
+### 8
+
+### 9
+
+### 10
