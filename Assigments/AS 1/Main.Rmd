@@ -1,7 +1,7 @@
 ---
 title: "Assigment 1"
 output: github_document
-
+always_allow_html: true
 ---
 ```{css parameter, include=FALSE}
 pre {
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE, comment=NA)
 knitr::opts_chunk$set(error = TRUE, cache = T)
 
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes)
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly)
 ```
 
 ## Downloading the Raw Data
@@ -109,18 +109,19 @@ hcris_1 <- left_join(data_hcris1, data_pos1, by="pn") %>%
 ```
 
 ```{r echo=FALSE, , comment=NA}
-hcris_1%>% head() %>% knitr::kable()
+hcris_1%>% head %>% knitr::kable()
 ```
 
 ```{r plot3, warning=FALSE, comment=NA, message = FALSE}
 hcris_1 %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
-  ggplot(aes(x=year, y=unc_care_mean, group=own_typ, color=own_typ)) -> plot3
+  ggplot(aes(x=year, y=unc_care_mean, color=own_typ)) -> plot3
 
 plot3 + geom_point(size = 1) +
   geom_smooth(aes(fill = own_typ), size = 1) +
-  theme_tufte()
+  theme_tufte() -> plot3 
+ggplotly (plot3)
 ```
 
 

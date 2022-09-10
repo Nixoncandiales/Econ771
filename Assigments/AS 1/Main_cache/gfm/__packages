@@ -29,3 +29,5 @@ fixest
 RColorBrewer
 patchwork
 ggthemes
+DT
+plotly
