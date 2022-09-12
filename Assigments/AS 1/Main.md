@@ -15,7 +15,6 @@ folder under `HCRIS_Data.txt`, `pos_lastyear.v12.dta`, and
 them as follows.
 
 ``` r
-if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
 ds_screener(data_hcris)
 ```
 
@@ -73,7 +72,6 @@ main interest. After reviewing the codebook we confirmed in fact these
 two variables are the same but coded different across forms.
 
 ``` r
-if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
 ds_screener(data_pos)
 ```
 
@@ -126,7 +124,6 @@ differs in the HCRIS data set `provider_number` which is coded as
 numerical.
 
 ``` r
-if (!exists("data_aca")) data_aca <- read.delim(here("Assigments", "As 1", "Output", "ACA", "acs_medicaid.txt"))
 ds_screener(data_aca)
 ```
 
@@ -228,30 +225,30 @@ not for profit and private for profit).
 data_hcris1 <- data_hcris1 %>% filter(year>=2003 & year<=2019) #subset by the years
 
 data_pos1 <- data_pos %>%
-  select(pn = unique('pn'), nonprofit, forprofit, active) %>%
+  select(pn = unique('pn'), nonprofit, forprofit, active, state) %>%
   mutate_at('pn', as.integer) %>% # This will force strings ID into NA (those are no-hospital POS)
   filter( pn >0 ) %>% #remove NA cases
   mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
                              nonprofit == 0  & forprofit == 1  ~ 'forprofit',
                              nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>% # Create a factor variable for ownership type
   filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )  ) %>%  # discard govt and other forms of ownership
-  select(pn, own_typ) # Select the variables to merge
+  select(pn, own_typ, state) # Select the variables to merge
 
 hcris_1 <- left_join(data_hcris1, data_pos1, by="pn") %>% 
   mutate_at('own_typ',  replace_na, 'other') %>% # replace NA by other
-  select(pn, year, unc_care, own_typ) %>%
+  select(pn, year, state, own_typ, unc_care) %>%
   filter(!(own_typ == 'other'))
 ##This last line of code is because if I include other types of ownerships I am getting duplicated cases.. i need to dig a bit more into this behavior. 
 ```
 
-|    pn | year | unc_care | own_typ   |
-|------:|-----:|---------:|:----------|
-| 10007 | 2003 |   432407 | nonprofit |
-| 10007 | 2004 |  3140810 | nonprofit |
-| 10007 | 2005 |  5788297 | nonprofit |
-| 10007 | 2006 |  3981428 | nonprofit |
-| 10007 | 2007 |  3074398 | nonprofit |
-| 10007 | 2008 |  3749534 | nonprofit |
+|    pn | year | state | own_typ   | unc_care |
+|------:|-----:|:------|:----------|---------:|
+| 10007 | 2003 | AL    | nonprofit |   432407 |
+| 10007 | 2004 | AL    | nonprofit |  3140810 |
+| 10007 | 2005 | AL    | nonprofit |  5788297 |
+| 10007 | 2006 | AL    | nonprofit |  3981428 |
+| 10007 | 2007 | AL    | nonprofit |  3074398 |
+| 10007 | 2008 | AL    | nonprofit |  3749534 |
 
 ``` r
 hcris_1 %>%
@@ -265,43 +262,279 @@ hcris_1 %>%
 
 ![](Main_files/figure-gfm/plot-own-typ-1.png)<!-- -->
 
-## Did identification strategy
+## DiD identification strategy
 
 Using a simple DD identification strategy, estimate the effect of
 Medicaid expansion on hospital uncompensated care using a traditional
-two-way fixed effects (TWFE) estimation: where $D_{it}=1(E_{i}\leq t)$
-in Equation @ref(eq:dd) is an indicator set to 1 when a hospital is in a
-state that expanded as of year $t$ or earlier, $\gamma_{t}$ denotes time
-fixed effects, $\alpha_{i}$ denotes hospital fixed effects, and $y_{it}$
-denotes the hospital’s amount of uncompensated care in year $t$. Present
-four estimates from this estimation in a table: one based on the full
-sample (regardless of treatment timing); one when limiting to the 2014
-treatment group (with never treated as the control group); one when
-limiting to the 2015 treatment group (with never treated as the control
-group); and one when limiting to the 2016 treatment group (with never
-treated as the control group). Briefly explain any differences.
+two-way fixed effects (TWFE) estimation: $$
+y_{it} = \alpha_{i} + \gamma_{t} + \delta D_{it} + \varepsilon_{it},
+$$ where $D_{it}=1(E_{i}\leq t)$ in Equation 1 is an indicator set to 1
+when a hospital is in a state that expanded as of year $t$ or earlier,
+$\gamma_{t}$ denotes time fixed effects, $\alpha_{i}$ denotes hospital
+fixed effects, and $y_{it}$ denotes the hospital’s amount of
+uncompensated care in year $t$. Present four estimates from this
+estimation in a table: one based on the full sample (regardless of
+treatment timing); one when limiting to the 2014 treatment group (with
+never treated as the control group); one when limiting to the 2015
+treatment group (with never treated as the control group); and one when
+limiting to the 2016 treatment group (with never treated as the control
+group). Briefly explain any differences.
+
+``` r
+left_join(hcris_1, # Merge HCRIS data with the medicaid expansion data
+                  data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
+                    filter(!(State=='Puerto Rico')) %>%
+                    mutate(state= encodefrom(., State, stcrosswalk, stname, stfips, stabbr)) %>%
+                    select(!State) %>%
+                    relocate(state) #make sure the ID variable has the same name on both data sets
+  , 
+  by=c('state', 'year')) %>% 
+  relocate(pn, year, state, own_typ ,expand_ever, expand, expand_year, unc_care)-> hcris_2
+```
+
+``` r
+#Create dummies for the control groups
+hcris_2 %>% 
+  mutate(d = case_when(expand == TRUE ~ 1),
+         d_14 = case_when(expand == TRUE & expand_year==2014 ~ 1),
+         d_15 = case_when(expand == TRUE & expand_year==2015 ~ 1),
+         d_16 = case_when(expand == TRUE & expand_year==2016 ~ 1)) %>%
+  mutate(across(d:d_16, ~ifelse(is.na(.),0,.))) -> hcris_2
+```
+
+``` r
+twfe <- lapply(hcris_2 %>%
+             select(d:d_16), #Select the treatments 
+           function(D) felm(unc_care ~ D | pn + year | 0 | pn, hcris_2)) #Apply the specification across the different treatments and store the results in a list
+
+stargazer(twfe, type='html')
+```
+
+<table style="text-align:center">
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="4">
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="4">
+unc_care
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+\(1\)
+</td>
+<td>
+\(2\)
+</td>
+<td>
+\(3\)
+</td>
+<td>
+\(4\)
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+D
+</td>
+<td>
+-25,551,544.000<sup>\*\*\*</sup>
+</td>
+<td>
+-23,080,167.000<sup>\*\*\*</sup>
+</td>
+<td>
+-9,302,145.000<sup>\*\*\*</sup>
+</td>
+<td>
+-9,962,689.000<sup>\*\*\*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1,600,283.000)
+</td>
+<td>
+(1,501,041.000)
+</td>
+<td>
+(2,236,898.000)
+</td>
+<td>
+(1,680,644.000)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+47,515
+</td>
+<td>
+47,515
+</td>
+<td>
+47,515
+</td>
+<td>
+47,515
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+R<sup>2</sup>
+</td>
+<td>
+0.639
+</td>
+<td>
+0.636
+</td>
+<td>
+0.625
+</td>
+<td>
+0.625
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Adjusted R<sup>2</sup>
+</td>
+<td>
+0.603
+</td>
+<td>
+0.599
+</td>
+<td>
+0.588
+</td>
+<td>
+0.587
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Residual Std. Error (df = 43168)
+</td>
+<td>
+31,960,974.000
+</td>
+<td>
+32,100,491.000
+</td>
+<td>
+32,569,928.000
+</td>
+<td>
+32,583,039.000
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td colspan="4" style="text-align:right">
+<sup>*</sup>p\<0.1; <sup>**</sup>p\<0.05; <sup>***</sup>p\<0.01
+</td>
+</tr>
+</table>
+
+``` r
+#Another Way of achiving the model
+#prueba <- map(hcris_2 %>%
+#                   select(d:d_16),  # Select the treatments
+#                function(D){
+#                    felm(unc_care ~ D | pn + year | 0 | pn, hcris_2) #Apply the specification across the different treatments and store the results in a list
+#                  })
+```
+
+
+    ==========================================================================================================
+                                                                Dependent variable:                           
+                                     -------------------------------------------------------------------------
+                                                                     unc_care                                 
+                                            (1)                (2)                (3)               (4)       
+    ----------------------------------------------------------------------------------------------------------
+    D                                -25,551,544.000*** -23,080,167.000*** -9,302,145.000*** -9,962,689.000***
+                                      (1,600,283.000)    (1,501,041.000)    (2,236,898.000)   (1,680,644.000) 
+                                                                                                              
+    ----------------------------------------------------------------------------------------------------------
+    Observations                           47,515             47,515            47,515            47,515      
+    R2                                     0.639              0.636              0.625             0.625      
+    Adjusted R2                            0.603              0.599              0.588             0.587      
+    Residual Std. Error (df = 43168)   31,960,974.000     32,100,491.000    32,569,928.000    32,583,039.000  
+    ==========================================================================================================
+    Note:                                                                          *p<0.1; **p<0.05; ***p<0.01
 
 ## Event Study
 
-Estimate an “event study” version of the specification in part 3: where
-$D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation @ref(eq:event) is
-essentially an interaction between the treatment dummy and a relative
-time dummy. In this notation and context, $\tau$ denotes years relative
-to Medicaid expansion, so that $\tau=-1$ denotes the year before a state
-expanded Medicaid, $\tau=0$ denotes the year of expansion, etc. Estimate
-with two different samples: one based on the full sample and one based
-only on those that expanded in 2014 (with never treated as the control
-group).
+Estimate an “event study” version of the specification in part 3: $$
+y_{it} = \alpha_{i} + \gamma_{t} +\sum_{\tau < -1} D_{it}^{\tau} \delta_{\tau} + \sum_{\tau>=0} D_{it}^{\tau} \delta_{\tau} + \varepsilon_{it},
+$$ where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation 2 is essentially
+an interaction between the treatment dummy and a relative time dummy. In
+this notation and context, $\tau$ denotes years relative to Medicaid
+expansion, so that $\tau=-1$ denotes the year before a state expanded
+Medicaid, $\tau=0$ denotes the year of expansion, etc. Estimate with two
+different samples: one based on the full sample and one based only on
+those that expanded in 2014 (with never treated as the control group).
 
 ## SA specification
 
 Sun and Abraham (SA) show that the $\delta_{\tau}$ coefficients in
-Equation @ref(eq:event) can be written as a non-convex average of all
-other group-time specific average treatment effects. They propose an
-interaction weighted specification: Re-estimate your event study using
-the SA specification in Equation @ref(eq:iwevent). Show your results for
-$\hat{\delta}_{e, \tau}$ in a Table, focusing on states with
-$E_{i}=2014$, $E_{i}=2015$, and $E_{i}=2016$.
+Equation 2 can be written as a non-convex average of all other
+group-time specific average treatment effects. They propose an
+interaction weighted specification: $$
+y_{it} = \alpha_{i} + \gamma_{t} +\sum_{e} \sum_{\tau \neq -1} \left(D_{it}^{\tau} \times 1(E_{i}=e)\right) \delta_{e, \tau} + \varepsilon_{it}.
+$$ Re-estimate your event study using the SA specification in Equation
+3. Show your results for $\hat{\delta}_{e, \tau}$ in a Table, focusing
+on states with $E_{i}=2014$, $E_{i}=2015$, and $E_{i}=2016$.
 
 ## Event Study - SA specification
 

@@ -2,12 +2,13 @@
 title: "Assigment 1"
 output: github_document
 always_allow_html: true
+extra_dependencies:
+  amsmath: null
 ---
 ```{css parameters, include=FALSE}
 pre {
-  max-height: 200px;
+  max-height: 100px;
   overflow-y: auto;
-  overflow-x: auto;
 }
 
 pre[class] {
@@ -20,27 +21,32 @@ knitr::opts_chunk$set(echo = TRUE, comment=NA)
 knitr::opts_chunk$set(error = TRUE, cache = T)
 
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, here, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly)
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, lfe, stargazer)
+knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
 ```
 
 ## Downloading the Raw Data
 We start by downloading and processing the [HCRIS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/HCRIS), [POS](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/POS), and [ACA](https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Code/ACA) raw data sets. The processed data sets are located in the [**Output**]((https://github.com/Nixoncandiales/Econ771/tree/main/Assigments/AS%201/Output)) folder under `HCRIS_Data.txt`, `pos_lastyear.v12.dta`, and `acs_medicare.txt` . We import those data sets in our file and inspect them as follows.
 
-```{r import-data-hcris, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-if (!exists("data_hcris")) data_hcris <- read.delim(here("Assigments", "As 1", "Output", "HCRIS", "HCRIS_Data.txt"))
+```{r import-data, tidy=TRUE, echo=FALSE, cache=TRUE, comment=NA, include=FALSE}
+here::i_am("Main.Rmd")
+if (!exists("data_hcris")) data_hcris <- read.delim(here("Output", "HCRIS", "HCRIS_Data.txt"))
+if (!exists("data_pos")) data_pos <- read_stata(here("Output", "POS", "pos_lastyear.v12.dta"))
+if (!exists("data_aca")) data_aca <- read.delim(here("Output", "ACA", "acs_medicaid.txt"))
+```
+
+```{r data-hcris, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 ds_screener(data_hcris)
 ```
 After a quick screening of the HCRIS data we can see the missing values are significantly high which suggest some variables are recorded differently across time and forms. It is of particular interest the variables `uncomp_care` and `tot_uncomp_care_charges` which are of our main interest. After reviewing the codebook we confirmed in fact these two variables are the same but coded different across forms. 
 
-```{r import-data-pos, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-if (!exists("data_pos")) data_pos <- read_stata(here("Assigments", "As 1", "Output", "POS", "pos_lastyear.v12.dta"))
+```{r data-pos, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 ds_screener(data_pos)
 ```
 
 From the provider of services data set we do not evidence missing data problems. We can observe if a particular POS went out of the market by either closing or merging and the respectively date of the event. It is to note the identifier variable is `pn` which is recorded as a character differs in the HCRIS data set `provider_number` which is coded as numerical. 
 
-```{r import-data-medicaid, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-if (!exists("data_aca")) data_aca <- read.delim(here("Assigments", "As 1", "Output", "ACA", "acs_medicaid.txt"))
+```{r data-medicaid, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
 ds_screener(data_aca)
 ```
 
@@ -86,24 +92,27 @@ Create a figure showing the mean hospital uncompensated care from 2000 to 2018. 
 ```{r load-libraries, include=FALSE}
 library(tidyverse)
 library(ggthemes)
+library(crosswalkr)
+library(lfe)
+library(stargazer)
 ```
 
 ```{r merge, warning=FALSE }
 data_hcris1 <- data_hcris1 %>% filter(year>=2003 & year<=2019) #subset by the years
 
 data_pos1 <- data_pos %>%
-  select(pn = unique('pn'), nonprofit, forprofit, active) %>%
+  select(pn = unique('pn'), nonprofit, forprofit, active, state) %>%
   mutate_at('pn', as.integer) %>% # This will force strings ID into NA (those are no-hospital POS)
   filter( pn >0 ) %>% #remove NA cases
   mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
                              nonprofit == 0  & forprofit == 1  ~ 'forprofit',
                              nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>% # Create a factor variable for ownership type
   filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )  ) %>%  # discard govt and other forms of ownership
-  select(pn, own_typ) # Select the variables to merge
+  select(pn, own_typ, state) # Select the variables to merge
 
 hcris_1 <- left_join(data_hcris1, data_pos1, by="pn") %>% 
   mutate_at('own_typ',  replace_na, 'other') %>% # replace NA by other
-  select(pn, year, unc_care, own_typ) %>%
+  select(pn, year, state, own_typ, unc_care) %>%
   filter(!(own_typ == 'other'))
 ##This last line of code is because if I include other types of ownerships I am getting duplicated cases.. i need to dig a bit more into this behavior. 
 ```
@@ -127,29 +136,66 @@ hcris_1 %>%
 rm(data_hcris1,data_pos1)
 ```
 
-## Did identification strategy
+## DiD identification strategy
 Using a simple DD identification strategy, estimate the effect of Medicaid expansion on hospital uncompensated care using a traditional two-way fixed effects (TWFE) estimation:
-\begin{equation}
+$$
 y_{it} = \alpha_{i} + \gamma_{t} + \delta D_{it} + \varepsilon_{it},
-(\#eq:dd)
-\end{equation}
-where $D_{it}=1(E_{i}\leq t)$ in Equation \@ref(eq:dd) is an indicator set to 1 when a hospital is in a state that expanded as of year $t$ or earlier, $\gamma_{t}$ denotes time fixed effects, $\alpha_{i}$ denotes hospital fixed effects, and $y_{it}$ denotes the hospital's amount of uncompensated care in year $t$. Present four estimates from this estimation in a table: one based on the full sample (regardless of treatment timing); one when limiting to the 2014 treatment group (with never treated as the control group); one when limiting to the 2015 treatment group (with never treated as the control group); and one when limiting to the 2016 treatment group (with never treated as the control group). Briefly explain any differences.
+$$
+where $D_{it}=1(E_{i}\leq t)$ in Equation 1 is an indicator set to 1 when a hospital is in a state that expanded as of year $t$ or earlier, $\gamma_{t}$ denotes time fixed effects, $\alpha_{i}$ denotes hospital fixed effects, and $y_{it}$ denotes the hospital's amount of uncompensated care in year $t$. Present four estimates from this estimation in a table: one based on the full sample (regardless of treatment timing); one when limiting to the 2014 treatment group (with never treated as the control group); one when limiting to the 2015 treatment group (with never treated as the control group); and one when limiting to the 2016 treatment group (with never treated as the control group). Briefly explain any differences.
+
+```{r , include=TRUE, comment=NA}
+left_join(hcris_1, # Merge HCRIS data with the medicaid expansion data
+                  data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
+                    filter(!(State=='Puerto Rico')) %>%
+                    mutate(state= encodefrom(., State, stcrosswalk, stname, stfips, stabbr)) %>%
+                    select(!State) %>%
+                    relocate(state) #make sure the ID variable has the same name on both data sets
+  , 
+  by=c('state', 'year')) %>% 
+  relocate(pn, year, state, own_typ ,expand_ever, expand, expand_year, unc_care)-> hcris_2
+```
+
+```{r , comment=NA}
+#Create dummies for the control groups
+hcris_2 %>% 
+  mutate(d = case_when(expand == TRUE ~ 1),
+         d_14 = case_when(expand == TRUE & expand_year==2014 ~ 1),
+         d_15 = case_when(expand == TRUE & expand_year==2015 ~ 1),
+         d_16 = case_when(expand == TRUE & expand_year==2016 ~ 1)) %>%
+  mutate(across(d:d_16, ~ifelse(is.na(.),0,.))) -> hcris_2
+```
+
+```{r , comment=NA, , results='asis'}
+twfe <- lapply(hcris_2 %>%
+             select(d:d_16), #Select the treatments 
+           function(D) felm(unc_care ~ D | pn + year | 0 | pn, hcris_2)) #Apply the specification across the different treatments and store the results in a list
+
+stargazer(twfe, type='html')
+#Another Way of achiving the model
+#prueba <- map(hcris_2 %>%
+#                   select(d:d_16),  # Select the treatments
+#                function(D){
+#                    felm(unc_care ~ D | pn + year | 0 | pn, hcris_2) #Apply the specification across the different treatments and store the results in a list
+#                  })
+```
+
+```{r, comment=NA, echo=FALSE}
+stargazer(twfe, type='text')
+```
 
 ## Event Study
 Estimate an "event study" version of the specification in part 3:
-\begin{equation}
+$$
 y_{it} = \alpha_{i} + \gamma_{t} +\sum_{\tau < -1} D_{it}^{\tau} \delta_{\tau} + \sum_{\tau>=0} D_{it}^{\tau} \delta_{\tau} + \varepsilon_{it},
-(\#eq:event)
-\end{equation}
-where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation \@ref(eq:event) is essentially an interaction between the treatment dummy and a relative time dummy. In this notation and context, $\tau$ denotes years relative to Medicaid expansion, so that $\tau=-1$ denotes the year before a state expanded Medicaid, $\tau=0$ denotes the year of expansion, etc. Estimate with two different samples: one based on the full sample and one based only on those that expanded in 2014 (with never treated as the control group).
+$$
+where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation 2 is essentially an interaction between the treatment dummy and a relative time dummy. In this notation and context, $\tau$ denotes years relative to Medicaid expansion, so that $\tau=-1$ denotes the year before a state expanded Medicaid, $\tau=0$ denotes the year of expansion, etc. Estimate with two different samples: one based on the full sample and one based only on those that expanded in 2014 (with never treated as the control group).
 
 ## SA specification
-Sun and Abraham (SA) show that the $\delta_{\tau}$ coefficients in Equation \@ref(eq:event) can be written as a non-convex average of all other group-time specific average treatment effects. They propose an interaction weighted specification:
-\begin{equation}
+Sun and Abraham (SA) show that the $\delta_{\tau}$ coefficients in Equation 2 can be written as a non-convex average of all other group-time specific average treatment effects. They propose an interaction weighted specification:
+$$
 y_{it} = \alpha_{i} + \gamma_{t} +\sum_{e} \sum_{\tau \neq -1} \left(D_{it}^{\tau} \times 1(E_{i}=e)\right) \delta_{e, \tau} + \varepsilon_{it}.
-(\#eq:iwevent)
-\end{equation}
-Re-estimate your event study using the SA specification in Equation \@ref(eq:iwevent). Show your results for $\hat{\delta}_{e, \tau}$ in a Table, focusing on states with $E_{i}=2014$, $E_{i}=2015$, and $E_{i}=2016$.
+$$
+Re-estimate your event study using the SA specification in Equation 3. Show your results for $\hat{\delta}_{e, \tau}$ in a Table, focusing on states with $E_{i}=2014$, $E_{i}=2015$, and $E_{i}=2016$.
 
 ## Event Study - SA specification
 Present an event study graph based on the results in part 5. Hint: you can do this automatically in `R` with the `fixest` package (using the `sunab` syntax for interactions), or with `eventstudyinteract` in `Stata`. These packages help to avoid mistakes compared to doing the tables/figures manually and also help to get the standard errors correct.
