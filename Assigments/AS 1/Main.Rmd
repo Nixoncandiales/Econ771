@@ -18,7 +18,7 @@ pre[class] {
 
 ```{r setup, include=FALSE, cache=TRUE, tidy=TRUE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
-knitr::opts_chunk$set(error = TRUE, cache = T)
+knitr::opts_chunk$set(error = TRUE, cache = F)
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, lfe, stargazer)
@@ -52,33 +52,73 @@ ds_screener(data_aca)
 
 Finally, from the medicare data set we see the states that expanded the mandate and the date of event. Also, it is to note that the state identifier is not recorded in the same format across data sets.
 
+## Merging the data
+
+We start by left joining `HCRIS_data.txt` and `pos_lastyear.v12.dta`. The key to merge these two data set is the indicator `pn`
+
+```{r merge-1, include=TRUE, warning=FALSE }
+#Merged the two data sets
+df_1 <- data_hcris %>% #sum up the two variables uncompensated care variables
+              filter(year >= 2003 & year <= 2019) %>%
+              rowwise() %>% 
+              mutate(hosp_rev = tot_pat_rev, 
+                     unc_care = sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
+              mutate_at(c('unc_care'), ~na_if(., 0)) %>%
+              select(pn=provider_number, year, unc_care, hosp_rev )  %>%
+              filter(!(is.na(unc_care) & is.na(hosp_rev))) #discard the observations NA observation for both unc_care and hosp_rev
+          
+df_2 <- data_pos %>% #force pn as integer and discard those facilities that are not hospitals
+              mutate_at('pn', as.integer) %>% 
+              select(pn = pn, nonprofit, forprofit, active, state) %>% 
+              mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
+                                         nonprofit == 0  & forprofit == 1  ~ 'forprofit',
+                                         nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>%
+              filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )) #only include in the analysis hospitals forprofit and nonprofit
+
+df <- left_join(df_1, df_2, by='pn') %>%
+              mutate_at('own_typ',  replace_na, 'other') %>%
+              relocate(pn, year, state, own_typ) %>%
+              filter(!(own_typ == 'other')) #discard all other types of ownership
+df
+```
+
+```{r merge-2, include=TRUE, comment=NA}
+df_3 <- data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
+              filter(!(State=='Puerto Rico')) %>%
+              mutate(state= encodefrom(., State, stcrosswalk, stname, stfips, stabbr)) %>%
+              select(!State) %>%
+              relocate(state) #make sure the ID variable has the same name on both data sets
+
+df <- left_join(df, df_3, by=c('state', 'year')) %>% 
+  relocate(pn, year, state, own_typ ,expand_ever, expand, expand_year, unc_care)
+
+df
+```
+
 ## Summary Statistics
 Provide and discuss a table of simple summary statistics showing the mean, standard deviation, min, and max of hospital total revenues and uncompensated care over time.
 
 From the `HCRIS_data.txt` we select the variables `provider_number`, `year`, `uncomp_care`, `tot_uncomp_care_charges`, `tot_pat_rev`. We create a new variable that stores the uncompensated care records, then we group by year and calculate the summary statistics as follows.
 
 ```{r summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-data_hcris %>% 
-  rowwise() %>% 
-  mutate(hosp_rev = tot_pat_rev, unc_care = 
-           sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
-  mutate_at(c('unc_care'), ~na_if(., 0)) %>%
-  select(pn=provider_number, year, unc_care, hosp_rev )  %>%
-  filter(!(is.na(unc_care) & is.na(hosp_rev)) & ((year>=2003)&(year<=2019)))-> data_hcris1
-
-data_hcris1 %>%
+df_1 %>%
   group_by(year) %>%
+  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
+  knitr::kable()
+
+df  %>%
+    group_by(year) %>%
   summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
   knitr::kable()
 ```
 
 ```{r plot-summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-data_hcris1 %>%
+df %>%
   ggplot(aes(x = year, y = unc_care, group=year)) + 
   geom_boxplot() + 
   theme_tufte() -> plot1
 
-data_hcris1 %>%
+df %>%
   ggplot(aes(x = year, y = hosp_rev, group=year)) + 
   geom_boxplot() + 
   theme_tufte()  -> plot2
@@ -97,44 +137,19 @@ library(lfe)
 library(stargazer)
 ```
 
-```{r merge, warning=FALSE }
-data_hcris1 <- data_hcris1 %>% filter(year>=2003 & year<=2019) #subset by the years
-
-data_pos1 <- data_pos %>%
-  select(pn = unique('pn'), nonprofit, forprofit, active, state) %>%
-  mutate_at('pn', as.integer) %>% # This will force strings ID into NA (those are no-hospital POS)
-  filter( pn >0 ) %>% #remove NA cases
-  mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
-                             nonprofit == 0  & forprofit == 1  ~ 'forprofit',
-                             nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>% # Create a factor variable for ownership type
-  filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )  ) %>%  # discard govt and other forms of ownership
-  select(pn, own_typ, state) # Select the variables to merge
-
-hcris_1 <- left_join(data_hcris1, data_pos1, by="pn") %>% 
-  mutate_at('own_typ',  replace_na, 'other') %>% # replace NA by other
-  select(pn, year, state, own_typ, unc_care) %>%
-  filter(!(own_typ == 'other'))
-##This last line of code is because if I include other types of ownerships I am getting duplicated cases.. i need to dig a bit more into this behavior. 
-```
-
-```{r hcris-1-table, echo=FALSE, , comment=NA}
-hcris_1%>% head %>% knitr::kable()
-```
 
 ```{r plot-own-typ, warning=FALSE, comment=NA, message = FALSE}
-hcris_1 %>%
+df %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
   ggplot(aes(x=year, y=unc_care_mean, color=own_typ)) +
   geom_point(size = 1) +
   geom_smooth(aes(fill = own_typ), size = 1) +
-  theme_tufte()
+  theme_tufte() -> plot3
+
+plot3
 ```
 
-
-```{r delete, include=FALSE}
-rm(data_hcris1,data_pos1)
-```
 
 ## DiD identification strategy
 Using a simple DD identification strategy, estimate the effect of Medicaid expansion on hospital uncompensated care using a traditional two-way fixed effects (TWFE) estimation:
@@ -143,43 +158,32 @@ y_{it} = \alpha_{i} + \gamma_{t} + \delta D_{it} + \varepsilon_{it},
 $$
 where $D_{it}=1(E_{i}\leq t)$ in Equation 1 is an indicator set to 1 when a hospital is in a state that expanded as of year $t$ or earlier, $\gamma_{t}$ denotes time fixed effects, $\alpha_{i}$ denotes hospital fixed effects, and $y_{it}$ denotes the hospital's amount of uncompensated care in year $t$. Present four estimates from this estimation in a table: one based on the full sample (regardless of treatment timing); one when limiting to the 2014 treatment group (with never treated as the control group); one when limiting to the 2015 treatment group (with never treated as the control group); and one when limiting to the 2016 treatment group (with never treated as the control group). Briefly explain any differences.
 
-```{r , include=TRUE, comment=NA}
-left_join(hcris_1, # Merge HCRIS data with the medicaid expansion data
-                  data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
-                    filter(!(State=='Puerto Rico')) %>%
-                    mutate(state= encodefrom(., State, stcrosswalk, stname, stfips, stabbr)) %>%
-                    select(!State) %>%
-                    relocate(state) #make sure the ID variable has the same name on both data sets
-  , 
-  by=c('state', 'year')) %>% 
-  relocate(pn, year, state, own_typ ,expand_ever, expand, expand_year, unc_care)-> hcris_2
-```
 
-```{r , comment=NA}
+```{r , include=TRUE, comment=NA}
 #Create dummies for the control groups
-hcris_2 %>% 
+df %>% 
   mutate(d = case_when(expand == TRUE ~ 1),
          d_14 = case_when(expand == TRUE & expand_year==2014 ~ 1),
          d_15 = case_when(expand == TRUE & expand_year==2015 ~ 1),
          d_16 = case_when(expand == TRUE & expand_year==2016 ~ 1)) %>%
-  mutate(across(d:d_16, ~ifelse(is.na(.),0,.))) -> hcris_2
+  mutate(across(d:d_16, ~ifelse(is.na(.),0,.))) -> df
 ```
 
 ```{r , comment=NA, , results='asis'}
-twfe <- lapply(hcris_2 %>%
-             select(d:d_16), #Select the treatments 
-           function(D) felm(unc_care ~ D | pn + year | 0 | pn, hcris_2)) #Apply the specification across the different treatments and store the results in a list
+twfe <- lapply(df %>%
+                select(d:d_16), #Select the treatments 
+              function(D) felm(unc_care ~ D | pn + year | 0 | pn, df)) #Apply the specification across the different treatments and store the results in a list
 
 stargazer(twfe, type='html')
-#Another Way of achiving the model
-#prueba <- map(hcris_2 %>%
-#                   select(d:d_16),  # Select the treatments
-#                function(D){
-#                    felm(unc_care ~ D | pn + year | 0 | pn, hcris_2) #Apply the specification across the different treatments and store the results in a list
-#                  })
 ```
 
 ```{r, comment=NA, echo=FALSE}
+#Another Way of achiving the model
+#prueba <- map(df %>%
+#                   select(d:d_16),  # Select the treatments
+#                function(D){
+#                    felm(unc_care ~ D | pn + year | 0 | pn, df) #Apply the specification across the different treatments and store the results in a list
+#                  })
 stargazer(twfe, type='text')
 ```
 

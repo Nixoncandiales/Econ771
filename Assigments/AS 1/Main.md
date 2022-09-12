@@ -153,6 +153,85 @@ Finally, from the medicare data set we see the states that expanded the
 mandate and the date of event. Also, it is to note that the state
 identifier is not recorded in the same format across data sets.
 
+## Merging the data
+
+We start by left joining `HCRIS_data.txt` and `pos_lastyear.v12.dta`.
+The key to merge these two data set is the indicator `pn`
+
+``` r
+#Merged the two data sets
+df_1 <- data_hcris %>% #sum up the two variables uncompensated care variables
+              filter(year >= 2003 & year <= 2019) %>%
+              rowwise() %>% 
+              mutate(hosp_rev = tot_pat_rev, 
+                     unc_care = sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
+              mutate_at(c('unc_care'), ~na_if(., 0)) %>%
+              select(pn=provider_number, year, unc_care, hosp_rev )  %>%
+              filter(!(is.na(unc_care) & is.na(hosp_rev))) #discard the observations NA observation for both unc_care and hosp_rev
+          
+df_2 <- data_pos %>% #force pn as integer and discard those facilities that are not hospitals
+              mutate_at('pn', as.integer) %>% 
+              select(pn = pn, nonprofit, forprofit, active, state) %>% 
+              mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
+                                         nonprofit == 0  & forprofit == 1  ~ 'forprofit',
+                                         nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>%
+              filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )) #only include in the analysis hospitals forprofit and nonprofit
+
+df <- left_join(df_1, df_2, by='pn') %>%
+              mutate_at('own_typ',  replace_na, 'other') %>%
+              relocate(pn, year, state, own_typ) %>%
+              filter(!(own_typ == 'other')) #discard all other types of ownership
+df
+```
+
+    # A tibble: 79,172 × 9
+    # Rowwise: 
+          pn  year state own_typ   unc_care hosp_rev nonprofit forprofit active
+       <int> <int> <chr> <chr>        <dbl>    <dbl>     <dbl>     <dbl>  <dbl>
+     1 10007  2003 AL    nonprofit   432407 34258153         1         0      1
+     2 10007  2004 AL    nonprofit  3140810 39487601         1         0      1
+     3 10007  2005 AL    nonprofit  5788297 37113735         1         0      1
+     4 10007  2006 AL    nonprofit  3981428 35264423         1         0      1
+     5 10007  2007 AL    nonprofit  3074398 40417019         1         0      1
+     6 10007  2008 AL    nonprofit  3749534 39169547         1         0      1
+     7 10007  2009 AL    nonprofit  3759817 49087280         1         0      1
+     8 10007  2010 AL    nonprofit       NA 44524679         1         0      1
+     9 10007  2011 AL    nonprofit   228222 43931761         1         0      1
+    10 10007  2012 AL    nonprofit   216239 41342505         1         0      1
+    # … with 79,162 more rows
+
+``` r
+df_3 <- data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
+              filter(!(State=='Puerto Rico')) %>%
+              mutate(state= encodefrom(., State, stcrosswalk, stname, stfips, stabbr)) %>%
+              select(!State) %>%
+              relocate(state) #make sure the ID variable has the same name on both data sets
+
+df <- left_join(df, df_3, by=c('state', 'year')) %>% 
+  relocate(pn, year, state, own_typ ,expand_ever, expand, expand_year, unc_care)
+
+df
+```
+
+    # A tibble: 79,172 × 19
+    # Rowwise: 
+          pn  year state own_typ   expand_e…¹ expand expan…² unc_c…³ hosp_…⁴ nonpr…⁵
+       <int> <int> <chr> <chr>     <lgl>      <lgl>    <int>   <dbl>   <dbl>   <dbl>
+     1 10007  2003 AL    nonprofit NA         NA          NA  432407  3.43e7       1
+     2 10007  2004 AL    nonprofit NA         NA          NA 3140810  3.95e7       1
+     3 10007  2005 AL    nonprofit NA         NA          NA 5788297  3.71e7       1
+     4 10007  2006 AL    nonprofit NA         NA          NA 3981428  3.53e7       1
+     5 10007  2007 AL    nonprofit NA         NA          NA 3074398  4.04e7       1
+     6 10007  2008 AL    nonprofit NA         NA          NA 3749534  3.92e7       1
+     7 10007  2009 AL    nonprofit NA         NA          NA 3759817  4.91e7       1
+     8 10007  2010 AL    nonprofit NA         NA          NA      NA  4.45e7       1
+     9 10007  2011 AL    nonprofit NA         NA          NA  228222  4.39e7       1
+    10 10007  2012 AL    nonprofit FALSE      FALSE       NA  216239  4.13e7       1
+    # … with 79,162 more rows, 9 more variables: forprofit <dbl>, active <dbl>,
+    #   adult_pop <int>, ins_employer <int>, ins_direct <int>, ins_medicare <int>,
+    #   ins_medicaid <int>, uninsured <int>, date_adopted <chr>, and abbreviated
+    #   variable names ¹​expand_ever, ²​expand_year, ³​unc_care, ⁴​hosp_rev, ⁵​nonprofit
+
 ## Summary Statistics
 
 Provide and discuss a table of simple summary statistics showing the
@@ -165,15 +244,7 @@ create a new variable that stores the uncompensated care records, then
 we group by year and calculate the summary statistics as follows.
 
 ``` r
-data_hcris %>% 
-  rowwise() %>% 
-  mutate(hosp_rev = tot_pat_rev, unc_care = 
-           sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
-  mutate_at(c('unc_care'), ~na_if(., 0)) %>%
-  select(pn=provider_number, year, unc_care, hosp_rev )  %>%
-  filter(!(is.na(unc_care) & is.na(hosp_rev)) & ((year>=2003)&(year<=2019)))-> data_hcris1
-
-data_hcris1 %>%
+df_1 %>%
   group_by(year) %>%
   summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
   knitr::kable()
@@ -200,12 +271,39 @@ data_hcris1 %>%
 | 2019 |      28705587 |     706457120 |    83757685 |  1419791246 |            2 |            3 |   2495183582 |  22000932119 |
 
 ``` r
-data_hcris1 %>%
+df  %>%
+    group_by(year) %>%
+  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
+  knitr::kable()
+```
+
+| year | unc_care_mean | hosp_rev_mean | unc_care_sd | hosp_rev_sd | unc_care_min | hosp_rev_min | unc_care_max | hosp_rev_max |
+|-----:|--------------:|--------------:|------------:|------------:|-------------:|-------------:|-------------:|-------------:|
+| 2003 |      12928735 |     221884655 |    24733018 |   360174989 |      -128490 |      48407.0 |    304340971 |   4722758791 |
+| 2004 |      14744497 |     244177410 |    31452811 |   402043697 |            1 |     288994.0 |    820253000 |   5525730727 |
+| 2005 |      16802721 |     264965400 |    34699945 |   442570066 |            1 |      76224.0 |    939134000 |   6398553843 |
+| 2006 |      19865009 |     289898869 |    43453301 |   488166158 |          365 |    -104189.0 |   1074625000 |   7784094716 |
+| 2007 |      22590702 |     315884168 |    49080995 |   533555522 |            1 |     362664.0 |   1203374820 |   8577046126 |
+| 2008 |      25050599 |     342477262 |    53892161 |   581575073 |            1 |     495338.0 |   1361805561 |   9293788259 |
+| 2009 |      26798758 |     376408000 |    42099670 |   641676542 |            1 |     563865.0 |    583975318 |   9846464732 |
+| 2010 |      29429742 |     400372220 |    73357586 |   675301463 |            1 |     455657.3 |   2793923000 |   9857534601 |
+| 2011 |      17552216 |     431759453 |    38472381 |   743555257 |    -28840406 |  -27582223.0 |    693862587 |  10572291195 |
+| 2012 |      18417134 |     458003371 |    45847058 |   798749042 |           85 |     213795.0 |   1298865195 |  11865320139 |
+| 2013 |      19708403 |     488673659 |    44823557 |   870712373 |          245 |     256825.0 |    684448879 |  12751708196 |
+| 2014 |      19450600 |     522153587 |    46702749 |   943825443 |           15 |      53362.0 |    898989779 |  13376352387 |
+| 2015 |      19425997 |     563136586 |    46899055 |  1007088620 |          134 |     200822.0 |    953114335 |  14143533186 |
+| 2016 |      19946000 |     609878342 |    48832350 |  1110623630 |           96 | -177031923.0 |    668806780 |  15618749067 |
+| 2017 |      22869636 |     654058000 |    57253009 |  1211766566 |          258 |     210927.0 |    994345493 |  16863431079 |
+| 2018 |      25876866 |     711823101 |    63133384 |  1338559134 |            1 |     282914.0 |   1134400004 |  18677245214 |
+| 2019 |      30286964 |     780557333 |    73274130 |  1488176583 |            2 |       1242.0 |   1070815923 |  22000932119 |
+
+``` r
+df %>%
   ggplot(aes(x = year, y = unc_care, group=year)) + 
   geom_boxplot() + 
   theme_tufte() -> plot1
 
-data_hcris1 %>%
+df %>%
   ggplot(aes(x = year, y = hosp_rev, group=year)) + 
   geom_boxplot() + 
   theme_tufte()  -> plot2
@@ -222,42 +320,15 @@ to 2018. Show this trend separately by hospital ownership type (private
 not for profit and private for profit).
 
 ``` r
-data_hcris1 <- data_hcris1 %>% filter(year>=2003 & year<=2019) #subset by the years
-
-data_pos1 <- data_pos %>%
-  select(pn = unique('pn'), nonprofit, forprofit, active, state) %>%
-  mutate_at('pn', as.integer) %>% # This will force strings ID into NA (those are no-hospital POS)
-  filter( pn >0 ) %>% #remove NA cases
-  mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
-                             nonprofit == 0  & forprofit == 1  ~ 'forprofit',
-                             nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>% # Create a factor variable for ownership type
-  filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )  ) %>%  # discard govt and other forms of ownership
-  select(pn, own_typ, state) # Select the variables to merge
-
-hcris_1 <- left_join(data_hcris1, data_pos1, by="pn") %>% 
-  mutate_at('own_typ',  replace_na, 'other') %>% # replace NA by other
-  select(pn, year, state, own_typ, unc_care) %>%
-  filter(!(own_typ == 'other'))
-##This last line of code is because if I include other types of ownerships I am getting duplicated cases.. i need to dig a bit more into this behavior. 
-```
-
-|    pn | year | state | own_typ   | unc_care |
-|------:|-----:|:------|:----------|---------:|
-| 10007 | 2003 | AL    | nonprofit |   432407 |
-| 10007 | 2004 | AL    | nonprofit |  3140810 |
-| 10007 | 2005 | AL    | nonprofit |  5788297 |
-| 10007 | 2006 | AL    | nonprofit |  3981428 |
-| 10007 | 2007 | AL    | nonprofit |  3074398 |
-| 10007 | 2008 | AL    | nonprofit |  3749534 |
-
-``` r
-hcris_1 %>%
+df %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
   ggplot(aes(x=year, y=unc_care_mean, color=own_typ)) +
   geom_point(size = 1) +
   geom_smooth(aes(fill = own_typ), size = 1) +
-  theme_tufte()
+  theme_tufte() -> plot3
+
+plot3
 ```
 
 ![](Main_files/figure-gfm/plot-own-typ-1.png)<!-- -->
@@ -281,31 +352,19 @@ limiting to the 2016 treatment group (with never treated as the control
 group). Briefly explain any differences.
 
 ``` r
-left_join(hcris_1, # Merge HCRIS data with the medicaid expansion data
-                  data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
-                    filter(!(State=='Puerto Rico')) %>%
-                    mutate(state= encodefrom(., State, stcrosswalk, stname, stfips, stabbr)) %>%
-                    select(!State) %>%
-                    relocate(state) #make sure the ID variable has the same name on both data sets
-  , 
-  by=c('state', 'year')) %>% 
-  relocate(pn, year, state, own_typ ,expand_ever, expand, expand_year, unc_care)-> hcris_2
-```
-
-``` r
 #Create dummies for the control groups
-hcris_2 %>% 
+df %>% 
   mutate(d = case_when(expand == TRUE ~ 1),
          d_14 = case_when(expand == TRUE & expand_year==2014 ~ 1),
          d_15 = case_when(expand == TRUE & expand_year==2015 ~ 1),
          d_16 = case_when(expand == TRUE & expand_year==2016 ~ 1)) %>%
-  mutate(across(d:d_16, ~ifelse(is.na(.),0,.))) -> hcris_2
+  mutate(across(d:d_16, ~ifelse(is.na(.),0,.))) -> df
 ```
 
 ``` r
-twfe <- lapply(hcris_2 %>%
+twfe <- lapply(df %>%
              select(d:d_16), #Select the treatments 
-           function(D) felm(unc_care ~ D | pn + year | 0 | pn, hcris_2)) #Apply the specification across the different treatments and store the results in a list
+           function(D) felm(unc_care ~ D | pn + year | 0 | pn, df)) #Apply the specification across the different treatments and store the results in a list
 
 stargazer(twfe, type='html')
 ```
@@ -485,15 +544,6 @@ Residual Std. Error (df = 43168)
 </td>
 </tr>
 </table>
-
-``` r
-#Another Way of achiving the model
-#prueba <- map(hcris_2 %>%
-#                   select(d:d_16),  # Select the treatments
-#                function(D){
-#                    felm(unc_care ~ D | pn + year | 0 | pn, hcris_2) #Apply the specification across the different treatments and store the results in a list
-#                  })
-```
 
 
     ==========================================================================================================
