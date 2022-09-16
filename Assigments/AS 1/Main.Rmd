@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE, comment=NA)
 knitr::opts_chunk$set(error = TRUE, cache = F)
 
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, lfe, stargazer)
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, lfe, stargazer, modelsummary)
 knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
 ```
 
@@ -72,13 +72,13 @@ df_2 <- data_pos %>% #force pn as integer and discard those facilities that are 
               select(pn = pn, nonprofit, forprofit, active, state) %>% 
               mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
                                          nonprofit == 0  & forprofit == 1  ~ 'forprofit',
-                                         nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>%
-              filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )) #only include in the analysis hospitals forprofit and nonprofit
+                                         nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) #%>%
+             # filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )) #only include in the analysis hospitals forprofit and nonprofit
 
 df <- left_join(df_1, df_2, by='pn') %>%
               mutate_at('own_typ',  replace_na, 'other') %>%
               relocate(pn, year, state, own_typ) %>%
-              filter(!(own_typ == 'other')) #discard all other types of ownership
+              filter(!(unc_care == 'NA')) # drop all observations not contain uncompensated care information
 df
 ```
 
@@ -140,6 +140,7 @@ library(stargazer)
 
 ```{r plot-own-typ, warning=FALSE, comment=NA, message = FALSE}
 df %>%
+  filter(!(own_typ=='other')) %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
   ggplot(aes(x=year, y=unc_care_mean, color=own_typ)) +
@@ -169,12 +170,12 @@ df %>%
   mutate(across(d:d_16, ~ifelse(is.na(.),0,.))) -> df
 ```
 
-```{r , comment=NA, , results='asis'}
+```{r , comment=NA}
 twfe <- lapply(df %>%
                 select(d:d_16), #Select the treatments 
               function(D) felm(unc_care ~ D | pn + year | 0 | pn, df)) #Apply the specification across the different treatments and store the results in a list
 
-stargazer(twfe, type='html')
+modelsummary(twfe, stars=TRUE, output='kableExtra')
 ```
 
 ```{r, comment=NA, echo=FALSE}
@@ -193,6 +194,49 @@ $$
 y_{it} = \alpha_{i} + \gamma_{t} +\sum_{\tau < -1} D_{it}^{\tau} \delta_{\tau} + \sum_{\tau>=0} D_{it}^{\tau} \delta_{\tau} + \varepsilon_{it},
 $$
 where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation 2 is essentially an interaction between the treatment dummy and a relative time dummy. In this notation and context, $\tau$ denotes years relative to Medicaid expansion, so that $\tau=-1$ denotes the year before a state expanded Medicaid, $\tau=0$ denotes the year of expansion, etc. Estimate with two different samples: one based on the full sample and one based only on those that expanded in 2014 (with never treated as the control group).
+
+``` {r, event-study}
+ins.plot.dat <- df %>% filter(expand_year==2014 | is.na(expand_year), !is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop) %>%
+  group_by(expand_ever, year) %>% summarize(mean=mean(perc_unins))
+ins.plot <- ggplot(data=ins.plot.dat, aes(x=year,y=mean,group=expand_ever,linetype=expand_ever)) + 
+  geom_line() + geom_point() + theme_bw() +
+  geom_vline(xintercept=2013.5, color="red") +
+  geom_text(data = ins.plot.dat %>% filter(year == 2016), 
+            aes(label = c("Non-expansion","Expansion"),
+                x = year + 1,
+                y = mean)) +
+  guides(linetype="none") +
+  labs(
+    x="Year",
+    y="Fraction Uninsured",
+    title="Share of Uninsured over Time"
+  )
+
+
+df %>%
+  filter(!(own_typ=='other')) %>%
+  group_by(year, own_typ) %>%
+  summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) -> data.plot2
+
+
+  ggplot(data = data.plot2, 
+         aes(x=year, y=unc_care_mean, color=own_typ, 
+             group=own_typ, line=own_typ)) +
+  geom_line() +
+  geom_point(size = 1) +
+  #geom_smooth(aes(fill = own_typ), size = 1) +
+  theme_tufte() + 
+  geom_vline( xintercept = 2014, color="black") +
+  geom_text(data = data.plot2 %>% filter(year==2016),
+            aes(label = c("Forprofit", "Nonprofit"), 
+                x = year + 1,
+                y = unc_care_mean)) +
+  guides(linetype="none") +
+    labs(x="Years", y="Total Uncompensated Care", title = "Mean of Hospital Uncompensated Care by Ownership Type")-> prueba
+
+prueba
+```
 
 ## SA specification
 Sun and Abraham (SA) show that the $\delta_{\tau}$ coefficients in Equation 2 can be written as a non-convex average of all other group-time specific average treatment effects. They propose an interaction weighted specification:

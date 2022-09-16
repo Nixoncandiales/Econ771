@@ -174,31 +174,31 @@ df_2 <- data_pos %>% #force pn as integer and discard those facilities that are 
               select(pn = pn, nonprofit, forprofit, active, state) %>% 
               mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
                                          nonprofit == 0  & forprofit == 1  ~ 'forprofit',
-                                         nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>%
-              filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )) #only include in the analysis hospitals forprofit and nonprofit
+                                         nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) #%>%
+             # filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )) #only include in the analysis hospitals forprofit and nonprofit
 
 df <- left_join(df_1, df_2, by='pn') %>%
               mutate_at('own_typ',  replace_na, 'other') %>%
               relocate(pn, year, state, own_typ) %>%
-              filter(!(own_typ == 'other')) #discard all other types of ownership
+              filter(!(unc_care == 'NA')) # drop all observations not contain uncompensated care information
 df
 ```
 
-    # A tibble: 79,172 × 9
-    # Rowwise: 
-          pn  year state own_typ   unc_care hosp_rev nonprofit forprofit active
-       <int> <int> <chr> <chr>        <dbl>    <dbl>     <dbl>     <dbl>  <dbl>
-     1 10007  2003 AL    nonprofit   432407 34258153         1         0      1
-     2 10007  2004 AL    nonprofit  3140810 39487601         1         0      1
-     3 10007  2005 AL    nonprofit  5788297 37113735         1         0      1
-     4 10007  2006 AL    nonprofit  3981428 35264423         1         0      1
-     5 10007  2007 AL    nonprofit  3074398 40417019         1         0      1
-     6 10007  2008 AL    nonprofit  3749534 39169547         1         0      1
-     7 10007  2009 AL    nonprofit  3759817 49087280         1         0      1
-     8 10007  2010 AL    nonprofit       NA 44524679         1         0      1
-     9 10007  2011 AL    nonprofit   228222 43931761         1         0      1
-    10 10007  2012 AL    nonprofit   216239 41342505         1         0      1
-    # … with 79,162 more rows
+    ## # A tibble: 60,051 × 9
+    ## # Rowwise: 
+    ##       pn  year state own_typ unc_care   hosp_rev nonprofit forprofit active
+    ##    <int> <int> <chr> <chr>      <dbl>      <dbl>     <dbl>     <dbl>  <dbl>
+    ##  1 10001  2003 AL    other   41267219  532023593         0         0      1
+    ##  2 10001  2004 AL    other   37413733  592438087         0         0      1
+    ##  3 10001  2005 AL    other   37457443  657842984         0         0      1
+    ##  4 10001  2006 AL    other   41670968  714123644         0         0      1
+    ##  5 10001  2010 AL    other   90806676 1116894148         0         0      1
+    ##  6 10001  2011 AL    other   22446946 1208331516         0         0      1
+    ##  7 10001  2012 AL    other   25683016 1263055782         0         0      1
+    ##  8 10001  2013 AL    other   23652954 1305720014         0         0      1
+    ##  9 10001  2014 AL    other   24962490 1451185686         0         0      1
+    ## 10 10001  2015 AL    other   20412518 1550672017         0         0      1
+    ## # … with 60,041 more rows
 
 ``` r
 df_3 <- data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
@@ -213,24 +213,24 @@ df <- left_join(df, df_3, by=c('state', 'year')) %>%
 df
 ```
 
-    # A tibble: 79,172 × 19
+    # A tibble: 60,051 × 19
     # Rowwise: 
-          pn  year state own_typ   expand_e…¹ expand expan…² unc_c…³ hosp_…⁴ nonpr…⁵
-       <int> <int> <chr> <chr>     <lgl>      <lgl>    <int>   <dbl>   <dbl>   <dbl>
-     1 10007  2003 AL    nonprofit NA         NA          NA  432407  3.43e7       1
-     2 10007  2004 AL    nonprofit NA         NA          NA 3140810  3.95e7       1
-     3 10007  2005 AL    nonprofit NA         NA          NA 5788297  3.71e7       1
-     4 10007  2006 AL    nonprofit NA         NA          NA 3981428  3.53e7       1
-     5 10007  2007 AL    nonprofit NA         NA          NA 3074398  4.04e7       1
-     6 10007  2008 AL    nonprofit NA         NA          NA 3749534  3.92e7       1
-     7 10007  2009 AL    nonprofit NA         NA          NA 3759817  4.91e7       1
-     8 10007  2010 AL    nonprofit NA         NA          NA      NA  4.45e7       1
-     9 10007  2011 AL    nonprofit NA         NA          NA  228222  4.39e7       1
-    10 10007  2012 AL    nonprofit FALSE      FALSE       NA  216239  4.13e7       1
-    # … with 79,162 more rows, 9 more variables: forprofit <dbl>, active <dbl>,
+          pn  year state own_typ expand_ever expand expand…¹ unc_c…² hosp_…³ nonpr…⁴
+       <int> <int> <chr> <chr>   <lgl>       <lgl>     <int>   <dbl>   <dbl>   <dbl>
+     1 10001  2003 AL    other   NA          NA           NA  4.13e7  5.32e8       0
+     2 10001  2004 AL    other   NA          NA           NA  3.74e7  5.92e8       0
+     3 10001  2005 AL    other   NA          NA           NA  3.75e7  6.58e8       0
+     4 10001  2006 AL    other   NA          NA           NA  4.17e7  7.14e8       0
+     5 10001  2010 AL    other   NA          NA           NA  9.08e7  1.12e9       0
+     6 10001  2011 AL    other   NA          NA           NA  2.24e7  1.21e9       0
+     7 10001  2012 AL    other   FALSE       FALSE        NA  2.57e7  1.26e9       0
+     8 10001  2013 AL    other   FALSE       FALSE        NA  2.37e7  1.31e9       0
+     9 10001  2014 AL    other   FALSE       FALSE        NA  2.50e7  1.45e9       0
+    10 10001  2015 AL    other   FALSE       FALSE        NA  2.04e7  1.55e9       0
+    # … with 60,041 more rows, 9 more variables: forprofit <dbl>, active <dbl>,
     #   adult_pop <int>, ins_employer <int>, ins_direct <int>, ins_medicare <int>,
     #   ins_medicaid <int>, uninsured <int>, date_adopted <chr>, and abbreviated
-    #   variable names ¹​expand_ever, ²​expand_year, ³​unc_care, ⁴​hosp_rev, ⁵​nonprofit
+    #   variable names ¹​expand_year, ²​unc_care, ³​hosp_rev, ⁴​nonprofit
 
 ## Summary Statistics
 
@@ -279,23 +279,23 @@ df  %>%
 
 | year | unc_care_mean | hosp_rev_mean | unc_care_sd | hosp_rev_sd | unc_care_min | hosp_rev_min | unc_care_max | hosp_rev_max |
 |-----:|--------------:|--------------:|------------:|------------:|-------------:|-------------:|-------------:|-------------:|
-| 2003 |      12928735 |     221884655 |    24733018 |   360174989 |      -128490 |      48407.0 |    304340971 |   4722758791 |
-| 2004 |      14744497 |     244177410 |    31452811 |   402043697 |            1 |     288994.0 |    820253000 |   5525730727 |
-| 2005 |      16802721 |     264965400 |    34699945 |   442570066 |            1 |      76224.0 |    939134000 |   6398553843 |
-| 2006 |      19865009 |     289898869 |    43453301 |   488166158 |          365 |    -104189.0 |   1074625000 |   7784094716 |
-| 2007 |      22590702 |     315884168 |    49080995 |   533555522 |            1 |     362664.0 |   1203374820 |   8577046126 |
-| 2008 |      25050599 |     342477262 |    53892161 |   581575073 |            1 |     495338.0 |   1361805561 |   9293788259 |
-| 2009 |      26798758 |     376408000 |    42099670 |   641676542 |            1 |     563865.0 |    583975318 |   9846464732 |
-| 2010 |      29429742 |     400372220 |    73357586 |   675301463 |            1 |     455657.3 |   2793923000 |   9857534601 |
-| 2011 |      17552216 |     431759453 |    38472381 |   743555257 |    -28840406 |  -27582223.0 |    693862587 |  10572291195 |
-| 2012 |      18417134 |     458003371 |    45847058 |   798749042 |           85 |     213795.0 |   1298865195 |  11865320139 |
-| 2013 |      19708403 |     488673659 |    44823557 |   870712373 |          245 |     256825.0 |    684448879 |  12751708196 |
-| 2014 |      19450600 |     522153587 |    46702749 |   943825443 |           15 |      53362.0 |    898989779 |  13376352387 |
-| 2015 |      19425997 |     563136586 |    46899055 |  1007088620 |          134 |     200822.0 |    953114335 |  14143533186 |
-| 2016 |      19946000 |     609878342 |    48832350 |  1110623630 |           96 | -177031923.0 |    668806780 |  15618749067 |
-| 2017 |      22869636 |     654058000 |    57253009 |  1211766566 |          258 |     210927.0 |    994345493 |  16863431079 |
-| 2018 |      25876866 |     711823101 |    63133384 |  1338559134 |            1 |     282914.0 |   1134400004 |  18677245214 |
-| 2019 |      30286964 |     780557333 |    73274130 |  1488176583 |            2 |       1242.0 |   1070815923 |  22000932119 |
+| 2003 |      13572676 |     292909887 |    31948067 |   397462095 |      -128490 |      1661279 |    777987403 |   4722758791 |
+| 2004 |      15362817 |     328060288 |    36593702 |   445152753 |            1 |       268751 |    820253000 |   5525730727 |
+| 2005 |      17501864 |     380714203 |    37826746 |   514372980 |            1 |      1141734 |    939134000 |   6398553843 |
+| 2006 |      21055223 |     434480296 |    47125667 |   558610507 |     -2667140 |      1334933 |   1074625000 |   6718169761 |
+| 2007 |      23664355 |     485095288 |    51253936 |   646783764 |            1 |       988277 |   1203374820 |   8577046126 |
+| 2008 |      26545311 |     514305815 |    57008580 |   655555870 |            1 |       968848 |   1361805561 |   7743079051 |
+| 2009 |      27542144 |     553646723 |    46494411 |   718316036 |            1 |       889880 |    583975318 |   9139321629 |
+| 2010 |      30016533 |     578417349 |    72313952 |   780373510 |            1 |       837087 |   2793923000 |   9857534601 |
+| 2011 |      17452016 |     502008843 |    47214454 |   793562761 |    -28840406 |    -27582223 |   1111027264 |  10572291195 |
+| 2012 |      18400792 |     526760423 |    55864334 |   845911966 |           85 |       890573 |   1371421445 |  11865320139 |
+| 2013 |      19706144 |     558364154 |    57624855 |   920778896 |          216 |       952468 |   1403146636 |  12751708196 |
+| 2014 |      19681907 |     601908700 |    63201885 |   998214235 |           15 |      1090052 |   1874409188 |  13376352387 |
+| 2015 |      19035842 |     652912681 |    61616815 |  1069788819 |           22 |      1045944 |   1990560423 |  14143533186 |
+| 2016 |      19790450 |     714656984 |    66564226 |  1184215760 |           84 |   -177031923 |   2231833221 |  15618749067 |
+| 2017 |      22113455 |     763183264 |    69330348 |  1288970517 |           34 |       998376 |   2062118188 |  16863431079 |
+| 2018 |      24887604 |     820863941 |    74346253 |  1415702281 |            1 |      1068528 |   2183167185 |  18677245214 |
+| 2019 |      28693022 |     900512732 |    83584580 |  1573234756 |            2 |      1142183 |   2495183582 |  22000932119 |
 
 ``` r
 df %>%
@@ -321,6 +321,7 @@ not for profit and private for profit).
 
 ``` r
 df %>%
+  filter(!(own_typ=='other')) %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
   ggplot(aes(x=year, y=unc_care_mean, color=own_typ)) +
@@ -363,186 +364,192 @@ df %>%
 
 ``` r
 twfe <- lapply(df %>%
-             select(d:d_16), #Select the treatments 
-           function(D) felm(unc_care ~ D | pn + year | 0 | pn, df)) #Apply the specification across the different treatments and store the results in a list
+                select(d:d_16), #Select the treatments 
+              function(D) felm(unc_care ~ D | pn + year | 0 | pn, df)) #Apply the specification across the different treatments and store the results in a list
 
-stargazer(twfe, type='html')
+modelsummary(twfe, stars=TRUE, output='kableExtra')
 ```
 
-<table style="text-align:center">
+<table style="NAborder-bottom: 0; width: auto !important; margin-left: auto; margin-right: auto;" class="table">
+<thead>
 <tr>
-<td colspan="5" style="border-bottom: 1px solid black">
-</td>
+<th style="text-align:left;">
+</th>
+<th style="text-align:center;">
+d
+</th>
+<th style="text-align:center;">
+d_14
+</th>
+<th style="text-align:center;">
+d_15
+</th>
+<th style="text-align:center;">
+d_16
+</th>
 </tr>
+</thead>
+<tbody>
 <tr>
-<td style="text-align:left">
-</td>
-<td colspan="4">
-<em>Dependent variable:</em>
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td colspan="4" style="border-bottom: 1px solid black">
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td colspan="4">
-unc_care
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-\(1\)
-</td>
-<td>
-\(2\)
-</td>
-<td>
-\(3\)
-</td>
-<td>
-\(4\)
-</td>
-</tr>
-<tr>
-<td colspan="5" style="border-bottom: 1px solid black">
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
+<td style="text-align:left;">
 D
 </td>
-<td>
--25,551,544.000<sup>\*\*\*</sup>
+<td style="text-align:center;">
+−23096830.282\*\*\*
 </td>
-<td>
--23,080,167.000<sup>\*\*\*</sup>
+<td style="text-align:center;">
+−21408742.717\*\*\*
 </td>
-<td>
--9,302,145.000<sup>\*\*\*</sup>
+<td style="text-align:center;">
+−9234498.527\*\*\*
 </td>
-<td>
--9,962,689.000<sup>\*\*\*</sup>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-(1,600,283.000)
-</td>
-<td>
-(1,501,041.000)
-</td>
-<td>
-(2,236,898.000)
-</td>
-<td>
-(1,680,644.000)
+<td style="text-align:center;">
+−9195354.452\*\*\*
 </td>
 </tr>
 <tr>
-<td style="text-align:left">
+<td style="text-align:left;box-shadow: 0px 1px">
 </td>
-<td>
+<td style="text-align:center;box-shadow: 0px 1px">
+(1687564.439)
 </td>
-<td>
+<td style="text-align:center;box-shadow: 0px 1px">
+(1595345.754)
 </td>
-<td>
+<td style="text-align:center;box-shadow: 0px 1px">
+(2161944.166)
 </td>
-<td>
-</td>
-</tr>
-<tr>
-<td colspan="5" style="border-bottom: 1px solid black">
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-Observations
-</td>
-<td>
-47,515
-</td>
-<td>
-47,515
-</td>
-<td>
-47,515
-</td>
-<td>
-47,515
+<td style="text-align:center;box-shadow: 0px 1px">
+(1291924.041)
 </td>
 </tr>
 <tr>
-<td style="text-align:left">
-R<sup>2</sup>
+<td style="text-align:left;">
+Num.Obs.
 </td>
-<td>
-0.639
+<td style="text-align:center;">
+60051
 </td>
-<td>
-0.636
+<td style="text-align:center;">
+60051
 </td>
-<td>
-0.625
+<td style="text-align:center;">
+60051
 </td>
-<td>
-0.625
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-Adjusted R<sup>2</sup>
-</td>
-<td>
-0.603
-</td>
-<td>
-0.599
-</td>
-<td>
-0.588
-</td>
-<td>
-0.587
+<td style="text-align:center;">
+60051
 </td>
 </tr>
 <tr>
-<td style="text-align:left">
-Residual Std. Error (df = 43168)
+<td style="text-align:left;">
+R2
 </td>
-<td>
-31,960,974.000
+<td style="text-align:center;">
+0.666
 </td>
-<td>
-32,100,491.000
+<td style="text-align:center;">
+0.664
 </td>
-<td>
-32,569,928.000
+<td style="text-align:center;">
+0.658
 </td>
-<td>
-32,583,039.000
-</td>
-</tr>
-<tr>
-<td colspan="5" style="border-bottom: 1px solid black">
+<td style="text-align:center;">
+0.657
 </td>
 </tr>
 <tr>
-<td style="text-align:left">
-<em>Note:</em>
+<td style="text-align:left;">
+R2 Adj.
 </td>
-<td colspan="4" style="text-align:right">
-<sup>*</sup>p\<0.1; <sup>**</sup>p\<0.05; <sup>***</sup>p\<0.01
+<td style="text-align:center;">
+0.631
+</td>
+<td style="text-align:center;">
+0.629
+</td>
+<td style="text-align:center;">
+0.622
+</td>
+<td style="text-align:center;">
+0.621
 </td>
 </tr>
+<tr>
+<td style="text-align:left;">
+AIC
+</td>
+<td style="text-align:center;">
+2267571.0
+</td>
+<td style="text-align:center;">
+2267866.4
+</td>
+<td style="text-align:center;">
+2269016.5
+</td>
+<td style="text-align:center;">
+2269046.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BIC
+</td>
+<td style="text-align:center;">
+2318959.8
+</td>
+<td style="text-align:center;">
+2319255.3
+</td>
+<td style="text-align:center;">
+2320405.3
+</td>
+<td style="text-align:center;">
+2320435.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RMSE
+</td>
+<td style="text-align:center;">
+34843794.47
+</td>
+<td style="text-align:center;">
+34929614.33
+</td>
+<td style="text-align:center;">
+35265694.13
+</td>
+<td style="text-align:center;">
+35274538.17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Std.Errors
+</td>
+<td style="text-align:center;">
+by: pn
+</td>
+<td style="text-align:center;">
+by: pn
+</td>
+<td style="text-align:center;">
+by: pn
+</td>
+<td style="text-align:center;">
+by: pn
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> + p \< 0.1, \* p \< 0.05, \*\* p \< 0.01, \*\*\* p \< 0.001
+</td>
+</tr>
+</tfoot>
 </table>
 
 
@@ -552,14 +559,14 @@ Residual Std. Error (df = 43168)
                                                                      unc_care                                 
                                             (1)                (2)                (3)               (4)       
     ----------------------------------------------------------------------------------------------------------
-    D                                -25,551,544.000*** -23,080,167.000*** -9,302,145.000*** -9,962,689.000***
-                                      (1,600,283.000)    (1,501,041.000)    (2,236,898.000)   (1,680,644.000) 
+    D                                -23,096,830.000*** -21,408,743.000*** -9,234,499.000*** -9,195,354.000***
+                                      (1,687,564.000)    (1,595,346.000)    (2,161,944.000)   (1,291,924.000) 
                                                                                                               
     ----------------------------------------------------------------------------------------------------------
-    Observations                           47,515             47,515            47,515            47,515      
-    R2                                     0.639              0.636              0.625             0.625      
-    Adjusted R2                            0.603              0.599              0.588             0.587      
-    Residual Std. Error (df = 43168)   31,960,974.000     32,100,491.000    32,569,928.000    32,583,039.000  
+    Observations                           60,051             60,051            60,051            60,051      
+    R2                                     0.666              0.664              0.658             0.657      
+    Adjusted R2                            0.631              0.629              0.622             0.621      
+    Residual Std. Error (df = 54344)   36,627,710.000     36,717,923.000    37,071,210.000    37,080,506.000  
     ==========================================================================================================
     Note:                                                                          *p<0.1; **p<0.05; ***p<0.01
 
