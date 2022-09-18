@@ -10,7 +10,6 @@ stringr
 forcats
 lubridate
 reticulate
-here
 haven
 descriptr
 CVXR
@@ -31,9 +30,10 @@ patchwork
 ggthemes
 DT
 plotly
+here
 crosswalkr
-knitr
 plm
 lfe
 stargazer
 modelsummary
+DRDID
