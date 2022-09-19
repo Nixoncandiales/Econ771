@@ -118,11 +118,15 @@ df_1 %>%
 ```{r plot-summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 df %>% ggplot(aes(x = year, y = unc_care, group=year)) + 
   geom_boxplot() + 
-  theme_bw() -> plot1
+  theme_tufte() +
+    labs(x="Years", y="Total Uncompensated Care over time", 
+       title = "Distribution Hospital Uncompensated Care Over Time")-> plot1
 
 df %>% ggplot(aes(x = year, y = hosp_rev, group=year)) + 
   geom_boxplot() + 
-  theme_bw()  -> plot2
+  theme_tufte() +
+    labs(x="Years", y="Total Hospital Revenue over time", 
+       title = "Distribution Hospital Total Revenue Over Time") -> plot2
 
 plot1  / plot2 
 ```
@@ -145,11 +149,13 @@ df %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
   ggplot(aes(x=year, y=unc_care_mean, color=own_typ)) +
-  geom_point(size = 1) +
+  geom_point(size = 3) +
   geom_smooth(aes(fill = own_typ), size = 1) +
-  theme_bw() -> plot3
-
-plot3
+  geom_vline( xintercept = 2014, color="black") +
+  theme_tufte()+ 
+  labs(x="Years", y="Total Uncompensated Care", 
+       title = "Mean of Hospital Uncompensated Care by Ownership Type", 
+       fill = "Ownership type", color = "Ownership type")
 ```
 
 
@@ -262,13 +268,13 @@ mod.cs <- att_gt(yname="unc_care", tname="year", idname="stategroup",
                  gname="expand_year",
                  data=reg.dat, panel=TRUE, est_method="dr",
                  allow_unbalanced_panel=TRUE)
-#mod.cs.event <- aggte(mod.cs, type="dynamic")
+mod.cs.event <- aggte(mod.cs, type="dynamic")
 
 mod.cs
 ggdid(mod.cs)
-#mod.cs.event
-#ggdid(mod.cs.event)
-#coefplot(mod.cs.event)
+mod.cs.event
+ggdid(mod.cs.event)
+coefplot(mod.cs.event)
 ```
 
 
