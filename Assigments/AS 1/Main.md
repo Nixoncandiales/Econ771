@@ -380,6 +380,7 @@ mod.esct <- feols(unc_care~i(year, treated, ref=2013) | state + year,
 esttable(mod.esct)
 ```
 
+<<<<<<< HEAD
                                                 mod.esct
     Dependent Var.:                             unc_care
                                                         
@@ -409,6 +410,33 @@ esttable(mod.esct)
     Within R2                                    0.01022
     ---
     Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+=======
+|                           |       Model 1       |
+|:--------------------------|:-------------------:|
+| year = 2012 × expand_ever |     606656.346      |
+|                           |    (736000.310)     |
+| year = 2014 × expand_ever | -11349326.923\*\*\* |
+|                           |    (2446929.315)    |
+| year = 2015 × expand_ever | -19069190.299\*\*\* |
+|                           |    (3970737.518)    |
+| year = 2016 × expand_ever | -19880266.352\*\*\* |
+|                           |    (4454306.467)    |
+| year = 2017 × expand_ever | -25430092.505\*\*\* |
+|                           |    (4920498.564)    |
+| year = 2018 × expand_ever | -29970055.347\*\*\* |
+|                           |    (6117436.578)    |
+| year = 2019 × expand_ever | -36779385.801\*\*\* |
+|                           |    (8672153.754)    |
+| Num.Obs.                  |        27609        |
+| AIC                       |      1075429.1      |
+| BIC                       |      1075494.9      |
+| RMSE                      |     69499579.25     |
+| Std.Errors                |      by: state      |
+| FE: state                 |          X          |
+| FE: year                  |          X          |
+
+**Note:** ^^ + p \< 0.1, \* p \< 0.05, \*\* p \< 0.01, \*\*\* p \< 0.001
+>>>>>>> 5f6a84507576388f676590c771bf98c91132ce4a
 
 ``` r
 iplot(mod.esct)
@@ -427,6 +455,7 @@ mod.esdt <- feols(unc_care~i(time_to_treat, treated, ref=-1) | state + year,
 modelsummary(mod.esdt, stars=TRUE)
 ```
 
+<<<<<<< HEAD
 |                              |       Model 1       |
 |:-----------------------------|:-------------------:|
 | time_to_treat = -7 × treated |     3534170.951     |
@@ -464,6 +493,33 @@ modelsummary(mod.esdt, stars=TRUE)
 | Std.Errors                   |      by: state      |
 | FE: state                    |          X          |
 | FE: year                     |          X          |
+=======
+|                                  |       Model 1       |
+|:---------------------------------|:-------------------:|
+| time_to_treat = -3 × expand_ever |    8318789.135+     |
+|                                  |    (4495101.309)    |
+| time_to_treat = -2 × expand_ever |     1750614.982     |
+|                                  |    (1082155.430)    |
+| time_to_treat = 0 × expand_ever  | -8093928.948\*\*\*  |
+|                                  |    (1868567.540)    |
+| time_to_treat = 1 × expand_ever  | -15269115.759\*\*\* |
+|                                  |    (2896167.821)    |
+| time_to_treat = 2 × expand_ever  | -18338232.342\*\*\* |
+|                                  |    (3331227.092)    |
+| time_to_treat = 3 × expand_ever  | -22973987.114\*\*\* |
+|                                  |    (4185561.817)    |
+| time_to_treat = 4 × expand_ever  | -26807054.922\*\*\* |
+|                                  |    (5447351.263)    |
+| time_to_treat = 5 × expand_ever  | -32095680.197\*\*\* |
+|                                  |    (7563320.491)    |
+| Num.Obs.                         |        34994        |
+| AIC                              |      1357301.7      |
+| BIC                              |      1357377.9      |
+| RMSE                             |     63984630.31     |
+| Std.Errors                       |      by: state      |
+| FE: state                        |          X          |
+| FE: year                         |          X          |
+>>>>>>> 5f6a84507576388f676590c771bf98c91132ce4a
 
 **Note:** ^^ + p \< 0.1, \* p \< 0.05, \*\* p \< 0.01, \*\*\* p \< 0.001
 
@@ -535,6 +591,7 @@ modelsummary(mod.sa, stars=TRUE)
 
 |                    |       Model 1       |
 |:-------------------|:-------------------:|
+<<<<<<< HEAD
 | time_to_treat = -7 |     -640411.475     |
 |                    |    (1071884.701)    |
 | time_to_treat = -6 |  -3273981.341\*\*   |
@@ -567,6 +624,30 @@ modelsummary(mod.sa, stars=TRUE)
 | AIC                |      2305994.9      |
 | BIC                |      2306111.9      |
 | RMSE               |     57961471.21     |
+=======
+| time_to_treat = -4 |     2254060.462     |
+|                    |    (6440029.269)    |
+| time_to_treat = -3 |    4972790.905\*    |
+|                    |    (2390384.901)    |
+| time_to_treat = -2 |     947629.295      |
+|                    |    (752446.447)     |
+| time_to_treat = 0  | -9422803.262\*\*\*  |
+|                    |    (1946003.074)    |
+| time_to_treat = 1  | -16182492.000\*\*\* |
+|                    |    (3060068.477)    |
+| time_to_treat = 2  | -17984421.175\*\*\* |
+|                    |    (3544587.462)    |
+| time_to_treat = 3  | -22859556.599\*\*\* |
+|                    |    (4216211.688)    |
+| time_to_treat = 4  | -26391688.844\*\*\* |
+|                    |    (5479789.254)    |
+| time_to_treat = 5  | -32194732.162\*\*\* |
+|                    |    (7671172.406)    |
+| Num.Obs.           |        34994        |
+| AIC                |      1357309.8      |
+| BIC                |      1357394.5      |
+| RMSE               |     63990215.48     |
+>>>>>>> 5f6a84507576388f676590c771bf98c91132ce4a
 | Std.Errors         |      by: state      |
 | FE: state          |          X          |
 | FE: year           |          X          |
