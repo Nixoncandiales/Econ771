@@ -184,21 +184,21 @@ df <- left_join(df_1, df_2, by='pn') %>%
 df
 ```
 
-    # A tibble: 60,051 × 9
-    # Rowwise: 
-          pn  year state own_typ unc_care   hosp_rev nonprofit forprofit active
-       <int> <int> <chr> <chr>      <dbl>      <dbl>     <dbl>     <dbl>  <dbl>
-     1 10001  2003 AL    other   41267219  532023593         0         0      1
-     2 10001  2004 AL    other   37413733  592438087         0         0      1
-     3 10001  2005 AL    other   37457443  657842984         0         0      1
-     4 10001  2006 AL    other   41670968  714123644         0         0      1
-     5 10001  2010 AL    other   90806676 1116894148         0         0      1
-     6 10001  2011 AL    other   22446946 1208331516         0         0      1
-     7 10001  2012 AL    other   25683016 1263055782         0         0      1
-     8 10001  2013 AL    other   23652954 1305720014         0         0      1
-     9 10001  2014 AL    other   24962490 1451185686         0         0      1
-    10 10001  2015 AL    other   20412518 1550672017         0         0      1
-    # … with 60,041 more rows
+    ## # A tibble: 60,051 × 9
+    ## # Rowwise: 
+    ##       pn  year state own_typ unc_care   hosp_rev nonprofit forprofit active
+    ##    <int> <int> <chr> <chr>      <dbl>      <dbl>     <dbl>     <dbl>  <dbl>
+    ##  1 10001  2003 AL    other   41267219  532023593         0         0      1
+    ##  2 10001  2004 AL    other   37413733  592438087         0         0      1
+    ##  3 10001  2005 AL    other   37457443  657842984         0         0      1
+    ##  4 10001  2006 AL    other   41670968  714123644         0         0      1
+    ##  5 10001  2010 AL    other   90806676 1116894148         0         0      1
+    ##  6 10001  2011 AL    other   22446946 1208331516         0         0      1
+    ##  7 10001  2012 AL    other   25683016 1263055782         0         0      1
+    ##  8 10001  2013 AL    other   23652954 1305720014         0         0      1
+    ##  9 10001  2014 AL    other   24962490 1451185686         0         0      1
+    ## 10 10001  2015 AL    other   20412518 1550672017         0         0      1
+    ## # … with 60,041 more rows
 
 ``` r
 df_3 <- data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
@@ -415,10 +415,6 @@ modelsummary(mod.esct, stars=TRUE)
 | year = 2019 × expand_ever | -36779385.801\*\*\* |
 |                           |    (8672153.754)    |
 | Num.Obs.                  |        27609        |
-| R2                        |        0.095        |
-| R2 Adj.                   |        0.093        |
-| R2 Within                 |        0.008        |
-| R2 Within Adj.            |        0.008        |
 | AIC                       |      1075429.1      |
 | BIC                       |      1075494.9      |
 | RMSE                      |     69499579.25     |
@@ -467,10 +463,6 @@ modelsummary(mod.esdt, stars=TRUE)
 | time_to_treat = 5 × expand_ever  | -32095680.197\*\*\* |
 |                                  |    (7563320.491)    |
 | Num.Obs.                         |        34994        |
-| R2                               |        0.094        |
-| R2 Adj.                          |        0.093        |
-| R2 Within                        |        0.007        |
-| R2 Within Adj.                   |        0.007        |
 | AIC                              |      1357301.7      |
 | BIC                              |      1357377.9      |
 | RMSE                             |     63984630.31     |
@@ -533,10 +525,6 @@ modelsummary(mod.sa, stars=TRUE)
 | time_to_treat = 5  | -32194732.162\*\*\* |
 |                    |    (7671172.406)    |
 | Num.Obs.           |        34994        |
-| R2                 |        0.094        |
-| R2 Adj.            |        0.092        |
-| R2 Within          |        0.007        |
-| R2 Within Adj.     |        0.007        |
 | AIC                |      1357309.8      |
 | BIC                |      1357394.5      |
 | RMSE               |     63990215.48     |
