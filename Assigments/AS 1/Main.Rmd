@@ -18,7 +18,7 @@ pre[class] {
 
 ```{r setup, include=FALSE, cache=TRUE, tidy=TRUE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
-knitr::opts_chunk$set(error = TRUE, cache =F)
+knitr::opts_chunk$set(error = TRUE, cache =T)
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, lfe, stargazer, modelsummary, fixest, DRDID, ggthemes, patchwork)
@@ -273,9 +273,12 @@ modelsummary(mod.sa, stars = TRUE, output = "markdown")
 
 ## Event Study - SA specification
 Present an event study graph based on the results in part 5. Hint: you can do this automatically in `R` with the `fixest` package (using the `sunab` syntax for interactions), or with `eventstudyinteract` in `Stata`. These packages help to avoid mistakes compared to doing the tables/figures manually and also help to get the standard errors correct.
+
 ``` {r sa-plot, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 coefplot(mod.sa)
 ```
+
+
 ## Callaway and Sant'Anna Specification (CS)
 Callaway and Sant'Anna (CS) offer a non-parametric solution that effectively calculates a set of group-time specific differences, $ATT(g,t)= E[y_{it}(g) - y_{it}(\infty) | G_{i}=g]$, where $g$ reflects treatment timing and $t$ denotes time. They show that under the standard DD assumptions of parallel trends and no anticipation, $ATT(g,t) = E[y_{it} - y_{i, g-1} | G_{i}=g] - E[y_{it} - y_{i,g-1} | G_{i} = \infty]$, so that $\hat{ATT}(g,t)$ is directly estimable from sample analogs. CS also propose aggregations of $\hat{ATT}(g,t)$ to form an overall ATT or a time-specific ATT (e.g., ATTs for $\tau$ periods before/after treatment). With this framework in mind, provide an alternative event study using the CS estimator. Hint: check out the `did` package in `R` or the `csdid` package in `Stata`.
 
@@ -309,7 +312,7 @@ $$\Delta(\bar{M}) = \left\{ \delta : \forall t \geq 0, \lvert (\delta_{t+1} - \d
 Using the `HonestDiD` package in `R` or `Stata`, present a sensitivity plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$. Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for some help in combining the `HonestDiD` package with CS estimates.
 
 ```{r RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-rm(dat.reg, data_aca, data_hcris, )
+
 
 ```
 

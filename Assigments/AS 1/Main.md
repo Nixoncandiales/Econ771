@@ -607,10 +607,12 @@ correct.
 coefplot(mod.sa)
 ```
 
-![](Main_files/figure-gfm/sa-plot-1.png)<!-- --> ## Callaway and
-Sant’Anna Specification (CS) Callaway and Sant’Anna (CS) offer a
-non-parametric solution that effectively calculates a set of group-time
-specific differences,
+![](Main_files/figure-gfm/sa-plot-1.png)<!-- -->
+
+## Callaway and Sant’Anna Specification (CS)
+
+Callaway and Sant’Anna (CS) offer a non-parametric solution that
+effectively calculates a set of group-time specific differences,
 $ATT(g,t)= E[y_{it}(g) - y_{it}(\infty) | G_{i}=g]$, where $g$ reflects
 treatment timing and $t$ denotes time. They show that under the standard
 DD assumptions of parallel trends and no anticipation,
@@ -748,12 +750,6 @@ Using the `HonestDiD` package in `R` or `Stata`, present a sensitivity
 plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$.
 Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for
 some help in combining the `HonestDiD` package with CS estimates.
-
-``` r
-rm(dat.reg, data_aca, data_hcris, )
-```
-
-    Error in rm(dat.reg, data_aca, data_hcris, ): attempt to use zero-length variable name
 
 ## Discussion
 
