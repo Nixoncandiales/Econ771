@@ -635,11 +635,20 @@ reg.dat <- df%>%
   mutate(state_id=cur_group_id()) %>% ungroup()
 
 
-mod.cs <- att_gt(yname="unc_care", tname="year", idname="state_id",
+mod.cs <- att_gt(yname="unc_care", 
+                 tname="year", 
+                 idname="state_id",
                  gname="expand_year",
-                 data=reg.dat, panel=TRUE, est_method="dr",
-                 allow_unbalanced_panel=TRUE)
-mod.cs.event <- aggte(mod.cs, type="dynamic")
+                 data=reg.dat, 
+                 panel=TRUE, 
+                 est_method="dr",
+                 #xformula= xformula,
+                 cband=TRUE,
+                 bstrap=TRUE,
+                 allow_unbalanced_panel=TRUE,
+                 base_period="universal",
+                 control_group="nevertreated")
+mod.cs.event <- aggte(mod.cs, type="dynamic", min_e = -5, max_e = 5)
 
 mod.cs
 ```
@@ -648,40 +657,45 @@ mod.cs
     Call:
     att_gt(yname = "unc_care", tname = "year", idname = "state_id", 
         gname = "expand_year", data = reg.dat, panel = TRUE, allow_unbalanced_panel = TRUE, 
-        est_method = "dr")
+        control_group = "nevertreated", bstrap = TRUE, cband = TRUE, 
+        est_method = "dr", base_period = "universal")
 
     Reference: Callaway, Brantly and Pedro H.C. Sant'Anna.  "Difference-in-Differences with Multiple Time Periods." Journal of Econometrics, Vol. 225, No. 2, pp. 200-230, 2021. <https://doi.org/10.1016/j.jeconom.2020.12.001>, <https://arxiv.org/abs/1803.09015> 
 
     Group-Time Average Treatment Effects:
      Group Time    ATT(g,t) Std. Error [95% Simult.  Conf. Band]  
-      2014 2013   -493665.2   693500.3      -2151281   1163950.5  
-      2014 2014  -9527039.4  2185047.6     -14749775  -4304303.3 *
-      2014 2015 -16868003.0  3539045.0     -25327085  -8408920.6 *
-      2014 2016 -17595927.6  4017471.1     -27198552  -7993303.4 *
-      2014 2017 -22658524.3  4581181.0     -33608537 -11708511.5 *
-      2014 2018 -25699487.7  5730803.4     -39397346 -12001628.9 *
-      2014 2019 -30727942.6  8210451.2     -50352696 -11103189.5 *
-      2015 2013   -715363.9   626596.5      -2213065    782337.3  
-      2015 2014  -5553388.0  1844439.9      -9961998  -1144777.8 *
-      2015 2015  -5010301.5  2355827.9     -10641239    620636.4  
-      2015 2016  -7113507.7  2490078.4     -13065333  -1161682.0 *
-      2015 2017 -13984064.1  2815717.0     -20714236  -7253891.8 *
-      2015 2018 -18224614.5  3939889.1     -27641801  -8807428.0 *
-      2015 2019 -23598953.9  6606432.2     -39389755  -7808152.8 *
-      2016 2013  -1168915.8   858795.8      -3221623    883791.8  
-      2016 2014   -797105.0  3026128.5      -8030206   6435996.3  
-      2016 2015  -3068484.0  1692153.7      -7113097    976129.1  
-      2016 2016   -978149.0  1067514.6      -3529740   1573441.6  
-      2016 2017 -14705710.1  4481674.9     -25417882  -3993538.4 *
-      2016 2018 -19119082.8  4978956.0     -31019864  -7218301.8 *
-      2016 2019 -26158988.5  6481503.1     -41651182 -10666794.9 *
-      2019 2013  -2620400.3   637851.9      -4145004  -1095796.3 *
-      2019 2014    299906.6  2678112.1      -6101360   6701173.5  
-      2019 2015  -1897746.0  1687623.3      -5931531   2136038.5  
-      2019 2016   3350466.1  2251178.4      -2030337   8731269.1  
-      2019 2017  -3558597.0  1808508.9      -7881324    764130.2  
-      2019 2018    954891.2  3422867.5      -7226502   9136284.4  
-      2019 2019 -13470755.4  3253619.1     -21247608  -5693902.4 *
+      2014 2012    493665.2   693558.7    -1127342.1   2114672.5  
+      2014 2013         0.0         NA            NA          NA  
+      2014 2014  -9527039.4  2185047.6   -14634002.1  -4420076.7 *
+      2014 2015 -16868003.0  3539045.0   -25139571.3  -8596434.7 *
+      2014 2016 -17595927.6  4017471.1   -26985688.6  -8206166.6 *
+      2014 2017 -22658524.3  4581181.0   -33365806.1 -11951242.5 *
+      2014 2018 -25699487.7  5730803.4   -39093703.3 -12305272.0 *
+      2014 2019 -30727942.6  8210451.2   -49917669.9 -11538215.3 *
+      2015 2012   6268751.8  2297515.2      898926.3  11638577.3 *
+      2015 2013   5553388.0  1858076.4     1210632.8   9896143.1 *
+      2015 2014         0.0         NA            NA          NA  
+      2015 2015  -5010301.5  2355827.9   -10516417.2    495814.3  
+      2015 2016  -7113507.7  2490078.4   -12933398.1  -1293617.3 *
+      2015 2017 -13984064.1  2815717.0   -20565047.3  -7403080.8 *
+      2015 2018 -18224614.5  3939889.1   -27433048.5  -9016180.6 *
+      2015 2019 -23598953.9  6606432.2   -39039717.1  -8158190.6 *
+      2016 2012   5034504.8  4836414.7    -6269317.3  16338326.8  
+      2016 2013   3865589.0  4246496.6    -6059457.9  13790635.9  
+      2016 2014   3068484.0  1696160.3     -895835.8   7032803.8  
+      2016 2015         0.0         NA            NA          NA  
+      2016 2016   -978149.0  1067514.6    -3473177.9   1516879.9  
+      2016 2017 -14705710.1  4481674.9   -25180423.0  -4230997.2 *
+      2016 2018 -19119082.8  4978956.0   -30756056.8  -7482108.7 *
+      2016 2019 -26158988.5  6481503.1   -41307763.6 -11010213.4 *
+      2019 2012   3471479.5 10067773.0   -20059239.5  27002198.4  
+      2019 2013    851079.1 10680240.0   -24111117.2  25813275.5  
+      2019 2014   1150985.7  7884519.9   -17276964.6  19578936.1  
+      2019 2015   -746760.2  6493971.5   -15924676.7  14431156.2  
+      2019 2016   2603705.8  4754668.0    -8509055.3  13716466.9  
+      2019 2017   -954891.2  3414775.0    -8936011.7   7026229.4  
+      2019 2018         0.0         NA            NA          NA  
+      2019 2019 -13470755.4  3253619.1   -21075217.3  -5866293.4 *
     ---
     Signif. codes: `*' confidence band does not cover 0
 
@@ -694,30 +708,29 @@ mod.cs.event
 
 
     Call:
-    aggte(MP = mod.cs, type = "dynamic")
+    aggte(MP = mod.cs, type = "dynamic", min_e = -5, max_e = 5)
 
     Reference: Callaway, Brantly and Pedro H.C. Sant'Anna.  "Difference-in-Differences with Multiple Time Periods." Journal of Econometrics, Vol. 225, No. 2, pp. 200-230, 2021. <https://doi.org/10.1016/j.jeconom.2020.12.001>, <https://arxiv.org/abs/1803.09015> 
 
 
     Overall summary of ATT's based on event-study/dynamic aggregation:  
            ATT    Std. Error     [ 95%  Conf. Int.]  
-     -20117917       4607926  -29149285   -11086549 *
+     -20117917       4444986  -28829929   -11405905 *
 
 
     Dynamic Effects:
-     Event time    Estimate Std. Error [95% Simult.  Conf. Band]  
-             -6  -2620400.3   683920.5      -4193995  -1046806.1 *
-             -5    299906.6  2800846.9      -6144404   6744217.2  
-             -4  -1897746.0  1740555.0      -5902491   2106998.9  
-             -3   1090775.1  1818258.5      -3092753   5274303.4  
-             -2  -1551070.8  1326633.5      -4603447   1501305.5  
-             -1  -1006362.1   834672.8      -2926814    914089.4  
-              0  -8857611.1  1832623.4     -13074191  -4641031.2 *
-              1 -15818375.8  3466622.5     -23794532  -7842219.7 *
-              2 -17352512.6  3802051.5     -26100438  -8604586.8 *
-              3 -22461624.3  4622575.6     -33097448 -11825800.8 *
-              4 -25489434.3  5575746.1     -38318354 -12660514.5 *
-              5 -30727942.6  8255159.7     -49721774 -11734111.3 *
+     Event time  Estimate Std. Error [95% Simult.  Conf. Band]  
+             -5   1150986  7922953.9   -16927192.2    19229164  
+             -4   2143872  4807352.0    -8825289.8    13113034  
+             -3   4534978  2902323.7    -2087391.1    11157347  
+             -2   1006362   792103.9     -801018.8     2813743  
+             -1         0         NA            NA          NA  
+              0  -8857611  1934082.4   -13270698.2    -4444524 *
+              1 -15818376  3061199.7   -22803259.7    -8833492 *
+              2 -17352513  4006643.0   -26494659.2    -8210366 *
+              3 -22461624  4563709.6   -32874856.0   -12048393 *
+              4 -25489434  6072529.8   -39345412.2   -11633456 *
+              5 -30727943  7904827.3   -48764760.3   -12691125 *
     ---
     Signif. codes: `*' confidence band does not cover 0
 
@@ -736,6 +749,34 @@ ggdid(mod.cs.event)
 
 ![](Main_files/figure-gfm/cs-2.png)<!-- -->
 
+``` r
+CS_never_cond <- mod.cs #id::att_gt(yname="unc_care",
+                  #           tname="year",
+                  #           idname="state_id",
+                  #           gname="expand_year",
+                  #           xformla=~1,
+                  #           #xformla = xformla,
+                  #           control_group="nevertreated",
+                  #           data = reg.dat,
+                  #           panel = TRUE,
+                  #           base_period="universal",
+                  #           bstrap = TRUE,
+                  #           cband = TRUE,
+                  #           allow_unbalanced_panel=TRUE)
+
+# Now, compute event study
+CS_es_never_cond <- mod.cs.event #aggte(CS_never_cond, type = "dynamic",
+                          #min_e = -5, max_e = 5)
+#summary(CS_es_never_cond)
+# Plot event study
+fig_CS <- ggdid(CS_es_never_cond,
+      title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
+
+fig_CS
+```
+
+![](Main_files/figure-gfm/cs-3.png)<!-- -->
+
 ## Rambachan and Roth (RR)
 
 Rambachan and Roth (RR) show that traditional tests of parallel
@@ -745,11 +786,280 @@ an assumed violation in parallel trends. One such bound RR propose is to
 limit the post-treatment violation of parallel trends to be no worse
 than some multiple of the pre-treatment violation of parallel trends.
 Assuming linear trends, such a violation is reflected by
-$$\Delta(\bar{M}) = \left\{ \delta : \forall t \geq 0, \lvert (\delta_{t+1} - \delta_{t}) - (\delta_{t} - \delta_{t-1}) \rvert \leq \bar{M} \times \max_{s<0} \lvert (\delta_{s+1} - \delta_{s}) - (\delta_{s} - \delta_{s-1}) \rvert \right\}.$$
+
+$$ 
+\Delta(\bar{M}) = { \delta : \forall t \geq 0, \lvert (\delta_{t+1} - \delta_{t}) - (\delta_{t} - \delta_{t-1}) \rvert \leq \bar{M} \times \max_{s<0} \lvert (\delta_{s+1} - \delta_{s}) - (\delta_{s} - \delta_{s-1}) \rvert }.
+$$
+
 Using the `HonestDiD` package in `R` or `Stata`, present a sensitivity
 plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$.
 Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for
 some help in combining the `HonestDiD` package with CS estimates.
+
+``` r
+# Install some packages
+library(devtools)
+install_github("bcallaway11/BMisc", dependencies = TRUE)
+```
+
+    Skipping install of 'BMisc' from a github remote, the SHA1 (70e7b615) has not changed since last install.
+      Use `force = TRUE` to force installation
+
+``` r
+install_github("bcallaway11/did", dependencies = TRUE)
+```
+
+    Skipping install of 'did' from a github remote, the SHA1 (df953008) has not changed since last install.
+      Use `force = TRUE` to force installation
+
+``` r
+install_github("asheshrambachan/HonestDiD", dependencies = TRUE)
+```
+
+    Skipping install of 'HonestDiD' from a github remote, the SHA1 (99b7e30c) has not changed since last install.
+      Use `force = TRUE` to force installation
+
+``` r
+#--------------------------------------------------------------------------
+# Load packages
+#--------------------------------------------------------------------------
+# Libraries
+# Load libraries
+library(ggplot2)
+library(here)
+library(foreign)
+library(tidyverse)
+library(dplyr)
+library(did)
+library(HonestDiD)
+
+## -----------------------------------------------------------------------------
+
+#' @title honest_did
+#'
+#' @description a function to compute a sensitivity analysis
+#'  using the approach of Rambachan and Roth (2021)
+#' @param es an event study
+honest_did <- function(es, ...) {
+  UseMethod("honest_did", es)
+}
+
+
+#' @title honest_did.AGGTEobj
+#'
+#' @description a function to compute a sensitivity analysis
+#'  using the approach of Rambachan and Roth (2021) when
+#'  the event study is estimating using the `did` package
+#'
+#' @param e event time to compute the sensitivity analysis for.
+#'  The default value is `e=0` corresponding to the "on impact"
+#'  effect of participating in the treatment.
+#' @param type Options are "smoothness" (which conducts a
+#'  sensitivity analysis allowing for violations of linear trends
+#'  in pre-treatment periods) or "relative_magnitude" (which
+#'  conducts a sensitivity analysis based on the relative magnitudes
+#'  of deviations from parallel trends in pre-treatment periods).
+#' @inheritParams HonestDiD::createSensitivityResults
+#' @inheritParams HonestDid::createSensitivityResults_relativeMagnitudes
+honest_did.AGGTEobj <- function(es,
+                                e=0,
+                                type=c("smoothness", "relative_magnitude"),
+                                method=NULL,
+                                bound="deviation from parallel trends",
+                                Mvec=NULL,
+                                Mbarvec=NULL,
+                                monotonicityDirection=NULL,
+                                biasDirection=NULL,
+                                alpha=0.05,
+                                parallel=FALSE,
+                                gridPoints=10^3,
+                                grid.ub=NA,
+                                grid.lb=NA,
+                                ...) {
+  
+  
+  type <- type[1]
+  
+  # make sure that user is passing in an event study
+  if (es$type != "dynamic") {
+    stop("need to pass in an event study")
+  }
+  
+  # check if used universal base period and warn otherwise
+  if (es$DIDparams$base_period != "universal") {
+    warning("it is recommended to use a universal base period for honest_did")
+  }
+  
+  # recover influence function for event study estimates
+  es_inf_func <- es$inf.function$dynamic.inf.func.e
+  
+  # recover variance-covariance matrix
+  n <- nrow(es_inf_func)
+  V <- t(es_inf_func) %*% es_inf_func / (n*n) 
+  
+  
+  nperiods <- nrow(V)
+  npre <- sum(1*(es$egt < 0))
+  npost <- nperiods - npre
+  
+  baseVec1 <- basisVector(index=(e+1),size=npost)
+  
+  orig_ci <- constructOriginalCS(betahat = es$att.egt,
+                                 sigma = V, numPrePeriods = npre,
+                                 numPostPeriods = npost,
+                                 l_vec = baseVec1)
+  
+  if (type=="relative_magnitude") {
+    if (is.null(method)) method <- "C-LF"
+    robust_ci <- createSensitivityResults_relativeMagnitudes(betahat = es$att.egt, sigma = V, 
+                                                             numPrePeriods = npre, 
+                                                             numPostPeriods = npost,
+                                                             bound=bound,
+                                                             method=method,
+                                                             l_vec = baseVec1,
+                                                             Mbarvec = Mbarvec,
+                                                             monotonicityDirection=monotonicityDirection,
+                                                             biasDirection=biasDirection,
+                                                             alpha=alpha,
+                                                             gridPoints=100,
+                                                             grid.lb=-1,
+                                                             grid.ub=1,
+                                                             parallel=parallel)
+    
+  } else if (type=="smoothness") {
+    robust_ci <- createSensitivityResults(betahat = es$att.egt,
+                                          sigma = V, 
+                                          numPrePeriods = npre, 
+                                          numPostPeriods = npost,
+                                          method=method,
+                                          l_vec = baseVec1,
+                                          monotonicityDirection=monotonicityDirection,
+                                          biasDirection=biasDirection,
+                                          alpha=alpha,
+                                          parallel=parallel)
+  }
+  
+  list(robust_ci=robust_ci, orig_ci=orig_ci, type=type)
+}
+
+# Load data used in Callaway and Sant'Anna (2021) application
+min_wage <- mpdta
+
+# Formula for covariates 
+#xformla <- ~ region + (medinc + pop ) + I(pop^2) + I(medinc^2)  + white + hs  + pov
+#---------------------------------------------------------------------------
+# Using covariates and DR DiD with never-treated as comparison group
+# Fix the reference time periods
+CS_never_cond <- did::att_gt(yname="lemp",
+                             tname="year",
+                             idname="countyreal",
+                             gname="first.treat",
+                             xformla=~1,
+                             #xformla = xformla,
+                             control_group="nevertreated",
+                             data = min_wage,
+                             panel = TRUE,
+                             base_period="universal",
+                             bstrap = TRUE,
+                             cband = TRUE)
+# Now, compute event study
+CS_es_never_cond <- aggte(CS_never_cond, type = "dynamic",
+                          min_e = -5, max_e = 5)
+#summary(CS_es_never_cond)
+# Plot event study
+fig_CS <- ggdid(CS_es_never_cond,
+      title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
+
+fig_CS
+```
+
+![](Main_files/figure-gfm/Aux-func-RR-1.png)<!-- -->
+
+``` r
+# code for running honest_did
+hd_cs_smooth_never <- honest_did(CS_es_never_cond,
+                           type="smoothness")
+hd_cs_smooth_never
+```
+
+    $robust_ci
+    # A tibble: 10 × 5
+            lb       ub method Delta         M
+         <dbl>    <dbl> <chr>  <chr>     <dbl>
+     1 -0.0482 -0.00296 FLCI   DeltaSD 0      
+     2 -0.0462  0.00630 FLCI   DeltaSD 0.00649
+     3 -0.0524  0.0125  FLCI   DeltaSD 0.0130 
+     4 -0.0588  0.0190  FLCI   DeltaSD 0.0195 
+     5 -0.0653  0.0255  FLCI   DeltaSD 0.0260 
+     6 -0.0718  0.0320  FLCI   DeltaSD 0.0325 
+     7 -0.0783  0.0385  FLCI   DeltaSD 0.0390 
+     8 -0.0848  0.0450  FLCI   DeltaSD 0.0454 
+     9 -0.0913  0.0514  FLCI   DeltaSD 0.0519 
+    10 -0.0978  0.0579  FLCI   DeltaSD 0.0584 
+
+    $orig_ci
+    # A tibble: 1 × 4
+       lb[,1]  ub[,1] method   Delta
+        <dbl>   <dbl> <chr>    <lgl>
+    1 -0.0431 0.00325 Original NA   
+
+    $type
+    [1] "smoothness"
+
+``` r
+hd_cs_rm_never <- honest_did(CS_es_never_cond, type="relative_magnitude")
+hd_cs_rm_never
+```
+
+    $robust_ci
+    # A tibble: 10 × 5
+            lb      ub method Delta    Mbar
+         <dbl>   <dbl> <chr>  <chr>   <dbl>
+     1 -0.0303 -0.0101 C-LF   DeltaRM 0    
+     2 -0.0303 -0.0101 C-LF   DeltaRM 0.222
+     3 -0.0505  0.0101 C-LF   DeltaRM 0.444
+     4 -0.0505  0.0101 C-LF   DeltaRM 0.667
+     5 -0.0505  0.0303 C-LF   DeltaRM 0.889
+     6 -0.0707  0.0303 C-LF   DeltaRM 1.11 
+     7 -0.0707  0.0505 C-LF   DeltaRM 1.33 
+     8 -0.0909  0.0505 C-LF   DeltaRM 1.56 
+     9 -0.0909  0.0707 C-LF   DeltaRM 1.78 
+    10 -0.111   0.0707 C-LF   DeltaRM 2    
+
+    $orig_ci
+    # A tibble: 1 × 4
+       lb[,1]  ub[,1] method   Delta
+        <dbl>   <dbl> <chr>    <lgl>
+    1 -0.0431 0.00325 Original NA   
+
+    $type
+    [1] "relative_magnitude"
+
+``` r
+# Drop 0 as that is not really allowed.
+hd_cs_rm_never$robust_ci <- hd_cs_rm_never$robust_ci[-1,]
+
+## -----------------------------------------------------------------------------
+# make sensitivity analysis plots
+cs_HDiD_smooth <- createSensitivityPlot(hd_cs_smooth_never$robust_ci,
+                      hd_cs_smooth_never$orig_ci)
+
+
+cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust_ci,
+                                         hd_cs_rm_never$orig_ci)
+```
+
+``` r
+cs_HDiD_smooth
+```
+
+![](Main_files/figure-gfm/RR-1.png)<!-- -->
+
+``` r
+cs_HDiD_relmag
+```
+
+![](Main_files/figure-gfm/RR-2.png)<!-- -->
 
 ## Discussion
 

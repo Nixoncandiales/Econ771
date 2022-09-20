@@ -37,3 +37,6 @@ lfe
 stargazer
 modelsummary
 DRDID
+usethis
+devtools
+foreign

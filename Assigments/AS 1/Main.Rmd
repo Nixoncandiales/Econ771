@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE, comment=NA)
 knitr::opts_chunk$set(error = TRUE, cache =T)
 
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, reticulate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, lfe, stargazer, modelsummary, fixest, DRDID, ggthemes, patchwork)
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, stargazer, modelsummary, fixest, DRDID, ggthemes, patchwork, devtools, lfe)
 knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
 ```
 
@@ -293,27 +293,248 @@ reg.dat <- df%>%
   mutate(state_id=cur_group_id()) %>% ungroup()
 
 
-mod.cs <- att_gt(yname="unc_care", tname="year", idname="state_id",
+mod.cs <- att_gt(yname="unc_care", 
+                 tname="year", 
+                 idname="state_id",
                  gname="expand_year",
-                 data=reg.dat, panel=TRUE, est_method="dr",
-                 allow_unbalanced_panel=TRUE)
-mod.cs.event <- aggte(mod.cs, type="dynamic")
+                 data=reg.dat, 
+                 panel=TRUE, 
+                 est_method="dr",
+                 #xformula= xformula,
+                 cband=TRUE,
+                 bstrap=TRUE,
+                 allow_unbalanced_panel=TRUE,
+                 base_period="universal",
+                 control_group="nevertreated")
+mod.cs.event <- aggte(mod.cs, type="dynamic", min_e = -5, max_e = 5)
 
 mod.cs
 mod.cs.event
 ggdid(mod.cs)
 ggdid(mod.cs.event)
+
+
+CS_never_cond <- mod.cs #id::att_gt(yname="unc_care",
+                  #           tname="year",
+                  #           idname="state_id",
+                  #           gname="expand_year",
+                  #           xformla=~1,
+                  #           #xformla = xformla,
+                  #           control_group="nevertreated",
+                  #           data = reg.dat,
+                  #           panel = TRUE,
+                  #           base_period="universal",
+                  #           bstrap = TRUE,
+                  #           cband = TRUE,
+                  #           allow_unbalanced_panel=TRUE)
+
+# Now, compute event study
+CS_es_never_cond <- mod.cs.event #aggte(CS_never_cond, type = "dynamic",
+                          #min_e = -5, max_e = 5)
+#summary(CS_es_never_cond)
+# Plot event study
+fig_CS <- ggdid(CS_es_never_cond,
+      title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
+
+fig_CS
+
 ```
 
 
 ## Rambachan and Roth (RR)
 Rambachan and Roth (RR) show that traditional tests of parallel pre-trends may be underpowered, and they provide an alternative estimator that essentially bounds the treatment effects by the size of an assumed violation in parallel trends. One such bound RR propose is to limit the post-treatment violation of parallel trends to be no worse than some multiple of the pre-treatment violation of parallel trends. Assuming linear trends, such a violation is reflected by 
-$$\Delta(\bar{M}) = \left\{ \delta : \forall t \geq 0, \lvert (\delta_{t+1} - \delta_{t}) - (\delta_{t} - \delta_{t-1}) \rvert \leq \bar{M} \times \max_{s<0} \lvert (\delta_{s+1} - \delta_{s}) - (\delta_{s} - \delta_{s-1}) \rvert \right\}.$$ 
+
+$$ 
+\Delta(\bar{M}) = { \delta : \forall t \geq 0, \lvert (\delta_{t+1} - \delta_{t}) - (\delta_{t} - \delta_{t-1}) \rvert \leq \bar{M} \times \max_{s<0} \lvert (\delta_{s+1} - \delta_{s}) - (\delta_{s} - \delta_{s-1}) \rvert }.
+$$ 
+
 Using the `HonestDiD` package in `R` or `Stata`, present a sensitivity plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$. Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for some help in combining the `HonestDiD` package with CS estimates.
 
-```{r RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+```{r Aux-func-RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+# Install some packages
+library(devtools)
+install_github("bcallaway11/BMisc", dependencies = TRUE)
+install_github("bcallaway11/did", dependencies = TRUE)
+install_github("asheshrambachan/HonestDiD", dependencies = TRUE)
+#--------------------------------------------------------------------------
+# Load packages
+#--------------------------------------------------------------------------
+# Libraries
+# Load libraries
+library(ggplot2)
+library(here)
+library(foreign)
+library(tidyverse)
+library(dplyr)
+library(did)
+library(HonestDiD)
+
+## -----------------------------------------------------------------------------
+
+#' @title honest_did
+#'
+#' @description a function to compute a sensitivity analysis
+#'  using the approach of Rambachan and Roth (2021)
+#' @param es an event study
+honest_did <- function(es, ...) {
+  UseMethod("honest_did", es)
+}
 
 
+#' @title honest_did.AGGTEobj
+#'
+#' @description a function to compute a sensitivity analysis
+#'  using the approach of Rambachan and Roth (2021) when
+#'  the event study is estimating using the `did` package
+#'
+#' @param e event time to compute the sensitivity analysis for.
+#'  The default value is `e=0` corresponding to the "on impact"
+#'  effect of participating in the treatment.
+#' @param type Options are "smoothness" (which conducts a
+#'  sensitivity analysis allowing for violations of linear trends
+#'  in pre-treatment periods) or "relative_magnitude" (which
+#'  conducts a sensitivity analysis based on the relative magnitudes
+#'  of deviations from parallel trends in pre-treatment periods).
+#' @inheritParams HonestDiD::createSensitivityResults
+#' @inheritParams HonestDid::createSensitivityResults_relativeMagnitudes
+honest_did.AGGTEobj <- function(es,
+                                e=0,
+                                type=c("smoothness", "relative_magnitude"),
+                                method=NULL,
+                                bound="deviation from parallel trends",
+                                Mvec=NULL,
+                                Mbarvec=NULL,
+                                monotonicityDirection=NULL,
+                                biasDirection=NULL,
+                                alpha=0.05,
+                                parallel=FALSE,
+                                gridPoints=10^3,
+                                grid.ub=NA,
+                                grid.lb=NA,
+                                ...) {
+  
+  
+  type <- type[1]
+  
+  # make sure that user is passing in an event study
+  if (es$type != "dynamic") {
+    stop("need to pass in an event study")
+  }
+  
+  # check if used universal base period and warn otherwise
+  if (es$DIDparams$base_period != "universal") {
+    warning("it is recommended to use a universal base period for honest_did")
+  }
+  
+  # recover influence function for event study estimates
+  es_inf_func <- es$inf.function$dynamic.inf.func.e
+  
+  # recover variance-covariance matrix
+  n <- nrow(es_inf_func)
+  V <- t(es_inf_func) %*% es_inf_func / (n*n) 
+  
+  
+  nperiods <- nrow(V)
+  npre <- sum(1*(es$egt < 0))
+  npost <- nperiods - npre
+  
+  baseVec1 <- basisVector(index=(e+1),size=npost)
+  
+  orig_ci <- constructOriginalCS(betahat = es$att.egt,
+                                 sigma = V, numPrePeriods = npre,
+                                 numPostPeriods = npost,
+                                 l_vec = baseVec1)
+  
+  if (type=="relative_magnitude") {
+    if (is.null(method)) method <- "C-LF"
+    robust_ci <- createSensitivityResults_relativeMagnitudes(betahat = es$att.egt, sigma = V, 
+                                                             numPrePeriods = npre, 
+                                                             numPostPeriods = npost,
+                                                             bound=bound,
+                                                             method=method,
+                                                             l_vec = baseVec1,
+                                                             Mbarvec = Mbarvec,
+                                                             monotonicityDirection=monotonicityDirection,
+                                                             biasDirection=biasDirection,
+                                                             alpha=alpha,
+                                                             gridPoints=100,
+                                                             grid.lb=-1,
+                                                             grid.ub=1,
+                                                             parallel=parallel)
+    
+  } else if (type=="smoothness") {
+    robust_ci <- createSensitivityResults(betahat = es$att.egt,
+                                          sigma = V, 
+                                          numPrePeriods = npre, 
+                                          numPostPeriods = npost,
+                                          method=method,
+                                          l_vec = baseVec1,
+                                          monotonicityDirection=monotonicityDirection,
+                                          biasDirection=biasDirection,
+                                          alpha=alpha,
+                                          parallel=parallel)
+  }
+  
+  list(robust_ci=robust_ci, orig_ci=orig_ci, type=type)
+}
+
+# Load data used in Callaway and Sant'Anna (2021) application
+min_wage <- mpdta
+
+# Formula for covariates 
+#xformla <- ~ region + (medinc + pop ) + I(pop^2) + I(medinc^2)  + white + hs  + pov
+#---------------------------------------------------------------------------
+# Using covariates and DR DiD with never-treated as comparison group
+# Fix the reference time periods
+CS_never_cond <- did::att_gt(yname="lemp",
+                             tname="year",
+                             idname="countyreal",
+                             gname="first.treat",
+                             xformla=~1,
+                             #xformla = xformla,
+                             control_group="nevertreated",
+                             data = min_wage,
+                             panel = TRUE,
+                             base_period="universal",
+                             bstrap = TRUE,
+                             cband = TRUE)
+# Now, compute event study
+CS_es_never_cond <- aggte(CS_never_cond, type = "dynamic",
+                          min_e = -5, max_e = 5)
+#summary(CS_es_never_cond)
+# Plot event study
+fig_CS <- ggdid(CS_es_never_cond,
+      title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
+
+fig_CS
+
+
+# code for running honest_did
+hd_cs_smooth_never <- honest_did(CS_es_never_cond,
+                           type="smoothness")
+hd_cs_smooth_never
+
+
+hd_cs_rm_never <- honest_did(CS_es_never_cond, type="relative_magnitude")
+hd_cs_rm_never
+# Drop 0 as that is not really allowed.
+hd_cs_rm_never$robust_ci <- hd_cs_rm_never$robust_ci[-1,]
+
+## -----------------------------------------------------------------------------
+# make sensitivity analysis plots
+cs_HDiD_smooth <- createSensitivityPlot(hd_cs_smooth_never$robust_ci,
+                      hd_cs_smooth_never$orig_ci)
+
+
+cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust_ci,
+                                         hd_cs_rm_never$orig_ci)
+
+
+```
+
+```{r RR,  tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+cs_HDiD_smooth
+cs_HDiD_relmag
 ```
 
 
