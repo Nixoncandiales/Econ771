@@ -17,12 +17,14 @@ pre[class] {
 ```
 
 ```{r setup, include=FALSE, cache=TRUE, tidy=TRUE, echo=FALSE}
-knitr::opts_chunk$set(echo = TRUE, comment=NA)
-knitr::opts_chunk$set(error = TRUE, cache =T)
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, stargazer, modelsummary, fixest, DRDID, ggthemes, patchwork, devtools, lfe)
 knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
+
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+knitr::opts_chunk$set(error = TRUE, cache =T)
+
 ```
 
 ## Downloading the Raw Data
@@ -61,8 +63,10 @@ We start by left joining `HCRIS_data.txt` and `pos_lastyear.v12.dta`. The key to
 df_1 <- data_hcris %>% #sum up the two variables uncompensated care variables
               filter(year >= 2003 & year <= 2019) %>%
               rowwise() %>% 
-              mutate(hosp_rev = tot_pat_rev/1000000, 
-                     unc_care = sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)/1000000) %>%
+              mutate(hosp_rev = tot_pat_rev/1000000,
+                     tot_uncomp_care_partial_pmts = tot_uncomp_care_partial_pmts * - 1,
+                     tot_unc_care_v2010 = sum(tot_uncomp_care_charges, tot_uncomp_care_partial_pmts, bad_debt, na.rm=TRUE),
+                     unc_care = sum(tot_unc_care_v2010 ,uncomp_care, na.rm=TRUE)/1000000) %>%
               mutate_at(c('unc_care'), ~na_if(., 0)) %>%
               select(pn=provider_number, year, unc_care, hosp_rev, state)  %>%
               filter(!(is.na(unc_care) & is.na(hosp_rev))) #discard the observations NA observation for both unc_care and hosp_rev
@@ -102,13 +106,16 @@ Provide and discuss a table of simple summary statistics showing the mean, stand
 From the `HCRIS_data.txt` we select the variables `provider_number`, `year`, `uncomp_care`, `tot_uncomp_care_charges`, `tot_pat_rev`. We create a new variable that stores the uncompensated care records, then we group by year and calculate the summary statistics as follows.
 
 ```{r summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+df %>% ungroup() %>%
+  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE)
+
 df_1 %>%
   group_by(year) %>%
   summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) 
 ```
 
 ```{r plot-summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-df %>% ggplot(aes(x = year, y = unc_care, group=year)) + 
+df %>% filter(!(pn==151327 & year ==2016)) %>% ggplot(aes(x = year, y = unc_care, group=year)) +
   geom_boxplot() + 
   theme_tufte() +
     labs(x="Years", y="Uncompensated Care Millions", 
@@ -124,7 +131,23 @@ plot <- plot1  / plot2
 plot
 ```
 
+```{r}
+#Remove outlier
 
+is_outlier <- function(x, ...) {
+    return(x < quantile(x, 0.25, ...) -40.5 * IQR(x, ...) | x > quantile(x, 0.75, ...) + 40.5 * IQR(x, ...))
+}
+
+df %>%
+    group_by(year) %>%
+    mutate(outlier = is_outlier(unc_care, na.rm = TRUE)) %>%
+    filter(!(outlier == FALSE) & ( year == 2010 | year == 2016 )) 
+
+## PN : 151327 Year 2016
+## PN : 150056 Year 2010
+
+#### Those two values are extremely atypical... consider remove those!!
+```
 ## By Ownership Type
 Create a figure showing the mean hospital uncompensated care from 2000 to 2018. Show this trend separately by hospital ownership type (private not for profit and private for profit).
 ```{r load-libraries, include=FALSE}
@@ -137,12 +160,13 @@ library(stargazer)
 
 
 ```{r plot-own-typ, warning=FALSE, comment=NA, message = FALSE}
-df %>%
+df %>%  filter(!(pn==151327 & year ==2016)) %>%
   filter(!(own_typ=='other')) %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
   ggplot(aes(x=year, y=unc_care_mean, color=own_typ)) +
   geom_point(size = 3) +
+  #geom_line(size = 1) +
   geom_smooth(aes(fill = own_typ), size = 1) +
   geom_vline( xintercept = 2014, color="black") +
   theme_tufte()+ 
@@ -164,7 +188,7 @@ where $D_{it}=1(E_{i}\leq t)$ in Equation 1 is an indicator set to 1 when a hosp
 
 ```{r DiD, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 #Create dummies for the control groups
-df %>% 
+df %>% filter(!(pn==151327 & year ==2016)) %>%
   mutate(d = case_when(expand == TRUE ~ 1),
          d_14 = case_when((expand == TRUE & expand_year==2014) ~ 1),
          d_15 = case_when((expand == TRUE & expand_year==2015) ~ 1),
@@ -174,7 +198,7 @@ df %>%
 ```
 
 ```{r DiD-TWFE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-mod.twfe <- lapply(df %>%
+mod.twfe <- lapply(df %>% 
                 select(d:d_16), #Select the treatments 
               function(Treatment) felm(unc_care ~ Treatment | pn + year | 0 | state, df)) #Apply the specification across the different treatments and store the results in a list
 
@@ -350,6 +374,7 @@ $$
 $$ 
 
 Using the `HonestDiD` package in `R` or `Stata`, present a sensitivity plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$. Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for some help in combining the `HonestDiD` package with CS estimates.
+1
 
 ```{r Aux-func-RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 # Install some packages
