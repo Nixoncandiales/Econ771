@@ -61,8 +61,8 @@ We start by left joining `HCRIS_data.txt` and `pos_lastyear.v12.dta`. The key to
 df_1 <- data_hcris %>% #sum up the two variables uncompensated care variables
               filter(year >= 2003 & year <= 2019) %>%
               rowwise() %>% 
-              mutate(hosp_rev = tot_pat_rev, 
-                     unc_care = sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)) %>%
+              mutate(hosp_rev = tot_pat_rev/1000000, 
+                     unc_care = sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)/1000000) %>%
               mutate_at(c('unc_care'), ~na_if(., 0)) %>%
               select(pn=provider_number, year, unc_care, hosp_rev, state)  %>%
               filter(!(is.na(unc_care) & is.na(hosp_rev))) #discard the observations NA observation for both unc_care and hosp_rev
@@ -111,16 +111,17 @@ df_1 %>%
 df %>% ggplot(aes(x = year, y = unc_care, group=year)) + 
   geom_boxplot() + 
   theme_tufte() +
-    labs(x="Years", y="Uncompensated Care", 
+    labs(x="Years", y="Uncompensated Care Millions", 
        title = "Distribution Hospital Uncompensated Care Over Time")-> plot1
 
 df %>% ggplot(aes(x = year, y = hosp_rev, group=year)) + 
   geom_boxplot() + 
   theme_tufte() +
-    labs(x="Years", y="Hospital Revenue", 
+    labs(x="Years", y="Hospital Revenue Millions", 
        title = "Distribution Hospital Total Revenue Over Time") -> plot2
 
 plot <- plot1  / plot2 
+plot
 ```
 
 
@@ -146,7 +147,7 @@ df %>%
   geom_vline( xintercept = 2014, color="black") +
   theme_tufte()+ 
   labs(x="Years", y="Total Uncompensated Care", 
-       title = "Mean of Hospital Uncompensated Care by Ownership Type", 
+       title = "Mean of Hospital Uncompensated Care in Million Dollars by Ownership Type", 
        fill = "Ownership type", color = "Ownership type") -> plot3
 
 plot3
@@ -275,7 +276,7 @@ modelsummary(mod.sa, stars = TRUE, output = "markdown")
 Present an event study graph based on the results in part 5. Hint: you can do this automatically in `R` with the `fixest` package (using the `sunab` syntax for interactions), or with `eventstudyinteract` in `Stata`. These packages help to avoid mistakes compared to doing the tables/figures manually and also help to get the standard errors correct.
 
 ``` {r sa-plot, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-coefplot(mod.sa)
+coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
 ```
 
 
@@ -304,8 +305,8 @@ mod.cs <- att_gt(yname="unc_care",
                  cband=TRUE,
                  bstrap=TRUE,
                  allow_unbalanced_panel=TRUE,
-                 base_period="universal",
-                 control_group="nevertreated")
+                 base_period="universal")
+                 #control_group="nevertreated")
 mod.cs.event <- aggte(mod.cs, type="dynamic", min_e = -5, max_e = 5)
 
 mod.cs
@@ -540,6 +541,26 @@ cs_HDiD_relmag
 
 ## Discussion
 Discuss your findings and compare estimates from different estimators (e.g., are your results sensitive to different specifications or estimators? Are your results sensitive to violation of parallel trends assumptions?).
+
+```{r}
+
+## Write results, tables plots etc to use in the PDF file.
+## Save plots
+#ggsave(here("plots","cs_HDiD_smooth.png"),
+#       cs_HDiD_smooth,  
+#       dpi = 500,
+#       width = 14, 
+#       height = 7)
+
+
+# Save plots
+#ggsave(here("plots","cs_HDiD_relmag.png"),
+#       cs_HDiD_relmag,  
+#       dpi = 500,
+#       width = 14, 
+#       height = 7)
+
+```
 
 ## Reflections
 Reflect on this assignment. What did you find most challenging? What did you find most surprising? 
