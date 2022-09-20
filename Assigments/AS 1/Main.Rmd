@@ -288,9 +288,9 @@ sa <- function(data, i){
 
 
 mod.sa <- list(
-  "mod.sa.2014" = sa(reg.dat, 2016),
+  "mod.sa.2016" = sa(reg.dat, 2016),
   "mod.sa.2015" = sa(reg.dat, 2015),
-  "mod.sa.2016" = sa(reg.dat, 2014)
+  "mod.sa.2014" = sa(reg.dat, 2014)
 )
 
 modelsummary(mod.sa, stars = TRUE, output = "markdown")
