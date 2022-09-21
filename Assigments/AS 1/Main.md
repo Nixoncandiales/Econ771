@@ -163,44 +163,48 @@ The key to merge these two data set is the indicator `pn`
 df_1 <- data_hcris %>% #sum up the two variables uncompensated care variables
               filter(year >= 2003 & year <= 2019) %>%
               rowwise() %>% 
-              mutate(hosp_rev = tot_pat_rev/1000000, 
-                     unc_care = sum(tot_uncomp_care_charges,uncomp_care, na.rm=TRUE)/1000000) %>%
+              mutate(hosp_rev = tot_pat_rev/1000000,
+                     tot_uncomp_care_partial_pmts = tot_uncomp_care_partial_pmts * - 1,
+                     tot_unc_care_v2010 = sum(tot_uncomp_care_charges, tot_uncomp_care_partial_pmts, bad_debt, na.rm=TRUE), #Correct way to calculate UNC_CARE after 2010.
+                     unc_care = sum(tot_unc_care_v2010 ,uncomp_care, na.rm=TRUE)/1000000) %>%
               mutate_at(c('unc_care'), ~na_if(., 0)) %>%
               select(pn=provider_number, year, unc_care, hosp_rev, state)  %>%
               filter(!(is.na(unc_care) & is.na(hosp_rev))) #discard the observations NA observation for both unc_care and hosp_rev
           
-df_2 <- data_pos %>% #force pn as integer and discard those facilities that are not hospitals
+df_2 <- data_pos %>% #coherce PN as integer and discard those facilities that are not hospitals
+              filter(year >= 2003) %>%
               mutate_at('pn', as.integer) %>% 
-              select(pn = pn, nonprofit, forprofit, active, State=state) %>% 
+              select(pn = pn, nonprofit, forprofit, active, State=state, year) %>% 
               mutate(own_typ = case_when(nonprofit == 0  & forprofit == 0  ~ 'other',
                                          nonprofit == 0  & forprofit == 1  ~ 'forprofit',
                                          nonprofit == 1  & forprofit == 0  ~ 'nonprofit')) %>%
-              #filter((own_typ == 'forprofit') | (own_typ == 'nonprofit' )) %>% #only include in the analysis hospitals forprofit and nonprofit
-              distinct(pn, own_typ, State)
+              distinct(pn, own_typ, State, year, active)
 
-df <- left_join(df_1, df_2, by='pn') %>%
-              mutate_at('own_typ',  replace_na, 'other') %>%
+
+df <- left_join(df_1, df_2, by='pn', 'year') %>%
               filter(!(unc_care == 'NA')) %>% # drop all observations that don't contain uncompensated care information
-              mutate(state= coalesce(State, state)) %>%
-              select(pn, year, state, own_typ, unc_care, hosp_rev)
+              mutate(state= coalesce(State, state), year= year.x) %>%
+              distinct(pn, state, year, own_typ, unc_care, hosp_rev)
+## I do not fully understand the behavior of left_join it creates multiple row, so I am just taking the unique values per PN and YEAR
+
 df 
 ```
 
-    ## # A tibble: 79,296 × 6
-    ## # Rowwise: 
-    ##       pn  year state own_typ unc_care hosp_rev
-    ##    <int> <int> <chr> <chr>      <dbl>    <dbl>
-    ##  1 10001  2003 AL    other       41.3     532.
-    ##  2 10001  2004 AL    other       37.4     592.
-    ##  3 10001  2005 AL    other       37.5     658.
-    ##  4 10001  2006 AL    other       41.7     714.
-    ##  5 10001  2010 AL    other       90.8    1117.
-    ##  6 10001  2011 AL    other       22.4    1208.
-    ##  7 10001  2012 AL    other       25.7    1263.
-    ##  8 10001  2013 AL    other       23.7    1306.
-    ##  9 10001  2014 AL    other       25.0    1451.
-    ## 10 10001  2015 AL    other       20.4    1551.
-    ## # … with 79,286 more rows
+    # A tibble: 79,613 × 6
+    # Rowwise: 
+          pn unc_care hosp_rev state own_typ  year
+       <int>    <dbl>    <dbl> <chr> <chr>   <int>
+     1 10001     41.3     532. AL    other    2003
+     2 10001     37.4     592. AL    other    2004
+     3 10001     37.5     658. AL    other    2005
+     4 10001     41.7     714. AL    other    2006
+     5 10001     90.8    1117. AL    other    2010
+     6 10001    109.     1208. AL    other    2011
+     7 10001    119.     1263. AL    other    2012
+     8 10001    116.     1306. AL    other    2013
+     9 10001    129.     1451. AL    other    2014
+    10 10001    111.     1551. AL    other    2015
+    # … with 79,603 more rows
 
 ``` r
 df_3 <- data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
@@ -230,6 +234,18 @@ create a new variable that stores the uncompensated care records, then
 we group by year and calculate the summary statistics as follows.
 
 ``` r
+df %>% ungroup() %>%
+  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE)
+```
+
+    # A tibble: 1 × 8
+      unc_care_mean hosp_rev_mean unc_care…¹ hosp_…² unc_c…³ hosp_…⁴ unc_c…⁵ hosp_…⁶
+              <dbl>         <dbl>      <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
+    1     20379870.    560157409.  57983643.  9.67e8 -2.88e7 -1.77e8  2.79e9 2.20e10
+    # … with abbreviated variable names ¹​unc_care_sd, ²​hosp_rev_sd, ³​unc_care_min,
+    #   ⁴​hosp_rev_min, ⁵​unc_care_max, ⁶​hosp_rev_max
+
+``` r
 df_1 %>%
   group_by(year) %>%
   summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) 
@@ -246,20 +262,20 @@ df_1 %>%
      6  2008          26.4    311.    57.1    556.  1   e-6  4   e-6   1362.   9294.
      7  2009          27.4    342.    46.4    613.  1   e-6  1.19e-1    584.   9846.
      8  2010          29.9    365.    72.4    648.  1   e-6  3.07e-1   2794.   9858.
-     9  2011          17.4    394.    47.2    712. -2.88e+1 -2.76e+1   1111.  10572.
-    10  2012          18.3    418.    55.9    766.  8.5 e-5 -1.18e+1   1371.  11865.
-    11  2013          19.6    446.    57.6    834.  2.16e-4  9.49e-2   1403.  12752.
-    12  2014          19.6    478.    63.3    905.  1.5 e-5  6.62e-3   1874.  13376.
-    13  2015          19.0    518.    61.8    971.  2.2 e-5  9.37e-3   1991.  14144.
-    14  2016          19.8    562.    66.7   1070.  8.4 e-5 -1.77e+2   2232.  15619.
-    15  2017          22.1    603.    69.5   1168.  3.4 e-5  1.25e-1   2062.  16863.
-    16  2018          24.9    652.    74.5   1284.  1   e-6  2.83e-1   2183.  18677.
-    17  2019          28.7    706.    83.8   1420.  2   e-6  3   e-6   2495.  22001.
+     9  2011          26.8    394.    63.1    712. -5.43e+1 -2.76e+1   2060.  10572.
+    10  2012          29.8    418.    72.5    766. -7.44e+0 -1.18e+1   1883.  11865.
+    11  2013          31.9    446.    72.6    834. -4.50e+0  9.49e-2   1653.  12752.
+    12  2014          31.8    478.    77.4    905. -2.59e+1  6.62e-3   2025.  13376.
+    13  2015          29.8    518.    74.7    971. -3.36e-2  9.37e-3   2054.  14144.
+    14  2016          35.5    562.   310.    1070. -1.90e-2 -1.77e+2  20406.  15619.
+    15  2017          33.4    603.    87.3   1168. -2.80e-2  1.25e-1   2734.  16863.
+    16  2018          35.9    652.    90.5   1284. -6.41e-2  2.83e-1   2606.  18677.
+    17  2019          39.8    706.    99.5   1420. -9.73e+1  3   e-6   2648.  22001.
     # … with abbreviated variable names ¹​hosp_rev_mean, ²​unc_care_sd, ³​hosp_rev_sd,
     #   ⁴​unc_care_min, ⁵​hosp_rev_min, ⁶​unc_care_max, ⁷​hosp_rev_max
 
 ``` r
-df %>% ggplot(aes(x = year, y = unc_care, group=year)) + 
+df %>% filter(!(pn==151327 & year ==2016)) %>% ggplot(aes(x = year, y = unc_care, group=year)) +
   geom_boxplot() + 
   theme_tufte() +
     labs(x="Years", y="Uncompensated Care Millions", 
@@ -277,6 +293,10 @@ plot
 
 ![](Main_files/figure-gfm/plot-summary-stats-1.png)<!-- -->
 
+``` r
+### Evidence of extreme Outliers, are those misstipying> should I removed them? Ask.
+```
+
 ## By Ownership Type
 
 Create a figure showing the mean hospital uncompensated care from 2000
@@ -284,17 +304,18 @@ to 2018. Show this trend separately by hospital ownership type (private
 not for profit and private for profit).
 
 ``` r
-df %>%
+df %>%  filter(!(pn==151327 & year ==2016)) %>%
   filter(!(own_typ=='other')) %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
   ggplot(aes(x=year, y=unc_care_mean, color=own_typ)) +
   geom_point(size = 3) +
+  #geom_line(size = 1) +
   geom_smooth(aes(fill = own_typ), size = 1) +
   geom_vline( xintercept = 2014, color="black") +
   theme_tufte()+ 
   labs(x="Years", y="Total Uncompensated Care", 
-       title = "Mean of Hospital Uncompensated Care in Million Dollars by Ownership Type", 
+       title = "Mean of Hospital Uncompensated Care in Millions of Dollars by Ownership Type", 
        fill = "Ownership type", color = "Ownership type") -> plot3
 
 plot3
@@ -322,7 +343,7 @@ group). Briefly explain any differences.
 
 ``` r
 #Create dummies for the control groups
-df %>% 
+df %>% filter(!(pn==151327 & year ==2016) & unc_care > 0) %>%
   mutate(d = case_when(expand == TRUE ~ 1),
          d_14 = case_when((expand == TRUE & expand_year==2014) ~ 1),
          d_15 = case_when((expand == TRUE & expand_year==2015) ~ 1),
@@ -331,30 +352,30 @@ df %>%
 ```
 
 ``` r
-mod.twfe <- lapply(df %>%
+mod.twfe <- lapply(df %>% 
                 select(d:d_16), #Select the treatments 
-              function(Treatment) felm(unc_care ~ Treatment | pn + year | 0 | state, df)) #Apply the specification across the different treatments and store the results in a list
+              function(Treatment) felm(unc_care ~ Treatment | pn + year | 0 | pn, df)) #Apply the specification across the different treatments and store the results in a list
 
 stargazer(mod.twfe, type='text', note="1-4 representes d, d_14,d_15 and d_16 respectevely")
 ```
 
 
-    ========================================================================
-                                               Dependent variable:          
-                                     ---------------------------------------
-                                                    unc_care                
-                                        (1)        (2)       (3)      (4)   
-    ------------------------------------------------------------------------
-    Treatment                        -22.359*** -20.832*** -9.220** -9.413**
-                                      (5.682)    (5.547)   (4.642)  (4.278) 
-                                                                            
-    ------------------------------------------------------------------------
-    Observations                       79,296     79,296    79,296   79,296 
-    R2                                 0.662      0.661     0.654    0.654  
-    Adjusted R2                        0.636      0.634     0.627    0.627  
-    Residual Std. Error (df = 73589)   34.978     35.067    35.406   35.414 
-    ========================================================================
-    Note:                                        *p<0.1; **p<0.05; ***p<0.01
+    ==========================================================================================================
+                                                                Dependent variable:                           
+                                     -------------------------------------------------------------------------
+                                                                     unc_care                                 
+                                            (1)                (2)                (3)               (4)       
+    ----------------------------------------------------------------------------------------------------------
+    Treatment                        -22,366,299.000*** -20,836,241.000*** -9,226,536.000*** -9,439,230.000***
+                                      (1,638,948.000)    (1,574,684.000)    (1,790,135.000)   (1,535,149.000) 
+                                                                                                              
+    ----------------------------------------------------------------------------------------------------------
+    Observations                           79,287             79,287            79,287            79,287      
+    R2                                     0.662              0.661              0.654             0.654      
+    Adjusted R2                            0.636              0.634              0.627             0.627      
+    Residual Std. Error (df = 73580)   34,979,234.000     35,067,492.000    35,406,723.000    35,414,554.000  
+    ==========================================================================================================
+    Note:                                                                          *p<0.1; **p<0.05; ***p<0.01
 
     ==================================================
     1-4 representes d, d_14,d_15 and d_16 respectevely
@@ -384,41 +405,47 @@ dat.reg <- df %>% group_by(state) %>%
                    D = treated*post_treat) %>% 
             ungroup()
 
-mod.esct <- feols(unc_care~i(year, treated, ref=2013) | state + year,
-               cluster=~state,
+mod.esct <- feols(unc_care~i(year, treated, ref=2013) | pn + year,
+               cluster=~pn,
                data=dat.reg)
 esttable(mod.esct)
 ```
 
-                                   mod.esct
-    Dependent Var.:                unc_care
-                                           
-    treated x year = 2003     5.388 (3.319)
-    treated x year = 2004     5.568 (3.483)
-    treated x year = 2005    6.130. (3.179)
-    treated x year = 2006    7.708. (3.842)
-    treated x year = 2007    5.133* (2.511)
-    treated x year = 2008     2.881 (2.599)
-    treated x year = 2009    0.3555 (2.382)
-    treated x year = 2010   -0.5393 (2.519)
-    treated x year = 2011    2.256. (1.145)
-    treated x year = 2012   1.808* (0.7681)
-    treated x year = 2014  -7.526** (2.204)
-    treated x year = 2015 -13.56*** (3.814)
-    treated x year = 2016  -14.14** (4.122)
-    treated x year = 2017 -20.21*** (4.762)
-    treated x year = 2018 -24.47*** (6.004)
-    treated x year = 2019 -31.22*** (8.332)
-    Fixed-Effects:        -----------------
-    state                               Yes
-    year                                Yes
-    _____________________ _________________
-    S.E.: Clustered               by: state
-    Observations                     79,296
-    R2                              0.07812
-    Within R2                       0.01027
+                                                mod.esct
+    Dependent Var.:                             unc_care
+                                                        
+    treated x year = 2003  11,093,279.5*** (2,208,916.1)
+    treated x year = 2004  10,214,563.9*** (2,149,620.6)
+    treated x year = 2005   9,177,771.0*** (2,178,301.0)
+    treated x year = 2006  11,463,563.4*** (2,641,381.7)
+    treated x year = 2007   9,753,593.5*** (2,899,283.8)
+    treated x year = 2008     7,034,713.2* (2,795,735.6)
+    treated x year = 2009     4,351,758.2. (2,226,732.2)
+    treated x year = 2010      3,166,411.2 (2,345,391.3)
+    treated x year = 2011      2,781,091.6** (984,498.6)
+    treated x year = 2012       2,021,791.3* (823,355.5)
+    treated x year = 2014    -7,890,940.6*** (966,820.4)
+    treated x year = 2015 -14,208,021.7*** (1,532,134.7)
+    treated x year = 2016 -14,995,300.0*** (1,621,612.5)
+    treated x year = 2017 -21,572,540.0*** (1,955,493.0)
+    treated x year = 2018 -26,251,868.4*** (2,140,483.9)
+    treated x year = 2019 -32,360,092.7*** (2,533,084.3)
+    Fixed-Effects:        ------------------------------
+    pn                                               Yes
+    year                                             Yes
+    _____________________ ______________________________
+    S.E.: Clustered                               by: pn
+    Observations                                  79,287
+    R2                                           0.66480
+    Within R2                                    0.03213
     ---
     Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+iplot(mod.esct)
+```
+
+![](Main_files/figure-gfm/event-study-common-1.png)<!-- -->
 
 ``` r
 ##### Differential timgin treatment
@@ -434,46 +461,46 @@ dat.reg <- df %>% group_by(state) %>%
                    D = treated*post_treat) %>% 
             ungroup()
 
-mod.esdt <- feols(unc_care~i(time_to_treat, treated, ref=-1) | state + year,
-                  cluster=~state,
+mod.esdt <- feols(unc_care~i(time_to_treat, treated, ref=-1) | pn + year,
+                  cluster=~pn,
                   data=dat.reg)
 
 modelsummary(mod.esdt, stars=TRUE)
 ```
 
-|                              |    Model 1    |
-|:-----------------------------|:-------------:|
-| time_to_treat = -7 × treated |     3.610     |
-|                              |    (2.709)    |
-| time_to_treat = -6 × treated |     2.293     |
-|                              |    (2.515)    |
-| time_to_treat = -5 × treated |     0.996     |
-|                              |    (2.262)    |
-| time_to_treat = -4 × treated |    -0.712     |
-|                              |    (2.028)    |
-| time_to_treat = -3 × treated |    -1.280     |
-|                              |    (2.133)    |
-| time_to_treat = -2 × treated |     0.196     |
-|                              |    (1.096)    |
-| time_to_treat = 0 × treated  |     3.162     |
-|                              |    (2.586)    |
-| time_to_treat = 1 × treated  | -12.872\*\*\* |
-|                              |    (2.639)    |
-| time_to_treat = 2 × treated  | -16.176\*\*\* |
-|                              |    (3.007)    |
-| time_to_treat = 3 × treated  | -20.859\*\*\* |
-|                              |    (3.788)    |
-| time_to_treat = 4 × treated  | -23.551\*\*\* |
-|                              |    (4.795)    |
-| time_to_treat = 5 × treated  | -27.136\*\*\* |
-|                              |    (6.359)    |
-| Num.Obs.                     |     79296     |
-| AIC                          |   862593.3    |
-| BIC                          |   862713.9    |
-| RMSE                         |     55.70     |
-| Std.Errors                   |   by: state   |
-| FE: state                    |       X       |
-| FE: year                     |       X       |
+|                              |       Model 1       |
+|:-----------------------------|:-------------------:|
+| time_to_treat = -7 × treated |  7013001.956\*\*\*  |
+|                              |    (1319782.708)    |
+| time_to_treat = -6 × treated |  5326112.563\*\*\*  |
+|                              |    (1301735.697)    |
+| time_to_treat = -5 × treated |    3553206.831\*    |
+|                              |    (1499587.407)    |
+| time_to_treat = -4 × treated |     691493.172      |
+|                              |    (1177581.817)    |
+| time_to_treat = -3 × treated |     -363810.952     |
+|                              |    (929631.087)     |
+| time_to_treat = -2 × treated |     784281.133      |
+|                              |    (506089.315)     |
+| time_to_treat = 0 × treated  |  4612328.015\*\*\*  |
+|                              |    (1255432.064)    |
+| time_to_treat = 1 × treated  | -13914985.814\*\*\* |
+|                              |    (1001393.303)    |
+| time_to_treat = 2 × treated  | -17680320.364\*\*\* |
+|                              |    (1219609.894)    |
+| time_to_treat = 3 × treated  | -22866971.416\*\*\* |
+|                              |    (1448213.098)    |
+| time_to_treat = 4 × treated  | -25980744.711\*\*\* |
+|                              |    (1632236.272)    |
+| time_to_treat = 5 × treated  | -29256197.888\*\*\* |
+|                              |    (1936360.178)    |
+| Num.Obs.                     |        79287        |
+| AIC                          |      2973257.8      |
+| BIC                          |      2973378.5      |
+| RMSE                         |     33627944.03     |
+| Std.Errors                   |       by: pn        |
+| FE: pn                       |          X          |
+| FE: year                     |          X          |
 
 **Note:** ^^ + p \< 0.1, \* p \< 0.05, \*\* p \< 0.01, \*\*\* p \< 0.001
 
@@ -481,31 +508,37 @@ modelsummary(mod.esdt, stars=TRUE)
 esttable(mod.esdt)
 ```
 
-                                          mod.esdt
-    Dependent Var.:                       unc_care
-                                                  
-    treated x time_to_treat = -7     3.610 (2.709)
-    treated x time_to_treat = -6     2.293 (2.515)
-    treated x time_to_treat = -5    0.9957 (2.262)
-    treated x time_to_treat = -4   -0.7120 (2.028)
-    treated x time_to_treat = -3    -1.280 (2.133)
-    treated x time_to_treat = -2    0.1961 (1.096)
-    treated x time_to_treat = 0      3.162 (2.586)
-    treated x time_to_treat = 1  -12.87*** (2.639)
-    treated x time_to_treat = 2  -16.18*** (3.007)
-    treated x time_to_treat = 3  -20.86*** (3.788)
-    treated x time_to_treat = 4  -23.55*** (4.795)
-    treated x time_to_treat = 5  -27.14*** (6.359)
-    Fixed-Effects:               -----------------
-    state                                      Yes
-    year                                       Yes
-    ____________________________ _________________
-    S.E.: Clustered                      by: state
-    Observations                            79,296
-    R2                                     0.07723
-    Within R2                              0.00932
+                                                       mod.esdt
+    Dependent Var.:                                    unc_care
+                                                               
+    treated x time_to_treat = -7   7,013,002.0*** (1,319,782.7)
+    treated x time_to_treat = -6   5,326,112.6*** (1,301,735.7)
+    treated x time_to_treat = -5     3,553,206.8* (1,499,587.4)
+    treated x time_to_treat = -4        691,493.2 (1,177,581.8)
+    treated x time_to_treat = -3         -363,811.0 (929,631.1)
+    treated x time_to_treat = -2          784,281.1 (506,089.3)
+    treated x time_to_treat = 0    4,612,328.0*** (1,255,432.1)
+    treated x time_to_treat = 1  -13,914,985.8*** (1,001,393.3)
+    treated x time_to_treat = 2  -17,680,320.4*** (1,219,609.9)
+    treated x time_to_treat = 3  -22,866,971.4*** (1,448,213.1)
+    treated x time_to_treat = 4  -25,980,744.7*** (1,632,236.3)
+    treated x time_to_treat = 5  -29,256,197.9*** (1,936,360.2)
+    Fixed-Effects:               ------------------------------
+    pn                                                      Yes
+    year                                                    Yes
+    ____________________________ ______________________________
+    S.E.: Clustered                                      by: pn
+    Observations                                         79,287
+    R2                                                  0.66368
+    Within R2                                           0.02889
     ---
     Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+iplot(mod.esdt)
+```
+
+![](Main_files/figure-gfm/event-study-diff-1.png)<!-- -->
 
 ## SA specification
 
@@ -545,47 +578,47 @@ sa <- function(data, i){
 
 
 mod.sa <- list(
-  "mod.sa.2014" = sa(reg.dat, 2016),
+  "mod.sa.2016" = sa(reg.dat, 2016),
   "mod.sa.2015" = sa(reg.dat, 2015),
-  "mod.sa.2016" = sa(reg.dat, 2014)
+  "mod.sa.2014" = sa(reg.dat, 2014)
 )
 
 modelsummary(mod.sa, stars = TRUE, output = "markdown")
 ```
 
-|                    |  mod.sa.2014  |  mod.sa.2015  |  mod.sa.2016  |
-|:-------------------|:-------------:|:-------------:|:-------------:|
-| time_to_treat = -7 |    -2.163     |               |               |
-|                    |    (1.614)    |               |               |
-| time_to_treat = -6 |   -4.635\*    |    -3.433+    |               |
-|                    |    (2.313)    |    (1.940)    |               |
-| time_to_treat = -5 |     0.059     |     0.188     |    -1.796     |
-|                    |    (4.387)    |    (4.385)    |    (2.696)    |
-| time_to_treat = -4 |    -1.273     |    -1.406     |   -3.500\*    |
-|                    |    (1.395)    |    (4.337)    |    (1.543)    |
-| time_to_treat = -3 |     0.160     |    -1.011     |    -1.843     |
-|                    |    (1.811)    |    (2.030)    |    (1.253)    |
-| time_to_treat = -2 |     2.390     |    -0.171     |  -2.903\*\*   |
-|                    |    (2.124)    |    (1.215)    |    (1.088)    |
-| time_to_treat = 0  |    -0.732     |    -2.995+    | -12.521\*\*\* |
-|                    |    (2.058)    |    (1.363)    |    (1.395)    |
-| time_to_treat = 1  | -10.494\*\*\* | -8.079\*\*\*  | -20.202\*\*\* |
-|                    |    (1.850)    |    (1.892)    |    (1.666)    |
-| time_to_treat = 2  | -13.742\*\*\* | -11.963\*\*\* | -22.399\*\*\* |
-|                    |    (1.862)    |    (2.134)    |    (1.863)    |
-| time_to_treat = 3  | -17.626\*\*\* | -15.204\*\*\* | -27.693\*\*\* |
-|                    |    (2.197)    |    (2.062)    |    (2.074)    |
-| time_to_treat = 4  |               | -15.752\*\*\* | -30.718\*\*\* |
-|                    |               |    (4.281)    |    (2.198)    |
-| time_to_treat = 5  |               |               | -35.432\*\*\* |
-|                    |               |               |    (2.610)    |
-| Num.Obs.           |     79296     |     79296     |     79296     |
-| AIC                |   784798.5    |   784694.5    |   782380.7    |
-| BIC                |   784900.6    |   784796.6    |   782482.8    |
-| RMSE               |     34.11     |     34.08     |     33.59     |
-| Std.Errors         |    by: pn     |    by: pn     |    by: pn     |
-| FE: pn             |       X       |       X       |       X       |
-| FE: year           |       X       |       X       |       X       |
+|                    |     mod.sa.2016     |     mod.sa.2015     |     mod.sa.2014     |
+|:-------------------|:-------------------:|:-------------------:|:-------------------:|
+| time_to_treat = -7 |    -2159647.014     |                     |                     |
+|                    |    (1614064.170)    |                     |                     |
+| time_to_treat = -6 |   -4631951.548\*    |    -3429692.581+    |                     |
+|                    |    (2313262.806)    |    (1939825.876)    |                     |
+| time_to_treat = -5 |      61971.145      |     191214.078      |    -1793682.963     |
+|                    |    (4387103.792)    |    (4384740.355)    |    (2695757.401)    |
+| time_to_treat = -4 |    -1298385.352     |    -1431295.884     |   -3523400.862\*    |
+|                    |    (1395545.033)    |    (4336880.525)    |    (1542485.273)    |
+| time_to_treat = -3 |     134360.587      |    -1020607.242     |    -1852819.206     |
+|                    |    (1811175.989)    |    (2032977.613)    |    (1252593.850)    |
+| time_to_treat = -2 |     2363260.248     |     -180863.323     |  -2910733.333\*\*   |
+|                    |    (2124114.893)    |    (1215175.162)    |    (1088437.816)    |
+| time_to_treat = 0  |     -757765.925     |    -3004416.623+    | -12528573.386\*\*\* |
+|                    |    (2057866.856)    |    (1361914.635)    |    (1395436.585)    |
+| time_to_treat = 1  | -10540633.734\*\*\* | -8125564.055\*\*\*  | -20215560.372\*\*\* |
+|                    |    (1852066.639)    |    (1894761.410)    |    (1666241.628)    |
+| time_to_treat = 2  | -13790140.073\*\*\* | -11976156.809\*\*\* | -22407794.321\*\*\* |
+|                    |    (1865181.787)    |    (2133548.095)    |    (1863325.092)    |
+| time_to_treat = 3  | -17674589.980\*\*\* | -15217314.024\*\*\* | -27700878.757\*\*\* |
+|                    |    (2199824.323)    |    (2061832.402)    |    (2074014.696)    |
+| time_to_treat = 4  |                     | -15745742.299\*\*\* | -30724229.166\*\*\* |
+|                    |                     |    (4280585.613)    |    (2198424.301)    |
+| time_to_treat = 5  |                     |                     | -35438826.308\*\*\* |
+|                    |                     |                     |    (2610044.515)    |
+| Num.Obs.           |        79287        |        79287        |        79287        |
+| AIC                |      2975494.1      |      2975390.1      |      2973075.6      |
+| BIC                |      2975596.2      |      2975492.2      |      2973177.7      |
+| RMSE               |     34106399.67     |     34084042.78     |     33590169.85     |
+| Std.Errors         |       by: pn        |       by: pn        |       by: pn        |
+| FE: pn             |          X          |          X          |          X          |
+| FE: year           |          X          |          X          |          X          |
 
 **Note:** ^^ + p \< 0.1, \* p \< 0.05, \*\* p \< 0.01, \*\*\* p \< 0.001
 
@@ -657,39 +690,39 @@ mod.cs
     Reference: Callaway, Brantly and Pedro H.C. Sant'Anna.  "Difference-in-Differences with Multiple Time Periods." Journal of Econometrics, Vol. 225, No. 2, pp. 200-230, 2021. <https://doi.org/10.1016/j.jeconom.2020.12.001>, <https://arxiv.org/abs/1803.09015> 
 
     Group-Time Average Treatment Effects:
-     Group Time ATT(g,t) Std. Error [95% Simult.  Conf. Band]  
-      2014 2012   0.4937     0.6818       -1.1242      2.1116  
-      2014 2013   0.0000         NA            NA          NA  
-      2014 2014  -9.5270     2.1972      -14.7407     -4.3133 *
-      2014 2015 -16.8680     3.6438      -25.5143     -8.2217 *
-      2014 2016 -17.5959     4.1703      -27.4918     -7.7001 *
-      2014 2017 -22.6585     4.5665      -33.4944    -11.8227 *
-      2014 2018 -25.6995     5.7332      -39.3038    -12.0951 *
-      2014 2019 -30.7279     7.6826      -48.9579    -12.4980 *
-      2015 2012   6.2688     2.1333        1.2067     11.3308 *
-      2015 2013   5.5534     1.7812        1.3267      9.7800 *
-      2015 2014   0.0000         NA            NA          NA  
-      2015 2015  -5.0103     2.2606      -10.3745      0.3539  
-      2015 2016  -7.1135     2.3575      -12.7076     -1.5194 *
-      2015 2017 -13.9841     2.7184      -20.4346     -7.5336 *
-      2015 2018 -18.2246     3.8254      -27.3018     -9.1474 *
-      2015 2019 -23.5990     5.9662      -37.7562     -9.4417 *
-      2016 2012   5.0345     4.7293       -6.1877     16.2567  
-      2016 2013   3.8656     3.9417       -5.4878     13.2190  
-      2016 2014   3.0685     1.6362       -0.8141      6.9511  
-      2016 2015   0.0000         NA            NA          NA  
-      2016 2016  -0.9781     1.0884       -3.5608      1.6045  
-      2016 2017 -14.7057     4.2186      -24.7160     -4.6954 *
-      2016 2018 -19.1191     4.8555      -30.6408     -7.5974 *
-      2016 2019 -26.1590     6.0955      -40.6231    -11.6949 *
-      2019 2012   3.4715    10.7232      -21.9736     28.9165  
-      2019 2013   0.8511    10.9369      -25.1012     26.8033  
-      2019 2014   1.1510     8.0614      -17.9780     20.2799  
-      2019 2015  -0.7468     6.9585      -17.2587     15.7652  
-      2019 2016   2.6037     4.8220       -8.8385     14.0459  
-      2019 2017  -0.9549     3.5784       -9.4461      7.5363  
-      2019 2018   0.0000         NA            NA          NA  
-      2019 2019 -13.4708     3.3859      -21.5053     -5.4362 *
+     Group Time    ATT(g,t) Std. Error [95% Simult.  Conf. Band]  
+      2014 2012    493665.2   658448.1      -1099990   2087320.1  
+      2014 2013         0.0         NA            NA          NA  
+      2014 2014  -9527039.4  2158975.4     -14752450  -4301628.6 *
+      2014 2015 -16868003.0  3583344.3     -25540842  -8195164.2 *
+      2014 2016 -17595927.6  4102269.4     -27524731  -7667124.2 *
+      2014 2017 -22658524.3  4383629.5     -33268309 -12048739.3 *
+      2014 2018 -25699487.7  5737065.3     -39585020 -11813955.4 *
+      2014 2019 -30727942.6  7886712.5     -49816308 -11639576.8 *
+      2015 2012   6268751.8  2069255.0       1260493  11277010.6 *
+      2015 2013   5553388.0  1739882.4       1342316   9764459.7 *
+      2015 2014         0.0         NA            NA          NA  
+      2015 2015  -5010301.5  2352965.2     -10705230    684626.7  
+      2015 2016  -7091976.9  2421660.8     -12953170  -1230783.6 *
+      2015 2017 -13984064.1  2677791.3     -20465175  -7502953.1 *
+      2015 2018 -18224614.5  3952178.7     -27790150  -8659078.6 *
+      2015 2019 -23598953.9  6255873.2     -38740167  -8457740.6 *
+      2016 2012   5034504.8  4577743.6      -6045098  16114107.9  
+      2016 2013   3865589.0  4064631.5      -5972119  13703296.8  
+      2016 2014   3068484.0  1722324.6      -1100092   7237060.2  
+      2016 2015         0.0         NA            NA          NA  
+      2016 2016   -978149.0  1034186.3      -3481210   1524912.5  
+      2016 2017 -14705710.1  4183950.5     -24832208  -4579212.2 *
+      2016 2018 -19119082.8  4506524.1     -30026312  -8211853.6 *
+      2016 2019 -26158988.5  5865045.8     -40354275 -11963702.4 *
+      2019 2012   3471479.5  9679961.3     -19957122  26900080.7  
+      2019 2013    851079.1  9927539.6     -23176741  24878898.9  
+      2019 2014   1150985.7  7327888.3     -16584847  18886818.2  
+      2019 2015   -746760.2  6222053.5     -15806119  14312598.4  
+      2019 2016   2603705.8  4525269.6      -8348893  13556304.9  
+      2019 2017   -954891.2  3236616.9      -8788539   6878756.5  
+      2019 2018         0.0         NA            NA          NA  
+      2019 2019 -13470755.4  3110737.1     -20999734  -5941777.0 *
     ---
     Signif. codes: `*' confidence band does not cover 0
 
@@ -708,23 +741,23 @@ mod.cs.event
 
 
     Overall summary of ATT's based on event-study/dynamic aggregation:  
-          ATT    Std. Error     [ 95%  Conf. Int.]  
-     -20.1179        4.0898   -28.1337    -12.1021 *
+           ATT    Std. Error     [ 95%  Conf. Int.]  
+     -20117580       4536603  -29009159   -11226002 *
 
 
     Dynamic Effects:
-     Event time Estimate Std. Error [95% Simult.  Conf. Band]  
-             -5   1.1510     7.4781      -15.2928     17.5948  
-             -4   2.1439     4.8519       -8.5251     12.8128  
-             -3   4.5350     2.5938       -1.1686     10.2385  
-             -2   1.0064     0.7614       -0.6679      2.6806  
-             -1   0.0000         NA            NA          NA  
-              0  -8.8576     1.9811      -13.2139     -4.5013 *
-              1 -15.8184     3.2800      -23.0309     -8.6059 *
-              2 -17.3525     3.5945      -25.2565     -9.4485 *
-              3 -22.4616     4.5939      -32.5632    -12.3600 *
-              4 -25.4894     6.0093      -38.7034    -12.2754 *
-              5 -30.7279     8.0306      -48.3868    -13.0691 *
+     Event time  Estimate Std. Error [95% Simult.  Conf. Band]  
+             -5   1150986  7726296.7     -16122985    18424957  
+             -4   2143872  4753028.2      -8482651    12770395  
+             -3   4534978  2898654.9      -1945653    11015609  
+             -2   1006362   792990.3       -766556     2779280  
+             -1         0         NA            NA          NA  
+              0  -8857611  2036250.3     -13410132    -4305090 *
+              1 -15816357  3234609.0     -23048094    -8584621 *
+              2 -17352513  3646068.8     -25504165    -9200860 *
+              3 -22461624  4412922.3     -32327760   -12595489 *
+              4 -25489434  5704460.9     -38243111   -12735757 *
+              5 -30727943  8058685.4     -48745047   -12710838 *
     ---
     Signif. codes: `*' confidence band does not cover 0
 
@@ -738,7 +771,8 @@ ggdid(mod.cs)
 ![](Main_files/figure-gfm/cs-1.png)<!-- -->
 
 ``` r
-ggdid(mod.cs.event)
+ggdid(mod.cs.event, 
+      title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
 ```
 
 ![](Main_files/figure-gfm/cs-2.png)<!-- -->
@@ -788,7 +822,7 @@ $$
 Using the `HonestDiD` package in `R` or `Stata`, present a sensitivity
 plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$.
 Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for
-some help in combining the `HonestDiD` package with CS estimates.
+some help in combining the `HonestDiD` package with CS estimates. 1
 
 ``` r
 # Install some packages
