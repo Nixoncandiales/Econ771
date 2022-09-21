@@ -1,6 +1,6 @@
 ---
 title: "Example"
-author: "N N"
+author: "Nixon Candiales"
 date: \today
 output: 
   pdf_document:
@@ -28,3 +28,117 @@ header-includes:
 ## whats the answer to life the universe and everything?
 
 Lorem ipsum...
+
+```{r, include=FALSE, warning=FALSE}
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, here, did, fixest, stargazer, tinytex, rmarkdown, knitr, kableExtra, plotly, knitr, bookdown, modelsummary, xtable)
+knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
+here::i_am("Main.Rmd")
+load(here("Output", "Rdata.Rdata"))
+```
+
+```{r Figures, include=TRUE, echo=FALSE, warning=FALSE, comment=FALSE}
+plot1
+
+plot2
+  
+plot3
+  
+iplot(mod.esct, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+
+iplot(mod.esdt)
+
+coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+
+ggdid(mod.cs)
+
+ggdid(mod.cs.event, 
+        title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
+
+cs_HDiD_smooth
+
+cs_HDiD_relmag
+```
+```{r table-2, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, results='asis'}
+df %>% 
+  group_by(year) %>% 
+  summarise_at(c("unc_care"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
+
+df %>%
+  group_by(year) %>% 
+  summarise_at(c('hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) -> table2
+
+xtable(table1)
+xtable(table2)
+```
+
+```{r table-3, include=TRUE, echo=FALSE, warning=FALSE, comment=FALSE, results='asis'}
+stargazer(mod.twfe,
+          title = "Regression table with stargazer",
+          label="tab2",
+          table.placement = "H",
+          column.labels = c("M1", "M2", "M3"),
+          model.numbers = FALSE,
+          header=FALSE)
+```
+
+```{r table-4, include=TRUE, echo=FALSE, warning=FALSE, comment=FALSE, results='asis'}
+modelsummary(mod.twfe,
+          title = "Regression table with stargazer",
+          label="tab2",
+          table.placement = "H",
+          column.labels = c("M1", "M2", "M3"),
+          model.numbers = FALSE,
+          header=FALSE,
+          stars = TRUE,
+          output = "latex")
+
+modelsummary(mod.esct,
+          title = "Regression table with stargazer",
+          label="tab2",
+          table.placement = "H",
+          column.labels = c("M1", "M2", "M3"),
+          model.numbers = FALSE,
+          header=FALSE,
+          stars = TRUE,
+          output = "latex")
+
+modelsummary(mod.esdt,
+          title = "Regression table with stargazer",
+          label="tab2",
+          table.placement = "H",
+          column.labels = c("M1", "M2", "M3"),
+          model.numbers = FALSE,
+          header=FALSE,
+          stars = TRUE,
+          output = "latex")
+
+
+modelsummary(mod.sa,
+          title = "Regression table with stargazer",
+          label="tab2",
+          table.placement = "H",
+          column.labels = c("M1", "M2", "M3"),
+          model.numbers = FALSE,
+          header=FALSE,
+          stars = TRUE,
+          output = "latex")
+
+modelsummary(mod.cs,
+          title = "Regression table with stargazer",
+          label="tab2",
+          table.placement = "H",
+          column.labels = c("M1", "M2", "M3"),
+          model.numbers = FALSE,
+          header=FALSE,
+          output = "latex")
+
+modelsummary(mod.cs.event,
+          title = "Regression table with stargazer",
+          label="tab2",
+          table.placement = "H",
+          column.labels = c("M1", "M2", "M3"),
+          model.numbers = FALSE,
+          header=FALSE,
+          output = "latex")
+
