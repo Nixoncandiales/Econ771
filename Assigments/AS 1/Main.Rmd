@@ -578,6 +578,18 @@ Discuss your findings and compare estimates from different estimators (e.g., are
 ```{r}
 
 ## Write results, tables plots etc to use in the PDF file.
+
+folder <- "mortalkombat"
+
+if (file.exists(folder)) {
+
+ cat("The folder already exists")
+
+} else {
+
+ dir.create(folder)
+
+}
 ## Save plots
 #ggsave(here("plots","cs_HDiD_smooth.png"),
 #       cs_HDiD_smooth,  

@@ -66,11 +66,11 @@ ds_screener(data_aca)
   
   ## ---- Summary Statistics ----------------------------------------------------------- ----------------------------------------------------------- 
 df %>% ungroup() %>%
-  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE)
+  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
 
 df_1 %>%
   group_by(year) %>%
-  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) 
+  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) -> table2
 
 # Boxplots  
   df %>% filter(!(pn==151327 & year ==2016)) %>% ggplot(aes(x = year, y = unc_care, group=year)) +
@@ -98,7 +98,7 @@ df_1 %>%
     #geom_line(size = 1) +
     geom_smooth(aes(fill = own_typ), size = 1) +
     geom_vline( xintercept = 2014, color="black") +
-    theme_tufte()+ 
+    theme_bw()+ 
     labs(x="Years", y="Total Uncompensated Care", 
          title = "Mean of Hospital Uncompensated Care in Millions of Dollars by Ownership Type", 
          fill = "Ownership type", color = "Ownership type") -> plot3
@@ -132,7 +132,14 @@ df_1 %>%
   mod.twfe <- lapply(df %>% 
                        select(d:d_16), #Select the treatments 
                      function(Treatment) felm(unc_care ~ Treatment | pn + year | 0 | pn, df)) #Apply the specification across the different treatments and store the results in a list
-  stargazer(mod.twfe, type='text', note="1-4 representes d, d_14,d_15 and d_16 respectevely") # Consider using ModelSummary
+  table3 <- stargazer(mod.twfe, type='latex', align=TRUE, title = "Table 3",
+                      note="1-4 represents d, d_14,d_15 and d_16 respectevely",
+                      out = here("Output", "Tables", "table3.tex")) # Consider using ModelSummary
+  
+  stargazer(fit1, fit2, omit=c("var"), 
+            align=TRUE, type = "text", no.space = TRUE, 
+            title = "Table X", out = "path/fit.tex")
+  
   
   ## ---- Event Study Strategy ----------------------------------------------------------- -----------------------------------------------------------   
   ## Common treatment timing
@@ -149,7 +156,8 @@ df_1 %>%
   mod.esct <- feols(unc_care~i(year, treated, ref=2013) | pn + year,
                     cluster=~pn,
                     data=dat.reg)
-  esttable(mod.esct)
+  table4 <- modelsummary(mod.esct, stars = TRUE, title = "Table 4",
+                         output= here("Output", "Tables", "table4.tex"))
   iplot(mod.esct)
   
   ## Differential timgin treatment
@@ -169,7 +177,8 @@ df_1 %>%
                     cluster=~pn,
                     data=dat.reg)
   
-  modelsummary(mod.esdt, stars=TRUE)
+  table5 <- modelsummary(mod.esdt, stars=TRUE, title = "Table 5",
+                         output= here("Output", "Tables", "table5.tex"))
   esttable(mod.esdt)
   iplot(mod.esdt)  
 
@@ -204,7 +213,8 @@ df_1 %>%
     "mod.sa.2014" = sa(reg.dat, 2014)
   )
   
-  modelsummary(mod.sa, stars = TRUE, output = "markdown")
+  table6 <- modelsummary(mod.sa, stars = TRUE, title = "Table 6",
+                         output= here("Output", "Tables", "table6.tex"))
   
   coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care") #Plot the event study
   
@@ -238,8 +248,10 @@ df_1 %>%
                   #control_group="nevertreated")
   mod.cs.event <- aggte(mod.cs, type="dynamic", min_e = -5, max_e = 5)
   
-  mod.cs
-  mod.cs.event
+  table7 <- modelsummary(mod.cs, title = "Table 7",
+                         output= here("Output", "Tables", "table7.tex"))
+  table8 <- modelsummary(mod.cs.event, title = "Table 8",
+                         output= here("Output", "Tables", "table8.tex"))
   
   ## Plots
   ggdid(mod.cs) 
@@ -434,19 +446,75 @@ df_1 %>%
   
   
   ## ---- Write results -----------------------------------------------------------------------------
-  ## Plots
-  #ggsave(here("plots","cs_HDiD_smooth.png"),
-  #       cs_HDiD_smooth,  
-  #       dpi = 500,
-  #       width = 14, 
-  #       height = 7)
   
-  #ggsave(here("plots","cs_HDiD_relmag.png"),
-  #       cs_HDiD_relmag,  
-  #       dpi = 500,
-  #       width = 14, 
-  #       height = 7)
+  ## Plots
+  ggsave(here("Output","Figures", "plot1.png"),
+         plot,  
+         dpi = 500,
+         width = 14, 
+         height = 7)
+  
+  ggsave(here("Output","Figures", "plot2.png"),
+         plot3,  
+         dpi = 500,
+         width = 14, 
+         height = 7)
+  
+  png(file=here("Output","Figures", "plot3.png"),
+      width=14, height=7, units="in", res=500)
+  iplot(mod.esct, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot4.png"),
+      width=14, height=7, units="in", res=500)
+  iplot(mod.esdt)
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot5.png"),
+      width=14, height=7, units="in", res=500)
+  coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot6.png"),
+      width=14, height=7, units="in", res=500)
+  ggdid(mod.cs)
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot7.png"),
+      width=14, height=7, units="in", res=500)
+  ggdid(mod.cs.event, 
+        title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
+  dev.off()
+
+  png(file=here("Output","Figures", "plot8.png"),
+      width=14, height=7, units="in", res=500)
+  cs_HDiD_smooth
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot9.png"),
+      width=14, height=7, units="in", res=500)
+  cs_HDiD_relmag
+  dev.off()
+  
   
   ## Tables
   
-
+  table1 <- stargazer(table1, title = "Table 1", align = TRUE, out = here("Output", "Tables", "table1.tex"))
+  table2 <- stargazer(table2, title = "Table 2", align = TRUE, out = here("Output", "Tables", "table2.tex"))
+  table3 <- stargazer(mod.twfe, type='latex', align=TRUE, title = "Table 3",
+                      note="1-4 represents d, d_14,d_15 and d_16 respectevely",
+                      out = here("Output", "Tables", "table3.tex")) # Consider using ModelSummary  
+  table4 <- modelsummary(mod.esct, stars = TRUE, title = "Table 4",
+                         output= here("Output", "Tables", "table4.tex"))
+  table5 <- modelsummary(mod.esdt, stars=TRUE, title = "Table 5",
+                         output= here("Output", "Tables", "table5.tex"))
+  table6 <- modelsummary(mod.sa, stars = TRUE, title = "Table 6",
+                         output= here("Output", "Tables", "table6.tex"))
+  table7 <- modelsummary(mod.cs, title = "Table 7",
+                         output= here("Output", "Tables", "table7.tex"))
+  table8 <- modelsummary(mod.cs.event, title = "Table 8",
+                         output= here("Output", "Tables", "table8.tex"))
+  
+  rm(data_aca, data_hcris, data_pos, dat.reg, reg.dat, min_wage, fig_CS, df_1, df_2, df_3)
+  save.image(here("Output", "Rdata.Rdata"))
+  
