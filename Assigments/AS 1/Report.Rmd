@@ -1,0 +1,30 @@
+---
+title: "Example"
+author: "N N"
+date: \today
+output: 
+  pdf_document:
+    latex_engine: lualatex
+    keep_tex: true
+header-includes:
+  - \usepackage{fontspec}
+  - \usepackage{polyglossia}
+  - \setmainlanguage[babelshorthands=true]{german}
+  - \setmainfont{merriweather}
+  - \setsansfont{Montserrat}
+  - \geometry{vmargin=1in,hmargin=1.25in}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \definecolor{Blue}{HTML}{2F5496}
+  - \titleformat{\section}{\Large\sffamily\color{Blue}}{}{0pt}{}
+  - \titleformat{\subsection}{\large\sffamily\color{Blue}}{}{0pt}{}
+  - \titlespacing\section{0pt}{24pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
+  - \titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{2pt plus 2pt minus 2pt}
+  - \usepackage{parskip}
+---
+
+# Part 1
+
+## whats the answer to life the universe and everything?
+
+Lorem ipsum...
