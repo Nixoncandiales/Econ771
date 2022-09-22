@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.15.0 (TeX Live 2022)  (format=lualatex 2022.9.21)  21 SEP 2022 04:41
+This is LuaHBTeX, Version 1.15.0 (TeX Live 2022)  (format=lualatex 2022.9.21)  22 SEP 2022 11:12
  restricted system commands enabled.
 **Report.tex
 (./Report.tex
@@ -411,12 +411,12 @@ braces):
 >  {german/localnumeral}  =>  {polyglossia@C@localnumeral}
 >  {german/Localnumeral}  =>  {polyglossia@C@localnumeral}.
 Module polyglossia Info: Language data for german
-(polyglossia)            patterns	hyph-de-1901.pat.txt
-(polyglossia)            hyphenation	
-(polyglossia)            synonyms	
+(polyglossia)            loader	loadhyph-de-1901.tex
 (polyglossia)            righthyphenmin	2
+(polyglossia)            synonyms	
 (polyglossia)            lefthyphenmin	2
-(polyglossia)            loader	loadhyph-de-1901.tex on input line 10
+(polyglossia)            hyphenation	
+(polyglossia)            patterns	hyph-de-1901.pat.txt on input line 10
 Module polyglossia Info: Language german was not yet loaded; created with id 2 o
 n input line 10
 Package polyglossia Info: Option: German, spelling=new.
@@ -870,18 +870,18 @@ File: bkm-pdftex.def 2020-11-06 v1.29 bookmark driver for pdfTeX (HO)
 )) (/usr/local/texlive/2022/texmf-dist/tex/latex/xurl/xurl.sty
 Package: xurl 2022/01/09 v 0.10 modify URL breaks
 ) (./Report.aux
-LaTeX Info: Redefining \rmfamily on input line 23.
-LaTeX Info: Redefining \sffamily on input line 23.
-LaTeX Info: Redefining \ttfamily on input line 23.
+LaTeX Info: Redefining \rmfamily on input line 25.
+LaTeX Info: Redefining \sffamily on input line 25.
+LaTeX Info: Redefining \ttfamily on input line 25.
 Module polyglossia Info: Language data for ngerman
-(polyglossia)            patterns	hyph-de-1996.pat.txt
-(polyglossia)            hyphenation	
-(polyglossia)            synonyms	
+(polyglossia)            loader	loadhyph-de-1996.tex
 (polyglossia)            righthyphenmin	2
+(polyglossia)            synonyms	
 (polyglossia)            lefthyphenmin	2
-(polyglossia)            loader	loadhyph-de-1996.tex on input line 23
+(polyglossia)            hyphenation	
+(polyglossia)            patterns	hyph-de-1996.pat.txt on input line 25
 Module polyglossia Info: Language ngerman was not yet loaded; created with id 3 
-on input line 23
+on input line 25
 
 LaTeX Warning: Label `tab:table-4' multiply defined.
 
@@ -1288,99 +1288,104 @@ File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
 LaTeX Font Info:    Font shape `TU/merriweather(0)/m/n' will be
 (Font)              scaled to size 14.4pt on input line 104.
-Package microtype Info: Loading generic protrusion settings for font family
-(microtype)             `Montserrat' (encoding: TU).
-(microtype)             For optimal results, create family-specific settings.
-(microtype)             See the microtype manual for details.
-<Report_files/figure-latex/Figures-1.pdf, id=4, 463.7325pt x 313.17pt>
+[1
+
+{/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
+<Report_files/figure-latex/Figures-1.pdf, id=39, 463.7325pt x 313.17pt>
 File: Report_files/figure-latex/Figures-1.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-1.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-1.pdf  used on input
- line 112.
+ line 226.
 (luatex.def)             Requested size: 433.63013pt x 292.84113pt.
-<Report_files/figure-latex/Figures-2.pdf, id=5, 463.7325pt x 313.17pt>
+<Report_files/figure-latex/Figures-2.pdf, id=40, 463.7325pt x 313.17pt>
 File: Report_files/figure-latex/Figures-2.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-2.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-2.pdf  used on input
- line 113.
+ line 227.
 (luatex.def)             Requested size: 433.63013pt x 292.84113pt.
-[1
-
-{/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map}<./Report_
-files/figure-latex/Figures-1.pdf>]
-<Report_files/figure-latex/Figures-3.pdf, id=23, 464.73625pt x 313.17pt>
+<Report_files/figure-latex/Figures-3.pdf, id=41, 456.70625pt x 313.17pt>
 File: Report_files/figure-latex/Figures-3.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-3.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-3.pdf  used on input
- line 119.
-(luatex.def)             Requested size: 433.63268pt x 292.21034pt.
-<Report_files/figure-latex/Figures-4.pdf, id=24, 436.63126pt x 285.065pt>
+ line 228.
+(luatex.def)             Requested size: 433.63153pt x 297.34732pt.
+<Report_files/figure-latex/Figures-4.pdf, id=42, 436.63126pt x 294.09875pt>
 File: Report_files/figure-latex/Figures-4.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-4.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-4.pdf  used on input
- line 120.
-(luatex.def)             Requested size: 433.61876pt x 283.0982pt.
-<Report_files/figure-latex/Figures-5.pdf, id=25, 436.63126pt x 285.065pt>
+ line 229.
+(luatex.def)             Requested size: 433.61876pt x 292.06963pt.
+<Report_files/figure-latex/Figures-5.pdf, id=43, 436.63126pt x 294.09875pt>
 File: Report_files/figure-latex/Figures-5.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-5.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-5.pdf  used on input
- line 121.
-(luatex.def)             Requested size: 433.61876pt x 283.0982pt.
-<Report_files/figure-latex/Figures-6.pdf, id=26, 436.63126pt x 292.09125pt>
+ line 230.
+(luatex.def)             Requested size: 433.61876pt x 292.06963pt.
+<Report_files/figure-latex/Figures-6.pdf, id=44, 436.63126pt x 301.125pt>
 File: Report_files/figure-latex/Figures-6.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-6.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-6.pdf  used on input
- line 122.
-(luatex.def)             Requested size: 433.61876pt x 290.07597pt.
-<Report_files/figure-latex/Figures-7.pdf, id=27, 458.71375pt x 304.13625pt>
+ line 231.
+(luatex.def)             Requested size: 433.61876pt x 299.0474pt.
+<Report_files/figure-latex/Figures-7.pdf, id=45, 458.71375pt x 304.13625pt>
 File: Report_files/figure-latex/Figures-7.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-7.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-7.pdf  used on input
- line 123.
+ line 232.
 (luatex.def)             Requested size: 433.64078pt x 287.51236pt.
-<Report_files/figure-latex/Figures-8.pdf, id=28, 463.7325pt x 304.13625pt>
+<Report_files/figure-latex/Figures-8.pdf, id=46, 458.71375pt x 304.13625pt>
 File: Report_files/figure-latex/Figures-8.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-8.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-8.pdf  used on input
- line 124.
-(luatex.def)             Requested size: 433.63013pt x 284.39378pt.
-<Report_files/figure-latex/Figures-9.pdf, id=29, 446.66875pt x 310.15875pt>
+ line 233.
+(luatex.def)             Requested size: 433.64078pt x 287.51236pt.
+<Report_files/figure-latex/Figures-9.pdf, id=47, 446.66875pt x 310.15875pt>
 File: Report_files/figure-latex/Figures-9.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-9.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-9.pdf  used on input
- line 125.
+ line 234.
 (luatex.def)             Requested size: 433.62938pt x 301.10445pt.
-<Report_files/figure-latex/Figures-10.pdf, id=30, 446.66875pt x 310.15875pt>
+<Report_files/figure-latex/Figures-10.pdf, id=48, 446.66875pt x 310.15875pt>
 File: Report_files/figure-latex/Figures-10.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Figures-10.pdf>
 Package luatex.def Info: Report_files/figure-latex/Figures-10.pdf  used on inpu
-t line 126.
+t line 235.
 (luatex.def)             Requested size: 433.62938pt x 301.10445pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 119--129
+Underfull \hbox (badness 10000) in paragraph at lines 226--236
 []
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 119--129
+Underfull \hbox (badness 10000) in paragraph at lines 226--236
 []
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 119--129
+Underfull \hbox (badness 10000) in paragraph at lines 226--236
 []
  []
 
-[2<./Report_files/figure-latex/Figures-2.pdf><./Report_files/figure-latex/Figure
-s-3.pdf>] [3<./Report_files/figure-latex/Figures-4.pdf><./Report_files/figure-la
-tex/Figures-5.pdf>] [4<./Report_files/figure-latex/Figures-6.pdf><./Report_files
-/figure-latex/Figures-7.pdf>] [5<./Report_files/figure-latex/Figures-8.pdf><./Re
-port_files/figure-latex/Figures-9.pdf>]
+[3<./Report_files/figure-latex/Figures-1.pdf><./Report_files/figure-latex/Figure
+s-2.pdf>] [4<./Report_files/figure-latex/Figures-3.pdf><./Report_files/figure-la
+tex/Figures-4.pdf>] [5<./Report_files/figure-latex/Figures-5.pdf><./Report_files
+/figure-latex/Figures-6.pdf>] [6<./Report_files/figure-latex/Figures-7.pdf><./Re
+port_files/figure-latex/Figures-8.pdf>]
+Overfull \hbox (207.81999pt too wide) in paragraph at lines 237--244
+[][] 
+ []
+
+
+Overfull \hbox (245.23499pt too wide) in paragraph at lines 245--284
+[][] 
+ []
+
 LaTeX Font Info:    Font shape `TU/merriweather(0)/m/it' will be
-(Font)              scaled to size 10.0pt on input line 193.
-[6<./Report_files/figure-latex/Figures-10.pdf>]
+(Font)              scaled to size 10.0pt on input line 291.
+[7<./Report_files/figure-latex/Figures-9.pdf><./Report_files/figure-latex/Figure
+s-10.pdf>]
 
-LaTeX Warning: Float too large for page by 203.85806pt on input line 455.
+LaTeX Warning: Float too large for page by 203.96306pt on input line 553.
 
 The property list \polyglossia@langsetup contains the pairs (without outer
 braces):
@@ -1416,10 +1421,10 @@ braces):
 >  {german/babelname}  =>  {ngerman}
 >  {german/localnumeral}  =>  {polyglossia@C@localnumeral}
 >  {german/Localnumeral}  =>  {polyglossia@C@localnumeral}.
-[7] [8] [9] [10] [11] [12] (./Report.aux
-LaTeX Info: Redefining \rmfamily on input line 23.
-LaTeX Info: Redefining \sffamily on input line 23.
-LaTeX Info: Redefining \ttfamily on input line 23.
+[8] [9] [10] [11] [12] [13] (./Report.aux
+LaTeX Info: Redefining \rmfamily on input line 25.
+LaTeX Info: Redefining \sffamily on input line 25.
+LaTeX Info: Redefining \ttfamily on input line 25.
 )
 
 LaTeX Warning: There were multiply-defined labels.
@@ -1427,27 +1432,29 @@ LaTeX Warning: There were multiply-defined labels.
 )
 
 Here is how much of LuaTeX's memory you used:
- 26815 strings out of 477785
- 156364,1144653 words of node,token memory allocated
- 546 words of node memory still in use:
-   6 hlist, 2 vlist, 2 rule, 2 glue, 4 kern, 1 glyph, 8 attribute, 62 glue_spec,
- 8 attribute_list, 1 write, 1 user_defined nodes
-   avail lists: 1:6,2:5751,3:121,4:48,5:2169,6:29,7:12842,8:18,9:2650,10:2,11:15
-9
- 46534 multiletter control sequences out of 65536+600000
- 104 fonts using 36094195 bytes
- 86i,11n,115p,1194b,815s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2022/texmf-dist/fonts/opentype/public/lm-math/latinmodern-ma
-th.otf></usr/local/texlive/2022/texmf-dist/fonts/opentype/sorkin/merriweather/Me
-rriweather-Italic.otf></usr/local/texlive/2022/texmf-dist/fonts/opentype/public/
-lm-math/latinmodern-math.otf></usr/local/texlive/2022/texmf-dist/fonts/opentype/
-public/lm/lmmono10-regular.otf></usr/local/texlive/2022/texmf-dist/fonts/opentyp
-e/public/montserrat/Montserrat-Regular.otf></usr/local/texlive/2022/texmf-dist/f
-onts/opentype/sorkin/merriweather/Merriweather-Regular.otf>
-Output written on Report.pdf (12 pages, 590349 bytes).
+ 26843 strings out of 477785
+ 195466,1144653 words of node,token memory allocated
+ 624 words of node memory still in use:
+   7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 1 margin_ke
+rn, 3 glyph, 15 attribute, 62 glue_spec, 15 attribute_list, 1 write, 1 user_defi
+ned nodes
+   avail lists: 1:11,2:5986,3:230,4:66,5:3215,6:48,7:15071,8:73,9:3182,10:9,11:4
+27
+ 46546 multiletter control sequences out of 65536+600000
+ 106 fonts using 36419423 bytes
+ 86i,11n,115p,1194b,799s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2022/texmf-dist/fonts/opentype/sorkin/merriweather/Merriweat
+her-Italic.otf></usr/local/texlive/2022/texmf-dist/fonts/opentype/sorkin/merriwe
+ather/Merriweather-Regular.otf></usr/local/texlive/2022/texmf-dist/fonts/opentyp
+e/public/lm/lmmono10-regular.otf></usr/local/texlive/2022/texmf-dist/fonts/opent
+ype/public/lm-math/latinmodern-math.otf></usr/local/texlive/2022/texmf-dist/font
+s/opentype/public/lm-math/latinmodern-math.otf></usr/local/texlive/2022/texmf-di
+st/fonts/opentype/public/montserrat/Montserrat-Regular.otf></usr/local/texlive/2
+022/texmf-dist/fonts/opentype/sorkin/merriweather/Merriweather-Regular.otf>
+Output written on Report.pdf (13 pages, 611214 bytes).
 
-PDF statistics: 203 PDF objects out of 1000 (max. 8388607)
- 134 compressed objects within 2 object streams
- 24 named destinations out of 1000 (max. 131072)
- 17 words of extra memory for PDF output out of 10000 (max. 100000000)
+PDF statistics: 251 PDF objects out of 1000 (max. 8388607)
+ 178 compressed objects within 2 object streams
+ 40 named destinations out of 1000 (max. 131072)
+ 65 words of extra memory for PDF output out of 10000 (max. 100000000)
 

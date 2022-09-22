@@ -88,34 +88,143 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
-  pdftitle={Example},
+  pdftitle={Asigment 1},
   pdfauthor={Nixon Candiales},
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 
-\title{Example}
+\title{Asigment 1}
 \author{Nixon Candiales}
 \date{\today}
 
 \begin{document}
 \maketitle
 
-\hypertarget{part-1}{%
-\section{Part 1}\label{part-1}}
+\hypertarget{summary-statistics}{%
+\section{Summary Statistics}\label{summary-statistics}}
 
-\hypertarget{whats-the-answer-to-life-the-universe-and-everything}{%
-\subsection{whats the answer to life the universe and
-everything?}\label{whats-the-answer-to-life-the-universe-and-everything}}
+Provide and discuss a table of simple summary statistics showing the
+mean, standard deviation, min, and max of hospital total revenues and
+uncompensated care over time.
 
-Lorem ipsum\ldots{}
+Create a figure showing the mean hospital uncompensated care from 2000
+to 2018. Show this trend separately by hospital ownership type (private
+not for profit and private for profit).
+
+\hypertarget{twfe-specification}{%
+\section{TWFE Specification}\label{twfe-specification}}
+
+Using a simple DD identification strategy, estimate the effect of
+Medicaid expansion on hospital uncompensated care using a traditional
+two-way fixed effects (TWFE) estimation:
+
+\begin{equation}
+y_{it} = \alpha_{i} + \gamma_{t} + \delta D_{it} + \varepsilon_{it},
+(\#eq:dd)
+\end{equation}
+
+where \(D_{it}=1(E_{i}\leq t)\) in Equation @ref(eq:dd) is an indicator
+set to 1 when a hospital is in a state that expanded as of year \(t\) or
+earlier, \(\gamma_{t}\) denotes time fixed effects, \(\alpha_{i}\)
+denotes hospital fixed effects, and \(y_{it}\) denotes the hospital's
+amount of uncompensated care in year \(t\). Present four estimates from
+this estimation in a table: one based on the full sample (regardless of
+treatment timing); one when limiting to the 2014 treatment group (with
+never treated as the control group); one when limiting to the 2015
+treatment group (with never treated as the control group); and one when
+limiting to the 2016 treatment group (with never treated as the control
+group). Briefly explain any differences.
+
+\hypertarget{event-study-specification}{%
+\section{Event Study Specification}\label{event-study-specification}}
+
+Estimate an ``event study'' version of the specification in part 3:
+\begin{equation}
+y_{it} = \alpha_{i} + \gamma_{t} +\sum_{\tau < -1} D_{it}^{\tau} \delta_{\tau} + \sum_{\tau>=0} D_{it}^{\tau} \delta_{\tau} + \varepsilon_{it},
+(\#eq:event)
+\end{equation} where \(D_{it}^{\tau} = 1(t-E_{i}=\tau)\) in Equation
+@ref(eq:event) is essentially an interaction between the treatment dummy
+and a relative time dummy. In this notation and context, \(\tau\)
+denotes years relative to Medicaid expansion, so that \(\tau=-1\)
+denotes the year before a state expanded Medicaid, \(\tau=0\) denotes
+the year of expansion, etc. Estimate with two different samples: one
+based on the full sample and one based only on those that expanded in
+2014 (with never treated as the control group).
+
+\hypertarget{sa-specification}{%
+\section{SA Specification}\label{sa-specification}}
+
+Sun and Abraham(SA) show that the \(\delta_{\tau}\) coefficients in
+Equation @ref(eq:event) can be written as a non-conxvex average of all
+other group-time specific average treatment effects. They propose an
+interaction weighted specification:
+
+\begin{equation}
+y_{it} = \alpha_{i} + \gamma_{t} +\sum_{e} \sum_{\tau \neq -1} \left(D_{it}^{\tau} \times 1(E_{i}=e)\right) \delta_{e, \tau} + \varepsilon_{it}.
+(\#eq:iwevent)
+\end{equation}
+
+Re-estimate your event study using the SA specification in Equation
+@ref(eq:iwevent). Show your results for \(\hat{\delta}_{e, \tau}\) in a
+Table, focusing on states with \(E_{i}=2014\), \(E_{i}=2015\), and
+\(E_{i}=2016\).
+
+Present an event study graph based on the results in part 5. Hint: you
+can do this automatically in \texttt{R} with the \texttt{fixest} package
+(using the \texttt{sunab} syntax for interactions), or with
+\texttt{eventstudyinteract} in \texttt{Stata}. These packages help to
+avoid mistakes compared to doing the tables/figures manually and also
+help to get the standard errors correct.
+
+\hypertarget{cs-specification}{%
+\section{CS Specification}\label{cs-specification}}
+
+Callaway and Sant'Anna (CS) offer a non-parametric solution that
+effectively calculates a set of group-time specific differences,
+\(ATT(g,t)= E[y_{it}(g) - y_{it}(\infty) | G_{i}=g]\), where \(g\)
+reflects treatment timing and \(t\) denotes time. They show that under
+the standard DD assumptions of parallel trends and no anticipation,
+\(ATT(g,t) = E[y_{it} - y_{i, g-1} | G_{i}=g] - E[y_{it} - y_{i,g-1} | G_{i} = \infty]\),
+so that \(\hat{ATT}(g,t)\) is directly estimable from sample analogs. CS
+also propose aggregations of \(\hat{ATT}(g,t)\) to form an overall ATT
+or a time-specific ATT (e.g., ATTs for \(\tau\) periods before/after
+treatment). With this framework in mind, provide an alternative event
+study using the CS estimator. Hint: check out the \texttt{did} package
+in \texttt{R} or the \texttt{csdid} package in \texttt{Stata}.
+
+\hypertarget{rr-specification}{%
+\section{RR Specification}\label{rr-specification}}
+
+Rambachan and Roth (RR) show that traditional tests of parallel
+pre-trends may be underpowered, and they provide an alternative
+estimator that essentially bounds the treatment effects by the size of
+an assumed violation in parallel trends. One such bound RR propose is to
+limit the post-treatment violation of parallel trends to be no worse
+than some multiple of the pre-treatment violation of parallel trends.
+Assuming linear trends, such a violation is reflected by
+\[\Delta(\bar{M}) = \left\{ \delta : \forall t \geq 0, \lvert (\delta_{t+1} - \delta_{t}) - (\delta_{t} - \delta_{t-1}) \rvert \leq \bar{M} \times \max_{s<0} \lvert (\delta_{s+1} - \delta_{s}) - (\delta_{s} - \delta_{s-1}) \rvert \right\}.\]
+Using the \texttt{HonestDiD} package in \texttt{R} or \texttt{Stata},
+present a sensitivity plot of your CS ATT estimates using
+\(\bar{M} = \{0, 0.5, 1, 1.5, 2\}\). Check out the GitHub repo
+\href{https://github.com/pedrohcgs/CS_RR}{here} for some help in
+combining the \texttt{HonestDiD} package with CS estimates.
+
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
+
+Discuss your findings and compare estimates from different estimators
+(e.g., are your results sensitive to different specifications or
+estimators? Are your results sensitive to violation of parallel trends
+assumptions?).
+
+\hypertarget{reflection}{%
+\section{Reflection}\label{reflection}}
+
+Reflect on this assignment. What did you find most challenging? What did
+you find most surprising?
 
 \includegraphics{Report_files/figure-latex/Figures-1.pdf}
 \includegraphics{Report_files/figure-latex/Figures-2.pdf}
-
-\begin{verbatim}
-FALSE `geom_smooth()` using method = 'loess' and formula 'y ~ x'
-\end{verbatim}
-
 \includegraphics{Report_files/figure-latex/Figures-3.pdf}
 \includegraphics{Report_files/figure-latex/Figures-4.pdf}
 \includegraphics{Report_files/figure-latex/Figures-5.pdf}
@@ -123,70 +232,59 @@ FALSE `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 \includegraphics{Report_files/figure-latex/Figures-7.pdf}
 \includegraphics{Report_files/figure-latex/Figures-8.pdf}
 \includegraphics{Report_files/figure-latex/Figures-9.pdf}
-\includegraphics{Report_files/figure-latex/Figures-10.pdf} \% latex
-table generated in R 4.2.1 by xtable 1.8-4 package \% Wed Sep 21
-04:41:04 2022
+\includegraphics{Report_files/figure-latex/Figures-10.pdf}
 
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrrr}
-  \hline
- & year & mean & sd & min & max \\ 
-  \hline
-1 & 2003 & 13.26 & 30.68 & 0.00 & 777.99 \\ 
-  2 & 2004 & 15.16 & 37.51 & 0.00 & 820.25 \\ 
-  3 & 2005 & 17.31 & 39.89 & 0.00 & 939.13 \\ 
-  4 & 2006 & 20.53 & 49.09 & 0.00 & 1074.62 \\ 
-  5 & 2007 & 22.85 & 52.29 & 0.00 & 1203.37 \\ 
-  6 & 2008 & 25.81 & 58.58 & 0.00 & 1361.81 \\ 
-  7 & 2009 & 26.51 & 44.88 & 0.00 & 583.98 \\ 
-  8 & 2010 & 28.59 & 67.33 & 0.00 & 2793.92 \\ 
-  9 & 2011 & 25.19 & 59.22 & 0.00 & 2059.70 \\ 
-  10 & 2012 & 28.01 & 67.71 & 0.00 & 1882.62 \\ 
-  11 & 2013 & 30.20 & 68.94 & 0.00 & 1652.58 \\ 
-  12 & 2014 & 30.32 & 74.00 & 0.00 & 2024.85 \\ 
-  13 & 2015 & 28.59 & 71.72 & 0.00 & 2054.15 \\ 
-  14 & 2016 & 29.83 & 77.46 & 0.00 & 2390.67 \\ 
-  15 & 2017 & 32.08 & 84.52 & 0.00 & 2733.60 \\ 
-  16 & 2018 & 34.71 & 88.23 & 0.00 & 2606.35 \\ 
-  17 & 2019 & 38.61 & 97.94 & 0.00 & 2648.26 \\ 
-   \hline
+\begin{tabular}{r|r|r|r|r|r|r|r}
+\hline
+unc\_care\_mean & unc\_care\_sd & unc\_care\_min & unc\_care\_max & hosp\_rev\_mean & hosp\_rev\_sd & hosp\_rev\_min & hosp\_rev\_max\\
+\hline
+28.16735 & 123.623 & -97.30909 & 20405.51 & 546.2998 & 960.0214 & -177.0319 & 22000.93\\
+\hline
 \end{tabular}
-\end{table}
 
-\% latex table generated in R 4.2.1 by xtable 1.8-4 package \% Wed Sep
-21 04:41:04 2022
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrrr}
-  \hline
- & year & mean & sd & min & max \\ 
-  \hline
-1 & 2003 & 284.13 & 383.61 & 1.66 & 4722.76 \\ 
-  2 & 2004 & 316.73 & 430.15 & 0.27 & 5525.73 \\ 
-  3 & 2005 & 364.92 & 495.20 & 1.14 & 6398.55 \\ 
-  4 & 2006 & 415.73 & 540.60 & 1.33 & 6718.17 \\ 
-  5 & 2007 & 462.17 & 622.69 & 0.99 & 8577.05 \\ 
-  6 & 2008 & 492.36 & 634.20 & 0.97 & 7743.08 \\ 
-  7 & 2009 & 527.15 & 687.54 & 0.89 & 9139.32 \\ 
-  8 & 2010 & 548.93 & 749.12 & 0.84 & 9857.53 \\ 
-  9 & 2011 & 450.57 & 744.13 & -27.58 & 10572.29 \\ 
-  10 & 2012 & 474.12 & 796.22 & 0.85 & 11865.32 \\ 
-  11 & 2013 & 507.36 & 869.11 & 0.95 & 12751.71 \\ 
-  12 & 2014 & 544.79 & 950.09 & 1.09 & 13376.35 \\ 
-  13 & 2015 & 588.96 & 1013.40 & 1.05 & 14143.53 \\ 
-  14 & 2016 & 641.25 & 1118.92 & -177.03 & 15618.75 \\ 
-  15 & 2017 & 689.44 & 1220.60 & 1.00 & 16863.43 \\ 
-  16 & 2018 & 743.16 & 1341.17 & 1.07 & 18677.25 \\ 
-  17 & 2019 & 814.39 & 1488.68 & 0.72 & 22000.93 \\ 
-   \hline
+\begin{tabular}{r|r|r|r|r|r|r|r|r}
+\hline
+year & unc\_care\_mean & unc\_care\_sd & unc\_care\_min & unc\_care\_max & hosp\_rev\_mean & hosp\_rev\_sd & hosp\_rev\_min & hosp\_rev\_max\\
+\hline
+2003 & 13.55729 & 32.03610 & -0.128490 & 777.9874 & 196.3262 & 339.2561 & -1.757898 & 4722.759\\
+\hline
+2004 & 15.32890 & 36.66149 & 0.000001 & 820.2530 & 217.0803 & 379.3015 & 0.154394 & 5525.731\\
+\hline
+2005 & 17.40974 & 37.81384 & 0.000001 & 939.1340 & 237.4987 & 419.2160 & 0.000001 & 6398.554\\
+\hline
+2006 & 20.95880 & 47.15167 & -2.667140 & 1074.6250 & 262.1557 & 464.1907 & -0.104189 & 7784.095\\
+\hline
+2007 & 23.56387 & 51.27956 & 0.000001 & 1203.3748 & 285.9671 & 508.0396 & 0.063650 & 8577.046\\
+\hline
+2008 & 26.42960 & 57.06260 & 0.000001 & 1361.8056 & 311.2402 & 555.7333 & 0.000004 & 9293.788\\
+\hline
+2009 & 27.43706 & 46.41793 & 0.000001 & 583.9753 & 341.9184 & 613.2093 & 0.119236 & 9846.465\\
+\hline
+2010 & 29.88757 & 72.40899 & 0.000001 & 2793.9230 & 365.1954 & 647.9589 & 0.306861 & 9857.535\\
+\hline
+2011 & 26.76233 & 63.14211 & -54.283503 & 2059.6983 & 393.8051 & 712.2275 & -27.582223 & 10572.291\\
+\hline
+2012 & 29.81961 & 72.48623 & -7.440619 & 1882.6199 & 417.7530 & 765.5364 & -11.799711 & 11865.320\\
+\hline
+2013 & 31.89600 & 72.59600 & -4.503324 & 1652.5760 & 446.2969 & 833.9052 & 0.094880 & 12751.708\\
+\hline
+2014 & 31.76630 & 77.36949 & -25.850677 & 2024.8518 & 478.1198 & 905.1911 & 0.006624 & 13376.352\\
+\hline
+2015 & 29.81547 & 74.65024 & -0.033577 & 2054.1505 & 517.6197 & 970.8773 & 0.009368 & 14143.533\\
+\hline
+2016 & 35.52159 & 310.04681 & -0.018982 & 20405.5142 & 562.2181 & 1070.3765 & -177.031923 & 15618.749\\
+\hline
+2017 & 33.37365 & 87.34864 & -0.027988 & 2733.5950 & 603.0033 & 1167.5586 & 0.124513 & 16863.431\\
+\hline
+2018 & 35.88876 & 90.47501 & -0.064101 & 2606.3455 & 651.7126 & 1283.8391 & 0.282914 & 18677.245\\
+\hline
+2019 & 39.77855 & 99.47749 & -97.309089 & 2648.2579 & 706.4571 & 1419.7912 & 0.000003 & 22000.932\\
+\hline
 \end{tabular}
-\end{table}
 
 \begin{table}[H] \centering 
-  \caption{Regression table with stargazer} 
-  \label{tab2} 
+  \caption{Two Way Fixed Effect Model} 
+  \label{table-3} 
 \begin{tabular}{@{\extracolsep{5pt}}lcccc} 
 \\[-1.8ex]\hline 
 \hline \\[-1.8ex] 
@@ -211,7 +309,7 @@ Residual Std. Error (df = 73725) & 39.701 & 39.829 & 40.304 & 40.313 \\
 
 \begin{table}
 
-\caption{\label{tab:table-4}Regression table with stargazer}
+\caption{\label{tab:table-4}Two Way Fixed Effects long format}
 \centering
 \begin{tabular}[t]{lcccc}
 \toprule
@@ -234,7 +332,7 @@ Std.Errors & by: pn & by: pn & by: pn & by: pn\\
 
 \begin{table}
 
-\caption{\label{tab:table-4}Regression table with stargazer}
+\caption{\label{tab:table-4}Event Study Common Treatment}
 \centering
 \begin{tabular}[t]{lc}
 \toprule
@@ -287,7 +385,7 @@ FE: year & X\\
 
 \begin{table}
 
-\caption{\label{tab:table-4}Regression table with stargazer}
+\caption{\label{tab:table-4}Even Study Staggered}
 \centering
 \begin{tabular}[t]{lc}
 \toprule
@@ -332,7 +430,7 @@ FE: year & X\\
 
 \begin{table}
 
-\caption{\label{tab:table-4}Regression table with stargazer}
+\caption{\label{tab:table-4}SA especification}
 \centering
 \begin{tabular}[t]{lccc}
 \toprule
@@ -377,72 +475,72 @@ FE: year & X & X & X\\
 
 \begin{table}
 
-\caption{\label{tab:table-4}Regression table with stargazer}
+\caption{\label{tab:table-4}CS specification}
 \centering
 \begin{tabular}[t]{lc}
 \toprule
   & Model 1\\
 \midrule
 ATT(2014,2012) & \num{0.501}\\
- & (\num{0.921})\\
+ & (\num{0.852})\\
 ATT(2014,2013) & \num{0.000}\\
 ATT(2014,2014) & \num{-10.982}\\
- & (\num{2.353})\\
+ & (\num{2.115})\\
 ATT(2014,2015) & \num{-19.827}\\
- & (\num{4.032})\\
+ & (\num{3.640})\\
 ATT(2014,2016) & \num{-22.794}\\
- & (\num{4.423})\\
+ & (\num{4.308})\\
 ATT(2014,2017) & \num{-27.690}\\
- & (\num{5.425})\\
+ & (\num{5.275})\\
 ATT(2014,2018) & \num{-30.212}\\
- & (\num{6.527})\\
+ & (\num{6.353})\\
 ATT(2014,2019) & \num{-35.792}\\
- & (\num{8.895})\\
+ & (\num{8.740})\\
 ATT(2015,2012) & \num{6.244}\\
- & (\num{2.375})\\
+ & (\num{2.258})\\
 ATT(2015,2013) & \num{5.781}\\
- & (\num{1.828})\\
+ & (\num{1.853})\\
 ATT(2015,2014) & \num{0.000}\\
 ATT(2015,2015) & \num{-5.401}\\
- & (\num{2.551})\\
+ & (\num{2.480})\\
 ATT(2015,2016) & \num{-9.522}\\
- & (\num{2.280})\\
+ & (\num{2.284})\\
 ATT(2015,2017) & \num{-16.522}\\
- & (\num{3.393})\\
+ & (\num{3.369})\\
 ATT(2015,2018) & \num{-20.673}\\
- & (\num{4.413})\\
+ & (\num{4.328})\\
 ATT(2015,2019) & \num{-25.534}\\
- & (\num{6.938})\\
+ & (\num{6.872})\\
 ATT(2016,2012) & \num{3.523}\\
- & (\num{4.837})\\
+ & (\num{4.775})\\
 ATT(2016,2013) & \num{2.544}\\
- & (\num{4.361})\\
+ & (\num{4.380})\\
 ATT(2016,2014) & \num{0.879}\\
- & (\num{1.577})\\
+ & (\num{1.537})\\
 ATT(2016,2015) & \num{0.000}\\
 ATT(2016,2016) & \num{-4.752}\\
  & (\num{1.310})\\
 ATT(2016,2017) & \num{-18.249}\\
- & (\num{4.502})\\
+ & (\num{4.751})\\
 ATT(2016,2018) & \num{-23.546}\\
- & (\num{5.533})\\
+ & (\num{5.796})\\
 ATT(2016,2019) & \num{-31.190}\\
- & (\num{6.930})\\
+ & (\num{7.334})\\
 ATT(2019,2012) & \num{-2.711}\\
- & (\num{11.211})\\
+ & (\num{11.516})\\
 ATT(2019,2013) & \num{-4.623}\\
- & (\num{10.933})\\
+ & (\num{11.396})\\
 ATT(2019,2014) & \num{-3.978}\\
- & (\num{8.697})\\
+ & (\num{9.381})\\
 ATT(2019,2015) & \num{-3.711}\\
- & (\num{6.632})\\
+ & (\num{6.772})\\
 ATT(2019,2016) & \num{-0.441}\\
- & (\num{4.756})\\
+ & (\num{4.826})\\
 ATT(2019,2017) & \num{-3.331}\\
- & (\num{3.440})\\
+ & (\num{3.430})\\
 ATT(2019,2018) & \num{0.000}\\
 ATT(2019,2019) & \num{-15.267}\\
- & (\num{3.530})\\
+ & (\num{3.390})\\
 \midrule
 Num.Obs. & \num{51}\\
 Std.Errors & by: state\_id\\
@@ -456,33 +554,33 @@ est.method & dr\\
 
 \begin{table}
 
-\caption{\label{tab:table-4}Regression table with stargazer}
+\caption{\label{tab:table-4}CS specification Event Study}
 \centering
 \begin{tabular}[t]{lc}
 \toprule
   & Model 1\\
 \midrule
 ATT(-5) & \num{-3.978}\\
- & (\num{9.523})\\
+ & (\num{9.229})\\
 ATT(-4) & \num{-0.094}\\
- & (\num{5.252})\\
+ & (\num{5.270})\\
 ATT(-3) & \num{3.277}\\
- & (\num{3.020})\\
+ & (\num{3.012})\\
 ATT(-2) & \num{0.764}\\
- & (\num{0.909})\\
+ & (\num{0.947})\\
 ATT(-1) & \num{0.000}\\
 ATT(0) & \num{-10.375}\\
- & (\num{2.164})\\
+ & (\num{2.090})\\
 ATT(1) & \num{-18.762}\\
- & (\num{3.412})\\
+ & (\num{3.406})\\
 ATT(2) & \num{-22.253}\\
- & (\num{4.043})\\
+ & (\num{4.142})\\
 ATT(3) & \num{-27.251}\\
- & (\num{4.979})\\
+ & (\num{5.016})\\
 ATT(4) & \num{-29.744}\\
- & (\num{6.487})\\
+ & (\num{6.283})\\
 ATT(5) & \num{-35.792}\\
- & (\num{8.298})\\
+ & (\num{8.920})\\
 \midrule
 Num.Obs. & \num{51}\\
 Std.Errors & by: state\_id\\
