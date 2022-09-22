@@ -235,7 +235,14 @@ we group by year and calculate the summary statistics as follows.
 
 ``` r
 df %>% ungroup() %>%
-  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE)
+  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
+
+df_1 %>%
+  group_by(year) %>%
+  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
+  relocate(starts_with("unc"), starts_with("hosp")) -> table2
+
+table1
 ```
 
     # A tibble: 1 × 8
@@ -246,36 +253,36 @@ df %>% ungroup() %>%
     #   ⁴​hosp_rev_min, ⁵​unc_care_max, ⁶​hosp_rev_max
 
 ``` r
-df_1 %>%
-  group_by(year) %>%
-  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) 
+table2
 ```
 
     # A tibble: 17 × 9
-        year unc_care_mean hosp_…¹ unc_c…² hosp_…³ unc_ca…⁴ hosp_r…⁵ unc_c…⁶ hosp_…⁷
-       <int>         <dbl>   <dbl>   <dbl>   <dbl>    <dbl>    <dbl>   <dbl>   <dbl>
-     1  2003          13.6    196.    32.0    339. -1.28e-1 -1.76e+0    778.   4723.
-     2  2004          15.3    217.    36.7    379.  1   e-6  1.54e-1    820.   5526.
-     3  2005          17.4    237.    37.8    419.  1   e-6  1   e-6    939.   6399.
-     4  2006          21.0    262.    47.2    464. -2.67e+0 -1.04e-1   1075.   7784.
-     5  2007          23.6    286.    51.3    508.  1   e-6  6.36e-2   1203.   8577.
-     6  2008          26.4    311.    57.1    556.  1   e-6  4   e-6   1362.   9294.
-     7  2009          27.4    342.    46.4    613.  1   e-6  1.19e-1    584.   9846.
-     8  2010          29.9    365.    72.4    648.  1   e-6  3.07e-1   2794.   9858.
-     9  2011          26.8    394.    63.1    712. -5.43e+1 -2.76e+1   2060.  10572.
-    10  2012          29.8    418.    72.5    766. -7.44e+0 -1.18e+1   1883.  11865.
-    11  2013          31.9    446.    72.6    834. -4.50e+0  9.49e-2   1653.  12752.
-    12  2014          31.8    478.    77.4    905. -2.59e+1  6.62e-3   2025.  13376.
-    13  2015          29.8    518.    74.7    971. -3.36e-2  9.37e-3   2054.  14144.
-    14  2016          35.5    562.   310.    1070. -1.90e-2 -1.77e+2  20406.  15619.
-    15  2017          33.4    603.    87.3   1168. -2.80e-2  1.25e-1   2734.  16863.
-    16  2018          35.9    652.    90.5   1284. -6.41e-2  2.83e-1   2606.  18677.
-    17  2019          39.8    706.    99.5   1420. -9.73e+1  3   e-6   2648.  22001.
-    # … with abbreviated variable names ¹​hosp_rev_mean, ²​unc_care_sd, ³​hosp_rev_sd,
-    #   ⁴​unc_care_min, ⁵​hosp_rev_min, ⁶​unc_care_max, ⁷​hosp_rev_max
+       unc_care_mean unc_c…¹ unc_ca…² unc_c…³ hosp_…⁴ hosp_…⁵ hosp_r…⁶ hosp_…⁷  year
+               <dbl>   <dbl>    <dbl>   <dbl>   <dbl>   <dbl>    <dbl>   <dbl> <int>
+     1          13.6    32.0 -1.28e-1    778.    196.    339. -1.76e+0   4723.  2003
+     2          15.3    36.7  1   e-6    820.    217.    379.  1.54e-1   5526.  2004
+     3          17.4    37.8  1   e-6    939.    237.    419.  1   e-6   6399.  2005
+     4          21.0    47.2 -2.67e+0   1075.    262.    464. -1.04e-1   7784.  2006
+     5          23.6    51.3  1   e-6   1203.    286.    508.  6.36e-2   8577.  2007
+     6          26.4    57.1  1   e-6   1362.    311.    556.  4   e-6   9294.  2008
+     7          27.4    46.4  1   e-6    584.    342.    613.  1.19e-1   9846.  2009
+     8          29.9    72.4  1   e-6   2794.    365.    648.  3.07e-1   9858.  2010
+     9          26.8    63.1 -5.43e+1   2060.    394.    712. -2.76e+1  10572.  2011
+    10          29.8    72.5 -7.44e+0   1883.    418.    766. -1.18e+1  11865.  2012
+    11          31.9    72.6 -4.50e+0   1653.    446.    834.  9.49e-2  12752.  2013
+    12          31.8    77.4 -2.59e+1   2025.    478.    905.  6.62e-3  13376.  2014
+    13          29.8    74.7 -3.36e-2   2054.    518.    971.  9.37e-3  14144.  2015
+    14          35.5   310.  -1.90e-2  20406.    562.   1070. -1.77e+2  15619.  2016
+    15          33.4    87.3 -2.80e-2   2734.    603.   1168.  1.25e-1  16863.  2017
+    16          35.9    90.5 -6.41e-2   2606.    652.   1284.  2.83e-1  18677.  2018
+    17          39.8    99.5 -9.73e+1   2648.    706.   1420.  3   e-6  22001.  2019
+    # … with abbreviated variable names ¹​unc_care_sd, ²​unc_care_min, ³​unc_care_max,
+    #   ⁴​hosp_rev_mean, ⁵​hosp_rev_sd, ⁶​hosp_rev_min, ⁷​hosp_rev_max
 
 ``` r
-df %>% filter(!(pn==151327 & year ==2016)) %>% ggplot(aes(x = year, y = unc_care, group=year)) +
+df <- df %>%  filter(!(pn==151327 & year ==2016) & unc_care > 0)
+
+df %>% ggplot(aes(x = year, y = unc_care, group=year)) +
   geom_boxplot() + 
   theme_tufte() +
     labs(x="Years", y="Uncompensated Care Millions", 
@@ -304,7 +311,7 @@ to 2018. Show this trend separately by hospital ownership type (private
 not for profit and private for profit).
 
 ``` r
-df %>%  filter(!(pn==151327 & year ==2016)) %>%
+df %>%
   filter(!(own_typ=='other')) %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
@@ -691,38 +698,38 @@ mod.cs
 
     Group-Time Average Treatment Effects:
      Group Time ATT(g,t) Std. Error [95% Simult.  Conf. Band]  
-      2014 2012   0.5009     0.8127       -1.4418      2.4436  
+      2014 2012   0.5009     0.8525       -1.5153      2.5171  
       2014 2013   0.0000         NA            NA          NA  
-      2014 2014 -10.9816     2.2766      -16.4240     -5.5393 *
-      2014 2015 -19.8272     3.7070      -28.6890    -10.9655 *
-      2014 2016 -22.7935     4.3441      -33.1784    -12.4086 *
-      2014 2017 -27.6899     5.2573      -40.2578    -15.1219 *
-      2014 2018 -30.2118     6.0017      -44.5593    -15.8643 *
-      2014 2019 -35.7919     8.0876      -55.1258    -16.4580 *
-      2015 2012   6.2440     2.3231        0.6905     11.7975 *
-      2015 2013   5.7813     1.8514        1.3555     10.2071 *
+      2014 2014 -10.9816     2.1153      -15.9846     -5.9787 *
+      2014 2015 -19.8272     3.6395      -28.4350    -11.2195 *
+      2014 2016 -22.7935     4.3080      -32.9822    -12.6048 *
+      2014 2017 -27.6899     5.2755      -40.1668    -15.2129 *
+      2014 2018 -30.2118     6.3535      -45.2384    -15.1853 *
+      2014 2019 -35.7919     8.7403      -56.4636    -15.1202 *
+      2015 2012   6.2440     2.2581        0.9035     11.5845 *
+      2015 2013   5.7813     1.8527        1.3995     10.1631 *
       2015 2014   0.0000         NA            NA          NA  
-      2015 2015  -5.4012     2.5340      -11.4589      0.6565  
-      2015 2016  -9.5221     2.2307      -14.8546     -4.1895 *
-      2015 2017 -16.5219     3.1497      -24.0514     -8.9923 *
-      2015 2018 -20.6733     4.2786      -30.9016    -10.4450 *
-      2015 2019 -25.5337     6.5736      -41.2482     -9.8193 *
-      2016 2012   3.5234     4.7777       -7.8980     14.9447  
-      2016 2013   2.5444     4.4038       -7.9830     13.0719  
-      2016 2014   0.8790     1.5625       -2.8562      4.6141  
+      2015 2015  -5.4012     2.4796      -11.2657      0.4632  
+      2015 2016  -9.5221     2.2836      -14.9230     -4.1211 *
+      2015 2017 -16.5219     3.3693      -24.4906     -8.5531 *
+      2015 2018 -20.6733     4.3281      -30.9096    -10.4370 *
+      2015 2019 -25.5337     6.8717      -41.7859     -9.2816 *
+      2016 2012   3.5234     4.7755       -7.7710     14.8178  
+      2016 2013   2.5444     4.3800       -7.8147     12.9036  
+      2016 2014   0.8790     1.5367       -2.7555      4.5134  
       2016 2015   0.0000         NA            NA          NA  
-      2016 2016  -4.7519     1.2388       -7.7134     -1.7904 *
-      2016 2017 -18.2490     4.8737      -29.8998     -6.5982 *
-      2016 2018 -23.5455     6.0848      -38.0915     -8.9995 *
-      2016 2019 -31.1904     7.6463      -49.4692    -12.9116 *
-      2019 2012  -2.7114    12.2955      -32.1043     26.6815  
-      2019 2013  -4.6228    12.0827      -33.5072     24.2615  
-      2019 2014  -3.9781     9.4739      -26.6261     18.6699  
-      2019 2015  -3.7113     7.0840      -20.6460     13.2234  
-      2019 2016  -0.4415     5.0423      -12.4953     11.6124  
-      2019 2017  -3.3307     3.5299      -11.7692      5.1078  
+      2016 2016  -4.7519     1.3096       -7.8492     -1.6547 *
+      2016 2017 -18.2490     4.7509      -29.4854     -7.0126 *
+      2016 2018 -23.5455     5.7965      -37.2547     -9.8363 *
+      2016 2019 -31.1904     7.3342      -48.5365    -13.8442 *
+      2019 2012  -2.7114    11.5161      -29.9481     24.5253  
+      2019 2013  -4.6228    11.3960      -31.5753     22.3297  
+      2019 2014  -3.9781     9.3807      -26.1642     18.2080  
+      2019 2015  -3.7113     6.7716      -19.7268     12.3043  
+      2019 2016  -0.4415     4.8260      -11.8554     10.9725  
+      2019 2017  -3.3307     3.4297      -11.4422      4.7807  
       2019 2018   0.0000         NA            NA          NA  
-      2019 2019 -15.2665     3.3710      -23.3252     -7.2079 *
+      2019 2019 -15.2665     3.3903      -23.2849     -7.2481 *
     ---
     Signif. codes: `*' confidence band does not cover 0
 
@@ -742,22 +749,22 @@ mod.cs.event
 
     Overall summary of ATT's based on event-study/dynamic aggregation:  
           ATT    Std. Error     [ 95%  Conf. Int.]  
-     -24.0294        4.8022   -33.4416    -14.6172 *
+     -24.0294        4.9067   -33.6463    -14.4126 *
 
 
     Dynamic Effects:
      Event time Estimate Std. Error [95% Simult.  Conf. Band]  
-             -5  -3.9781     8.9294      -23.8477     15.8915  
-             -4  -0.0940     4.8787      -10.9501     10.7622  
-             -3   3.2769     2.9594       -3.3083      9.8620  
-             -2   0.7637     0.8664       -1.1642      2.6916  
+             -5  -3.9781     9.2289      -25.2655     17.3093  
+             -4  -0.0940     5.2699      -12.2494     12.0615  
+             -3   3.2769     3.0120       -3.6705     10.2242  
+             -2   0.7637     0.9465       -1.4196      2.9470  
              -1   0.0000         NA            NA          NA  
-              0 -10.3749     2.1342      -15.1238     -5.6259 *
-              1 -18.7625     3.4905      -26.5295    -10.9955 *
-              2 -22.2526     4.0857      -31.3440    -13.1611 *
-              3 -27.2509     5.1321      -38.6708    -15.8310 *
-              4 -29.7440     6.0708      -43.2527    -16.2353 *
-              5 -35.7919     8.5935      -54.9140    -16.6697 *
+              0 -10.3749     2.0902      -15.1961     -5.5536 *
+              1 -18.7625     3.4062      -26.6193    -10.9056 *
+              2 -22.2526     4.1419      -31.8062    -12.6989 *
+              3 -27.2509     5.0158      -38.8203    -15.6814 *
+              4 -29.7440     6.2831      -44.2367    -15.2513 *
+              5 -35.7919     8.9196      -56.3657    -15.2180 *
     ---
     Signif. codes: `*' confidence band does not cover 0
 
@@ -776,34 +783,6 @@ ggdid(mod.cs.event,
 ```
 
 ![](Main_files/figure-gfm/cs-2.png)<!-- -->
-
-``` r
-CS_never_cond <- mod.cs #id::att_gt(yname="unc_care",
-                  #           tname="year",
-                  #           idname="state_id",
-                  #           gname="expand_year",
-                  #           xformla=~1,
-                  #           #xformla = xformla,
-                  #           control_group="nevertreated",
-                  #           data = reg.dat,
-                  #           panel = TRUE,
-                  #           base_period="universal",
-                  #           bstrap = TRUE,
-                  #           cband = TRUE,
-                  #           allow_unbalanced_panel=TRUE)
-
-# Now, compute event study
-CS_es_never_cond <- mod.cs.event #aggte(CS_never_cond, type = "dynamic",
-                          #min_e = -5, max_e = 5)
-#summary(CS_es_never_cond)
-# Plot event study
-fig_CS <- ggdid(CS_es_never_cond,
-      title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
-
-fig_CS
-```
-
-![](Main_files/figure-gfm/cs-3.png)<!-- -->
 
 ## Rambachan and Roth (RR)
 
@@ -860,9 +839,7 @@ library(tidyverse)
 library(dplyr)
 library(did)
 library(HonestDiD)
-
 ## -----------------------------------------------------------------------------
-
 #' @title honest_did
 #'
 #' @description a function to compute a sensitivity analysis
@@ -871,8 +848,6 @@ library(HonestDiD)
 honest_did <- function(es, ...) {
   UseMethod("honest_did", es)
 }
-
-
 #' @title honest_did.AGGTEobj
 #'
 #' @description a function to compute a sensitivity analysis
@@ -952,7 +927,8 @@ honest_did.AGGTEobj <- function(es,
                                                              gridPoints=100,
                                                              grid.lb=-1,
                                                              grid.ub=1,
-                                                             parallel=parallel)
+                                                             parallel=parallel
+                                                             )
     
   } else if (type=="smoothness") {
     robust_ci <- createSensitivityResults(betahat = es$att.egt,
@@ -964,101 +940,58 @@ honest_did.AGGTEobj <- function(es,
                                           monotonicityDirection=monotonicityDirection,
                                           biasDirection=biasDirection,
                                           alpha=alpha,
-                                          parallel=parallel)
+                                          parallel=parallel, 
+                                          Mvec=Mvec)
   }
   
   list(robust_ci=robust_ci, orig_ci=orig_ci, type=type)
 }
-
-# Load data used in Callaway and Sant'Anna (2021) application
-min_wage <- mpdta
-
-# Formula for covariates 
-#xformla <- ~ region + (medinc + pop ) + I(pop^2) + I(medinc^2)  + white + hs  + pov
-#---------------------------------------------------------------------------
-# Using covariates and DR DiD with never-treated as comparison group
-# Fix the reference time periods
-CS_never_cond <- did::att_gt(yname="lemp",
-                             tname="year",
-                             idname="countyreal",
-                             gname="first.treat",
-                             xformla=~1,
-                             #xformla = xformla,
-                             control_group="nevertreated",
-                             data = min_wage,
-                             panel = TRUE,
-                             base_period="universal",
-                             bstrap = TRUE,
-                             cband = TRUE)
-# Now, compute event study
-CS_es_never_cond <- aggte(CS_never_cond, type = "dynamic",
-                          min_e = -5, max_e = 5)
-#summary(CS_es_never_cond)
-# Plot event study
-fig_CS <- ggdid(CS_es_never_cond,
-      title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
-
-fig_CS
 ```
-
-![](Main_files/figure-gfm/Aux-func-RR-1.png)<!-- -->
 
 ``` r
 # code for running honest_did
-hd_cs_smooth_never <- honest_did(CS_es_never_cond,
-                           type="smoothness")
+hd_cs_smooth_never <- honest_did(mod.cs.event,
+                           type="smoothness", Mvec=c(0.5,1,1.5,2))
 hd_cs_smooth_never
 ```
 
     $robust_ci
-    # A tibble: 10 × 5
-            lb       ub method Delta         M
-         <dbl>    <dbl> <chr>  <chr>     <dbl>
-     1 -0.0482 -0.00296 FLCI   DeltaSD 0      
-     2 -0.0462  0.00630 FLCI   DeltaSD 0.00649
-     3 -0.0524  0.0125  FLCI   DeltaSD 0.0130 
-     4 -0.0588  0.0190  FLCI   DeltaSD 0.0195 
-     5 -0.0653  0.0255  FLCI   DeltaSD 0.0260 
-     6 -0.0718  0.0320  FLCI   DeltaSD 0.0325 
-     7 -0.0783  0.0385  FLCI   DeltaSD 0.0390 
-     8 -0.0848  0.0450  FLCI   DeltaSD 0.0454 
-     9 -0.0913  0.0514  FLCI   DeltaSD 0.0519 
-    10 -0.0978  0.0579  FLCI   DeltaSD 0.0584 
+    # A tibble: 4 × 5
+         lb    ub method Delta       M
+      <dbl> <dbl> <chr>  <chr>   <dbl>
+    1 -12.2 -5.48 FLCI   DeltaSD   0.5
+    2 -13.4 -5.27 FLCI   DeltaSD   1  
+    3 -14.5 -5.08 FLCI   DeltaSD   1.5
+    4 -15.5 -4.97 FLCI   DeltaSD   2  
 
     $orig_ci
     # A tibble: 1 × 4
-       lb[,1]  ub[,1] method   Delta
-        <dbl>   <dbl> <chr>    <lgl>
-    1 -0.0431 0.00325 Original NA   
+      lb[,1] ub[,1] method   Delta
+       <dbl>  <dbl> <chr>    <lgl>
+    1  -14.3  -6.47 Original NA   
 
     $type
     [1] "smoothness"
 
 ``` r
-hd_cs_rm_never <- honest_did(CS_es_never_cond, type="relative_magnitude")
+hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(0.5,1,1.5,2))
 hd_cs_rm_never
 ```
 
     $robust_ci
-    # A tibble: 10 × 5
-            lb      ub method Delta    Mbar
-         <dbl>   <dbl> <chr>  <chr>   <dbl>
-     1 -0.0303 -0.0101 C-LF   DeltaRM 0    
-     2 -0.0303 -0.0101 C-LF   DeltaRM 0.222
-     3 -0.0505  0.0101 C-LF   DeltaRM 0.444
-     4 -0.0505  0.0101 C-LF   DeltaRM 0.667
-     5 -0.0505  0.0303 C-LF   DeltaRM 0.889
-     6 -0.0707  0.0303 C-LF   DeltaRM 1.11 
-     7 -0.0707  0.0505 C-LF   DeltaRM 1.33 
-     8 -0.0909  0.0505 C-LF   DeltaRM 1.56 
-     9 -0.0909  0.0707 C-LF   DeltaRM 1.78 
-    10 -0.111   0.0707 C-LF   DeltaRM 2    
+    # A tibble: 4 × 5
+         lb    ub method Delta    Mbar
+      <dbl> <dbl> <chr>  <chr>   <dbl>
+    1   Inf  -Inf C-LF   DeltaRM   0.5
+    2    -1     1 C-LF   DeltaRM   1  
+    3    -1     1 C-LF   DeltaRM   1.5
+    4    -1     1 C-LF   DeltaRM   2  
 
     $orig_ci
     # A tibble: 1 × 4
-       lb[,1]  ub[,1] method   Delta
-        <dbl>   <dbl> <chr>    <lgl>
-    1 -0.0431 0.00325 Original NA   
+      lb[,1] ub[,1] method   Delta
+       <dbl>  <dbl> <chr>    <lgl>
+    1  -14.3  -6.47 Original NA   
 
     $type
     [1] "relative_magnitude"
@@ -1066,18 +999,12 @@ hd_cs_rm_never
 ``` r
 # Drop 0 as that is not really allowed.
 hd_cs_rm_never$robust_ci <- hd_cs_rm_never$robust_ci[-1,]
-
 ## -----------------------------------------------------------------------------
 # make sensitivity analysis plots
 cs_HDiD_smooth <- createSensitivityPlot(hd_cs_smooth_never$robust_ci,
                       hd_cs_smooth_never$orig_ci)
-
-
 cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust_ci,
                                          hd_cs_rm_never$orig_ci)
-```
-
-``` r
 cs_HDiD_smooth
 ```
 
@@ -1097,21 +1024,199 @@ estimators? Are your results sensitive to violation of parallel trends
 assumptions?).
 
 ``` r
-## Write results, tables plots etc to use in the PDF file.
-## Save plots
-#ggsave(here("plots","cs_HDiD_smooth.png"),
-#       cs_HDiD_smooth,  
-#       dpi = 500,
-#       width = 14, 
-#       height = 7)
+  ## Plots
+  ggsave(here("Output","Figures", "plot1.png"),
+         plot,  
+         dpi = 500,
+         width = 14, 
+         height = 7)
+```
+
+    Warning: Removed 493 rows containing non-finite values (stat_boxplot).
+
+``` r
+  ggsave(here("Output","Figures", "plot2.png"),
+         plot3,  
+         dpi = 500,
+         width = 14, 
+         height = 7)
+```
+
+    `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+``` r
+  png(file=here("Output","Figures", "plot3.png"),
+      width=14, height=7, units="in", res=500)
+  iplot(mod.esct, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  dev.off()
+```
+
+    quartz_off_screen 
+                    2 
+
+``` r
+  png(file=here("Output","Figures", "plot4.png"),
+      width=14, height=7, units="in", res=500)
+  iplot(mod.esdt)
+  dev.off()
+```
+
+    quartz_off_screen 
+                    2 
+
+``` r
+  png(file=here("Output","Figures", "plot5.png"),
+      width=14, height=7, units="in", res=500)
+  coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  dev.off()
+```
+
+    quartz_off_screen 
+                    2 
+
+``` r
+  png(file=here("Output","Figures", "plot6.png"),
+      width=14, height=7, units="in", res=500)
+  ggdid(mod.cs)
+  dev.off()
+```
+
+    quartz_off_screen 
+                    2 
+
+``` r
+  png(file=here("Output","Figures", "plot7.png"),
+      width=14, height=7, units="in", res=500)
+  ggdid(mod.cs.event, 
+        title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
+  dev.off()
+```
+
+    quartz_off_screen 
+                    2 
+
+``` r
+  png(file=here("Output","Figures", "plot8.png"),
+      width=14, height=7, units="in", res=500)
+  cs_HDiD_smooth
+  dev.off()
+```
+
+    quartz_off_screen 
+                    2 
+
+``` r
+  png(file=here("Output","Figures", "plot9.png"),
+      width=14, height=7, units="in", res=500)
+  cs_HDiD_relmag
+  dev.off()
+```
+
+    quartz_off_screen 
+                    2 
+
+``` r
+  ## Tables
+  xtable(table1)
+```
+
+    Error in xtable(table1): could not find function "xtable"
+
+``` r
+  xtable(table2)
+```
+
+    Error in xtable(table2): could not find function "xtable"
+
+``` r
+  stargazer(mod.twfe, type='latex', align=TRUE, title = "Table 3",
+                      note="1-4 represents d, d_14,d_15 and d_16 respectevely",
+                      out = here("Output", "Tables", "table3.tex")) # Consider using ModelSummary  
+```
 
 
-# Save plots
-#ggsave(here("plots","cs_HDiD_relmag.png"),
-#       cs_HDiD_relmag,  
-#       dpi = 500,
-#       width = 14, 
-#       height = 7)
+    % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+    % Date and time: Thu, Sep 22, 2022 - 10:28:51
+    % Requires LaTeX packages: dcolumn 
+    \begin{table}[!htbp] \centering 
+      \caption{Table 3} 
+      \label{} 
+    \begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+    \\[-1.8ex]\hline 
+    \hline \\[-1.8ex] 
+     & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+    \cline{2-5} 
+    \\[-1.8ex] & \multicolumn{4}{c}{unc\_care} \\ 
+    \\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)} & \multicolumn{1}{c}{(3)} & \multicolumn{1}{c}{(4)}\\ 
+    \hline \\[-1.8ex] 
+     Treatment & -28.191^{***} & -26.243^{***} & -12.003^{***} & -12.424^{***} \\ 
+      & (1.883) & (1.795) & (1.811) & (1.543) \\ 
+      & & & & \\ 
+    \hline \\[-1.8ex] 
+    Observations & \multicolumn{1}{c}{79,557} & \multicolumn{1}{c}{79,557} & \multicolumn{1}{c}{79,557} & \multicolumn{1}{c}{79,557} \\ 
+    R$^{2}$ & \multicolumn{1}{c}{0.699} & \multicolumn{1}{c}{0.697} & \multicolumn{1}{c}{0.690} & \multicolumn{1}{c}{0.690} \\ 
+    Adjusted R$^{2}$ & \multicolumn{1}{c}{0.675} & \multicolumn{1}{c}{0.673} & \multicolumn{1}{c}{0.665} & \multicolumn{1}{c}{0.665} \\ 
+    Residual Std. Error (df = 73725) & \multicolumn{1}{c}{39.701} & \multicolumn{1}{c}{39.829} & \multicolumn{1}{c}{40.304} & \multicolumn{1}{c}{40.313} \\ 
+    \hline 
+    \hline \\[-1.8ex] 
+    \textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+    \end{tabular} 
+    \end{table} 
+
+    % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+    % Date and time: Thu, Sep 22, 2022 - 10:28:51
+    % Requires LaTeX packages: dcolumn 
+    \begin{table}[!htbp] \centering 
+      \caption{Table 3} 
+      \label{} 
+    \begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} } 
+    \\[-1.8ex]\hline 
+    \hline \\[-1.8ex] 
+    \multicolumn{1}{c}{1-4 represents d, d\_14,d\_15 and d\_16 respectevely} \\ 
+    \hline \\[-1.8ex] 
+    \end{tabular} 
+    \end{table} 
+
+    Error in file(file, ifelse(append, "a", "w")): cannot open the connection
+
+``` r
+  modelsummary(mod.esct, stars = TRUE, title = "Table 4",
+                         output= here("Output", "Tables", "table4.tex"))
+```
+
+    Error in sanitize_output(output): Assertion on 'output' failed: Path to file (dirname) does not exist: '/Users/nix/Documents/GitHub/Econ771/Output/Tables' of '/Users/nix/Documents/GitHub/Econ771/Output/Tables/table4.tex'.
+
+``` r
+  modelsummary(mod.esdt, stars=TRUE, title = "Table 5",
+                         output= here("Output", "Tables", "table5.tex"))
+```
+
+    Error in sanitize_output(output): Assertion on 'output' failed: Path to file (dirname) does not exist: '/Users/nix/Documents/GitHub/Econ771/Output/Tables' of '/Users/nix/Documents/GitHub/Econ771/Output/Tables/table5.tex'.
+
+``` r
+  modelsummary(mod.sa, stars = TRUE, title = "Table 6",
+                         output= here("Output", "Tables", "table6.tex"))
+```
+
+    Error in sanitize_output(output): Assertion on 'output' failed: Path to file (dirname) does not exist: '/Users/nix/Documents/GitHub/Econ771/Output/Tables' of '/Users/nix/Documents/GitHub/Econ771/Output/Tables/table6.tex'.
+
+``` r
+  modelsummary(mod.cs, title = "Table 7",
+                         output= here("Output", "Tables", "table7.tex"))
+```
+
+    Error in sanitize_output(output): Assertion on 'output' failed: Path to file (dirname) does not exist: '/Users/nix/Documents/GitHub/Econ771/Output/Tables' of '/Users/nix/Documents/GitHub/Econ771/Output/Tables/table7.tex'.
+
+``` r
+  modelsummary(mod.cs.event, title = "Table 8",
+                         output= here("Output", "Tables", "table8.tex"))
+```
+
+    Error in sanitize_output(output): Assertion on 'output' failed: Path to file (dirname) does not exist: '/Users/nix/Documents/GitHub/Econ771/Output/Tables' of '/Users/nix/Documents/GitHub/Econ771/Output/Tables/table8.tex'.
+
+``` r
+  rm(data_aca, data_hcris, data_pos, dat.reg, reg.dat, min_wage, fig_CS, df_1, df_2, df_3)
+  save.image(here("Output", "Rdata.Rdata"))
 ```
 
 ## Reflections

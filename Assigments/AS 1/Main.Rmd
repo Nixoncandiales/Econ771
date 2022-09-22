@@ -110,15 +110,21 @@ From the `HCRIS_data.txt` we select the variables `provider_number`, `year`, `un
 
 ```{r summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 df %>% ungroup() %>%
-  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE)
+  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
 
 df_1 %>%
   group_by(year) %>%
-  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) 
+  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
+  relocate(starts_with("unc"), starts_with("hosp")) -> table2
+
+table1
+table2
 ```
 
 ```{r plot-summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-df %>% filter(!(pn==151327 & year ==2016)) %>% ggplot(aes(x = year, y = unc_care, group=year)) +
+df <- df %>%  filter(!(pn==151327 & year ==2016) & unc_care > 0)
+
+df %>% ggplot(aes(x = year, y = unc_care, group=year)) +
   geom_boxplot() + 
   theme_tufte() +
     labs(x="Years", y="Uncompensated Care Millions", 
@@ -165,7 +171,7 @@ library(stargazer)
 
 
 ```{r plot-own-typ, warning=FALSE, comment=NA, message = FALSE}
-df %>%  filter(!(pn==151327 & year ==2016)) %>%
+df %>%
   filter(!(own_typ=='other')) %>%
   group_by(year, own_typ) %>%
   summarise_at(c('unc_care'), list(unc_care_mean = mean), na.rm=T) %>%
@@ -345,32 +351,6 @@ mod.cs.event
 ggdid(mod.cs)
 ggdid(mod.cs.event, 
       title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
-
-
-CS_never_cond <- mod.cs #id::att_gt(yname="unc_care",
-                  #           tname="year",
-                  #           idname="state_id",
-                  #           gname="expand_year",
-                  #           xformla=~1,
-                  #           #xformla = xformla,
-                  #           control_group="nevertreated",
-                  #           data = reg.dat,
-                  #           panel = TRUE,
-                  #           base_period="universal",
-                  #           bstrap = TRUE,
-                  #           cband = TRUE,
-                  #           allow_unbalanced_panel=TRUE)
-
-# Now, compute event study
-CS_es_never_cond <- mod.cs.event #aggte(CS_never_cond, type = "dynamic",
-                          #min_e = -5, max_e = 5)
-#summary(CS_es_never_cond)
-# Plot event study
-fig_CS <- ggdid(CS_es_never_cond,
-      title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
-
-fig_CS
-
 ```
 
 
@@ -402,9 +382,7 @@ library(tidyverse)
 library(dplyr)
 library(did)
 library(HonestDiD)
-
 ## -----------------------------------------------------------------------------
-
 #' @title honest_did
 #'
 #' @description a function to compute a sensitivity analysis
@@ -413,8 +391,6 @@ library(HonestDiD)
 honest_did <- function(es, ...) {
   UseMethod("honest_did", es)
 }
-
-
 #' @title honest_did.AGGTEobj
 #'
 #' @description a function to compute a sensitivity analysis
@@ -513,70 +489,120 @@ honest_did.AGGTEobj <- function(es,
   
   list(robust_ci=robust_ci, orig_ci=orig_ci, type=type)
 }
+```
 
+<<<<<<< Updated upstream
+=======
+```{r RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+>>>>>>> Stashed changes
 # code for running honest_did
 hd_cs_smooth_never <- honest_did(mod.cs.event,
                            type="smoothness", Mvec=c(0.5,1,1.5,2))
 hd_cs_smooth_never
+<<<<<<< Updated upstream
 
 
 hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(500,1000,1500,2000))
+=======
+hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(0.5,1,1.5,2))
+>>>>>>> Stashed changes
 hd_cs_rm_never
 # Drop 0 as that is not really allowed.
 hd_cs_rm_never$robust_ci <- hd_cs_rm_never$robust_ci[-1,]
-
 ## -----------------------------------------------------------------------------
 # make sensitivity analysis plots
 cs_HDiD_smooth <- createSensitivityPlot(hd_cs_smooth_never$robust_ci,
                       hd_cs_smooth_never$orig_ci)
-
-
 cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust_ci,
                                          hd_cs_rm_never$orig_ci)
+<<<<<<< Updated upstream
 
 cs_HDiD_smooth
 cs_HDiD_relmag
 ```
 
 ```{r RR,  tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+=======
+>>>>>>> Stashed changes
 cs_HDiD_smooth
 cs_HDiD_relmag
 ```
+
 
 
 ## Discussion
 Discuss your findings and compare estimates from different estimators (e.g., are your results sensitive to different specifications or estimators? Are your results sensitive to violation of parallel trends assumptions?).
 
 ```{r}
+  ## Plots
+  ggsave(here("Output","Figures", "plot1.png"),
+         plot,  
+         dpi = 500,
+         width = 14, 
+         height = 7)
+  
+  ggsave(here("Output","Figures", "plot2.png"),
+         plot3,  
+         dpi = 500,
+         width = 14, 
+         height = 7)
+  
+  png(file=here("Output","Figures", "plot3.png"),
+      width=14, height=7, units="in", res=500)
+  iplot(mod.esct, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot4.png"),
+      width=14, height=7, units="in", res=500)
+  iplot(mod.esdt)
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot5.png"),
+      width=14, height=7, units="in", res=500)
+  coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot6.png"),
+      width=14, height=7, units="in", res=500)
+  ggdid(mod.cs)
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot7.png"),
+      width=14, height=7, units="in", res=500)
+  ggdid(mod.cs.event, 
+        title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
+  dev.off()
 
-## Write results, tables plots etc to use in the PDF file.
+  png(file=here("Output","Figures", "plot8.png"),
+      width=14, height=7, units="in", res=500)
+  cs_HDiD_smooth
+  dev.off()
+  
+  png(file=here("Output","Figures", "plot9.png"),
+      width=14, height=7, units="in", res=500)
+  cs_HDiD_relmag
+  dev.off()
+  
+  
+  ## Tables
+  xtable(table1)
+  xtable(table2)
+  stargazer(mod.twfe, type='latex', align=TRUE, title = "Table 3",
+                      note="1-4 represents d, d_14,d_15 and d_16 respectevely",
+                      out = here("Output", "Tables", "table3.tex")) # Consider using ModelSummary  
+  modelsummary(mod.esct, stars = TRUE, title = "Table 4",
+                         output= here("Output", "Tables", "table4.tex"))
+  modelsummary(mod.esdt, stars=TRUE, title = "Table 5",
+                         output= here("Output", "Tables", "table5.tex"))
+  modelsummary(mod.sa, stars = TRUE, title = "Table 6",
+                         output= here("Output", "Tables", "table6.tex"))
+  modelsummary(mod.cs, title = "Table 7",
+                         output= here("Output", "Tables", "table7.tex"))
+  modelsummary(mod.cs.event, title = "Table 8",
+                         output= here("Output", "Tables", "table8.tex"))
 
-folder <- "mortalkombat"
-
-if (file.exists(folder)) {
-
- cat("The folder already exists")
-
-} else {
-
- dir.create(folder)
-
-}
-## Save plots
-#ggsave(here("plots","cs_HDiD_smooth.png"),
-#       cs_HDiD_smooth,  
-#       dpi = 500,
-#       width = 14, 
-#       height = 7)
-
-
-# Save plots
-#ggsave(here("plots","cs_HDiD_relmag.png"),
-#       cs_HDiD_relmag,  
-#       dpi = 500,
-#       width = 14, 
-#       height = 7)
-
+  rm(data_aca, data_hcris, data_pos, dat.reg, reg.dat, min_wage, fig_CS, df_1, df_2, df_3)
+  save.image(here("Output", "Rdata.Rdata"))
 ```
 
 ## Reflections

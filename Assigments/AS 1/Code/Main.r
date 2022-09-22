@@ -2,7 +2,7 @@
 
 ## Author:        Nixon Torres Candiales
 ## Date Created:  09/01/2022
-## Date Edited:   8/25/2022
+## Date Edited:   09/22/2022
 ## Notes:         -- Assigment 1. R-script 
 ##                   Need the 3 data sets on folder
 ##                   See Read ME.
@@ -262,186 +262,190 @@ df_1 %>%
   
   # At this point I am only able to reproduce their code. when trying to addapt to mod.cs.event gives a bug
   # the year previous to the treatment is zero and se NA ... this might be the reason of the bug... again, explore futher!!
-  
-  # Install some packages
-  library(devtools)
-  install_github("bcallaway11/BMisc", dependencies = TRUE)
-  install_github("bcallaway11/did", dependencies = TRUE)
-  install_github("asheshrambachan/HonestDiD", dependencies = TRUE)
+  ## UPDATE: after updating the function and passing the mvar parameter to the function, honest DID work!!!
 
-  # Load packages
+     # Install some packages
+    library(devtools)
+    install_github("bcallaway11/BMisc", dependencies = TRUE)
+    install_github("bcallaway11/did", dependencies = TRUE)
+    install_github("asheshrambachan/HonestDiD", dependencies = TRUE)
+    #--------------------------------------------------------------------------
+    # Load packages
+    #--------------------------------------------------------------------------
+    # Libraries
+    # Load libraries
+    library(ggplot2)
+    library(here)
+    library(foreign)
+    library(tidyverse)
+    library(dplyr)
+    library(did)
+    library(HonestDiD)
 
-  # Libraries
-  # Load libraries
-  library(ggplot2)
-  library(here)
-  library(foreign)
-  library(tidyverse)
-  library(dplyr)
-  library(did)
-  library(HonestDiD)
-  
-  ## 
-  
-  #' @title honest_did
-  #'
-  #' @description a function to compute a sensitivity analysis
-  #'  using the approach of Rambachan and Roth (2021)
-  #' @param es an event study
-  honest_did <- function(es, ...) {
-    UseMethod("honest_did", es)
-  }
-  
-  
-  #' @title honest_did.AGGTEobj
-  #'
-  #' @description a function to compute a sensitivity analysis
-  #'  using the approach of Rambachan and Roth (2021) when
-  #'  the event study is estimating using the `did` package
-  #'
-  #' @param e event time to compute the sensitivity analysis for.
-  #'  The default value is `e=0` corresponding to the "on impact"
-  #'  effect of participating in the treatment.
-  #' @param type Options are "smoothness" (which conducts a
-  #'  sensitivity analysis allowing for violations of linear trends
-  #'  in pre-treatment periods) or "relative_magnitude" (which
-  #'  conducts a sensitivity analysis based on the relative magnitudes
-  #'  of deviations from parallel trends in pre-treatment periods).
-  #' @inheritParams HonestDiD::createSensitivityResults
-  #' @inheritParams HonestDid::createSensitivityResults_relativeMagnitudes
-  honest_did.AGGTEobj <- function(es,
-                                  e=0,
-                                  type=c("smoothness", "relative_magnitude"),
-                                  method=NULL,
-                                  bound="deviation from parallel trends",
-                                  Mvec=NULL,
-                                  Mbarvec=NULL,
-                                  monotonicityDirection=NULL,
-                                  biasDirection=NULL,
-                                  alpha=0.05,
-                                  parallel=FALSE,
-                                  gridPoints=10^3,
-                                  grid.ub=NA,
-                                  grid.lb=NA,
-                                  ...) {
-    
-    
-    type <- type[1]
-    
-    # make sure that user is passing in an event study
-    if (es$type != "dynamic") {
-      stop("need to pass in an event study")
+    ## -----------------------------------------------------------------------------
+
+    #' @title honest_did
+    #'
+    #' @description a function to compute a sensitivity analysis
+    #'  using the approach of Rambachan and Roth (2021)
+    #' @param es an event study
+    honest_did <- function(es, ...) {
+      UseMethod("honest_did", es)
     }
-    
-    # check if used universal base period and warn otherwise
-    if (es$DIDparams$base_period != "universal") {
-      warning("it is recommended to use a universal base period for honest_did")
-    }
-    
-    # recover influence function for event study estimates
-    es_inf_func <- es$inf.function$dynamic.inf.func.e
-    
-    # recover variance-covariance matrix
-    n <- nrow(es_inf_func)
-    V <- t(es_inf_func) %*% es_inf_func / (n*n) 
-    
-    
-    nperiods <- nrow(V)
-    npre <- sum(1*(es$egt < 0))
-    npost <- nperiods - npre
-    
-    baseVec1 <- basisVector(index=(e+1),size=npost)
-    
-    orig_ci <- constructOriginalCS(betahat = es$att.egt,
-                                   sigma = V, numPrePeriods = npre,
-                                   numPostPeriods = npost,
-                                   l_vec = baseVec1)
-    
-    if (type=="relative_magnitude") {
-      if (is.null(method)) method <- "C-LF"
-      robust_ci <- createSensitivityResults_relativeMagnitudes(betahat = es$att.egt, sigma = V, 
-                                                               numPrePeriods = npre, 
-                                                               numPostPeriods = npost,
-                                                               bound=bound,
-                                                               method=method,
-                                                               l_vec = baseVec1,
-                                                               Mbarvec = Mbarvec,
-                                                               monotonicityDirection=monotonicityDirection,
-                                                               biasDirection=biasDirection,
-                                                               alpha=alpha,
-                                                               gridPoints=100,
-                                                               grid.lb=-1,
-                                                               grid.ub=1,
-                                                               parallel=parallel)
+
+
+    #' @title honest_did.AGGTEobj
+    #'
+    #' @description a function to compute a sensitivity analysis
+    #'  using the approach of Rambachan and Roth (2021) when
+    #'  the event study is estimating using the `did` package
+    #'
+    #' @param e event time to compute the sensitivity analysis for.
+    #'  The default value is `e=0` corresponding to the "on impact"
+    #'  effect of participating in the treatment.
+    #' @param type Options are "smoothness" (which conducts a
+    #'  sensitivity analysis allowing for violations of linear trends
+    #'  in pre-treatment periods) or "relative_magnitude" (which
+    #'  conducts a sensitivity analysis based on the relative magnitudes
+    #'  of deviations from parallel trends in pre-treatment periods).
+    #' @inheritParams HonestDiD::createSensitivityResults
+    #' @inheritParams HonestDid::createSensitivityResults_relativeMagnitudes
+    honest_did.AGGTEobj <- function(es,
+                                    e=0,
+                                    type=c("smoothness", "relative_magnitude"),
+                                    method=NULL,
+                                    bound="deviation from parallel trends",
+                                    Mvec=NULL,
+                                    Mbarvec=NULL,
+                                    monotonicityDirection=NULL,
+                                    biasDirection=NULL,
+                                    alpha=0.05,
+                                    parallel=FALSE,
+                                    gridPoints=10^3,
+                                    grid.ub=NA,
+                                    grid.lb=NA,
+                                    ...) {
       
-    } else if (type=="smoothness") {
-      robust_ci <- createSensitivityResults(betahat = es$att.egt,
-                                            sigma = V, 
-                                            numPrePeriods = npre, 
-                                            numPostPeriods = npost,
-                                            method=method,
-                                            l_vec = baseVec1,
-                                            monotonicityDirection=monotonicityDirection,
-                                            biasDirection=biasDirection,
-                                            alpha=alpha,
-                                            parallel=parallel)
+      
+      type <- type[1]
+      
+      # make sure that user is passing in an event study
+      if (es$type != "dynamic") {
+        stop("need to pass in an event study")
+      }
+      
+      # check if used universal base period and warn otherwise
+      if (es$DIDparams$base_period != "universal") {
+        warning("it is recommended to use a universal base period for honest_did")
+      }
+      
+      # recover influence function for event study estimates
+      es_inf_func <- es$inf.function$dynamic.inf.func.e
+      
+      # recover variance-covariance matrix
+      n <- nrow(es_inf_func)
+      V <- t(es_inf_func) %*% es_inf_func / (n*n) 
+      
+      
+      nperiods <- nrow(V)
+      npre <- sum(1*(es$egt < 0))
+      npost <- nperiods - npre
+      
+      baseVec1 <- basisVector(index=(e+1),size=npost)
+      
+      orig_ci <- constructOriginalCS(betahat = es$att.egt,
+                                     sigma = V, numPrePeriods = npre,
+                                     numPostPeriods = npost,
+                                     l_vec = baseVec1)
+      
+      if (type=="relative_magnitude") {
+        if (is.null(method)) method <- "C-LF"
+        robust_ci <- createSensitivityResults_relativeMagnitudes(betahat = es$att.egt, sigma = V, 
+                                                                 numPrePeriods = npre, 
+                                                                 numPostPeriods = npost,
+                                                                 bound=bound,
+                                                                 method=method,
+                                                                 l_vec = baseVec1,
+                                                                 Mbarvec = Mbarvec,
+                                                                 monotonicityDirection=monotonicityDirection,
+                                                                 biasDirection=biasDirection,
+                                                                 alpha=alpha,
+                                                                 gridPoints=100,
+                                                                 grid.lb=-1,
+                                                                 grid.ub=1,
+                                                                 parallel=parallel)
+        
+      } else if (type=="smoothness") {
+        robust_ci <- createSensitivityResults(betahat = es$att.egt,
+                                              sigma = V, 
+                                              numPrePeriods = npre, 
+                                              numPostPeriods = npost,
+                                              method=method,
+                                              l_vec = baseVec1,
+                                              monotonicityDirection=monotonicityDirection,
+                                              biasDirection=biasDirection,
+                                              alpha=alpha,
+                                              parallel=parallel)
+      }
+      
+      list(robust_ci=robust_ci, orig_ci=orig_ci, type=type)
     }
-    
-    list(robust_ci=robust_ci, orig_ci=orig_ci, type=type)
-  }
-  
-  # Load data used in Callaway and Sant'Anna (2021) application
-  min_wage <- mpdta
-  
-  # Formula for covariates 
-  #xformla <- ~ region + (medinc + pop ) + I(pop^2) + I(medinc^2)  + white + hs  + pov
-  # Using covariates and DR DiD with never-treated as comparison group
-  # Fix the reference time periods
-  CS_never_cond <- did::att_gt(yname="lemp",
-                               tname="year",
-                               idname="countyreal",
-                               gname="first.treat",
-                               xformla=~1,
-                               #xformla = xformla,
-                               control_group="nevertreated",
-                               data = min_wage,
-                               panel = TRUE,
-                               base_period="universal",
-                               bstrap = TRUE,
-                               cband = TRUE)
-  # Now, compute event study
-  CS_es_never_cond <- aggte(CS_never_cond, type = "dynamic",
-                            min_e = -5, max_e = 5)
-  #summary(CS_es_never_cond)
-  # Plot event study
-  fig_CS <- ggdid(CS_es_never_cond,
-                  title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
-  
-  fig_CS
-  
-  
-  # code for running honest_did
-  hd_cs_smooth_never <- honest_did(CS_es_never_cond,
-                                   type="smoothness")
-  hd_cs_smooth_never
-  
-  
-  hd_cs_rm_never <- honest_did(CS_es_never_cond, type="relative_magnitude")
-  hd_cs_rm_never
-  # Drop 0 as that is not really allowed.
-  hd_cs_rm_never$robust_ci <- hd_cs_rm_never$robust_ci[-1,]
-  
 
-  # make sensitivity analysis plots
-  cs_HDiD_smooth <- createSensitivityPlot(hd_cs_smooth_never$robust_ci,
-                                          hd_cs_smooth_never$orig_ci)
-  
-  
-  cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust_ci,
-                                                             hd_cs_rm_never$orig_ci)
-  
-  cs_HDiD_smooth
-  cs_HDiD_relmag
+    # Load data used in Callaway and Sant'Anna (2021) application
+    min_wage <- mpdta
+
+    # Formula for covariates 
+    #xformla <- ~ region + (medinc + pop ) + I(pop^2) + I(medinc^2)  + white + hs  + pov
+    #---------------------------------------------------------------------------
+    # Using covariates and DR DiD with never-treated as comparison group
+    # Fix the reference time periods
+    CS_never_cond <- did::att_gt(yname="lemp",
+                                 tname="year",
+                                 idname="countyreal",
+                                 gname="first.treat",
+                                 xformla=~1,
+                                 #xformla = xformla,
+                                 control_group="nevertreated",
+                                 data = min_wage,
+                                 panel = TRUE,
+                                 base_period="universal",
+                                 bstrap = TRUE,
+                                 cband = TRUE)
+    # Now, compute event study
+    CS_es_never_cond <- aggte(CS_never_cond, type = "dynamic",
+                              min_e = -5, max_e = 5)
+    #summary(CS_es_never_cond)
+    # Plot event study
+    fig_CS <- ggdid(CS_es_never_cond,
+          title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group ")
+
+    fig_CS
+
+
+    # code for running honest_did
+    hd_cs_smooth_never <- honest_did(CS_es_never_cond,
+                               type="smoothness")
+    hd_cs_smooth_never
+
+
+    hd_cs_rm_never <- honest_did(CS_es_never_cond, type="relative_magnitude")
+    hd_cs_rm_never
+    # Drop 0 as that is not really allowed.
+    hd_cs_rm_never$robust_ci <- hd_cs_rm_never$robust_ci[-1,]
+
+    ## -----------------------------------------------------------------------------
+    # make sensitivity analysis plots
+    cs_HDiD_smooth <- createSensitivityPlot(hd_cs_smooth_never$robust_ci,
+                          hd_cs_smooth_never$orig_ci)
+
+
+    cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust_ci,
+                                             hd_cs_rm_never$orig_ci)
+
+
+      
+      cs_HDiD_smooth
+      cs_HDiD_relmag
   
   
   
@@ -499,8 +503,8 @@ df_1 %>%
   
   ## Tables
   
-  table1 <- stargazer(table1, title = "Table 1", align = TRUE, out = here("Output", "Tables", "table1.tex"))
-  table2 <- stargazer(table2, title = "Table 2", align = TRUE, out = here("Output", "Tables", "table2.tex"))
+  table1 
+  table2 
   table3 <- stargazer(mod.twfe, type='latex', align=TRUE, title = "Table 3",
                       note="1-4 represents d, d_14,d_15 and d_16 respectevely",
                       out = here("Output", "Tables", "table3.tex")) # Consider using ModelSummary  
