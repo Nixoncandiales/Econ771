@@ -5,26 +5,22 @@ always_allow_html: true
 extra_dependencies:
   amsmath: null
 ---
-```{css parameters, include=FALSE}
-pre {
-  max-height: 100px;
-  overflow-y: auto;
-}
 
-pre[class] {
-  max-height: 100px;
-}
-```
-
-```{r setup, include=FALSE, cache=TRUE, tidy=TRUE, echo=FALSE}
-
+```{r setup, include=FALSE, cache=FALSE, tidy=TRUE, echo=FALSE}
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, stargazer, modelsummary, fixest, DRDID, ggthemes, patchwork, devtools, lfe)
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, haven, descriptr, HonestDiD, did, fixest, RColorBrewer, patchwork, ggthemes, DT, plotly, here, crosswalkr, plm, stargazer, modelsummary, fixest, DRDID, ggthemes, patchwork, devtools, lfe, naniar, xtable)
 knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
 
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
-knitr::opts_chunk$set(error = TRUE, cache =T)
+knitr::opts_chunk$set(error = TRUE, cache =TRUE)
 
+hook_in <- function(x, options) {
+    x <- x[!grepl("^#\\s+", x)]
+    paste0("```r\n",
+          paste0(x, collapse="\n"),
+          "\n```")
+}
+knitr::knit_hooks$set(source = hook_in)
 ```
 
 ## Downloading the Raw Data
@@ -37,20 +33,12 @@ if (!exists("data_pos")) data_pos <- read_stata(here("Output", "POS", "pos.dta")
 if (!exists("data_aca")) data_aca <- read.delim(here("Output", "ACA", "acs_medicaid.txt"))
 ```
 
-```{r data-hcris, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-ds_screener(data_hcris)
-```
+
 After a quick screening of the HCRIS data we can see the missing values are significantly high which suggest some variables are recorded differently across time and forms. It is of particular interest the variables `uncomp_care` and `tot_uncomp_care_charges` which are of our main interest. After reviewing the codebook we confirmed in fact these two variables are the same but coded different across forms. 
 
-```{r data-pos, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-ds_screener(data_pos)
-```
+
 
 From the provider of services data set we do not evidence missing data problems. We can observe if a particular POS went out of the market by either closing or merging and the respectively date of the event. It is to note the identifier variable is `pn` which is recorded as a character differs in the HCRIS data set `provider_number` which is coded as numerical. 
-
-```{r data-medicaid, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA}
-ds_screener(data_aca)
-```
 
 Finally, from the medicare data set we see the states that expanded the mandate and the date of event. Also, it is to note that the state identifier is not recorded in the same format across data sets.
 
@@ -85,13 +73,12 @@ df <- left_join(df_1, df_2, by='pn', 'year') %>%
               filter(!(unc_care == 'NA')) %>% # drop all observations that don't contain uncompensated care information
               mutate(state= coalesce(State, state), year= year.x) %>%
               distinct(pn, state, year, own_typ, unc_care, hosp_rev)
-## I do not fully understand the behavior of left_join it creates multiple row, so I am just taking the unique values per PN and YEAR
 
 df 
 
 ```
 
-```{r merge-2, include=TRUE, comment=NA}
+```{r merge-2, include=TRUE, comment=NA, warning=FALSE}
 df_3 <- data_aca %>% # crosswalk the states names to states abbreviations and drop Puerto Rico from the analysis
               #filter(!(State=='Puerto Rico')) %>%
               mutate(state= encodefrom(., State, stcrosswalk, stname, stfips, stabbr)) %>%
@@ -112,7 +99,7 @@ From the `HCRIS_data.txt` we select the variables `provider_number`, `year`, `un
 df %>% ungroup() %>%
   summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
 
-df_1 %>%
+df %>%
   group_by(year) %>%
   summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
   relocate(starts_with("unc"), starts_with("hosp")) -> table2
@@ -127,40 +114,43 @@ df <- df %>%  filter(!(pn==151327 & year ==2016) & unc_care > 0)
 df %>% ggplot(aes(x = year, y = unc_care, group=year)) +
   geom_boxplot() + 
   theme_tufte() +
-    labs(x="Years", y="Uncompensated Care Millions", 
+    labs(x="Years", y="Millions of Dollars", 
        title = "Distribution Hospital Uncompensated Care Over Time")-> plot1
 
 df %>% ggplot(aes(x = year, y = hosp_rev, group=year)) + 
   geom_boxplot() + 
   theme_tufte() +
-    labs(x="Years", y="Hospital Revenue Millions", 
+    labs(x="Years", y="Millions of Dollars", 
        title = "Distribution Hospital Total Revenue Over Time") -> plot2
 
 plot <- plot1  / plot2 
+
 plot
 
-### Evidence of extreme Outliers, are those misstipying> should I removed them? Ask.
 ```
+
 
 ```{r outliers, include=FALSE}
-#Identify Outliers Function
-#The objective of this function is to identify outliers
-is_outlier <- function(x, ...) {
-    return(x < quantile(x, 0.25, ...) -40.5 * IQR(x, ...) | x > quantile(x, 0.75, ...) + 40.5 * IQR(x, ...))
-}
-
-df %>%
-    group_by(year) %>%
-    mutate(outlier = is_outlier(unc_care, na.rm = TRUE)) %>%
-    filter(!(outlier == FALSE) & ( year == 2010 | year == 2016 )) 
-
-## PN : 151327 Year 2016
-## PN : 150056 Year 2010
-
-#### Those two values are extremely atypical... consider remove those!!
+# #Identify Outliers Function
+# #The objective of this function is to identify outliers
+# is_outlier <- function(x, ...) {
+#     return(x < quantile(x, 0.25, ...) -40.5 * IQR(x, ...) | x > quantile(x, 0.75, ...) + 40.5 * IQR(x, ...))
+# }
+# 
+# df %>%
+#     group_by(year) %>%
+#     mutate(outlier = is_outlier(unc_care, na.rm = TRUE)) %>%
+#     filter(!(outlier == FALSE) & ( year == 2010 | year == 2016 )) 
+# 
+# ## PN : 151327 Year 2016
+# ## PN : 150056 Year 2010
+# 
+# ## Those two values are extremely atypical... consider remove those!!
 ```
+
 ## By Ownership Type
 Create a figure showing the mean hospital uncompensated care from 2000 to 2018. Show this trend separately by hospital ownership type (private not for profit and private for profit).
+
 ```{r load-libraries, include=FALSE}
 library(tidyverse)
 library(ggthemes)
@@ -184,8 +174,8 @@ df %>%
   labs(x="Years", y="Total Uncompensated Care", 
        title = "Mean of Hospital Uncompensated Care in Millions of Dollars by Ownership Type", 
        fill = "Ownership type", color = "Ownership type") -> plot3
-
 plot3
+
 ```
 
 
@@ -198,22 +188,28 @@ where $D_{it}=1(E_{i}\leq t)$ in Equation 1 is an indicator set to 1 when a hosp
 
 
 ```{r DiD, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-#Create dummies for the control groups
-df %>% filter(!(pn==151327 & year ==2016) & unc_care > 0) %>%
-  mutate(d = case_when(expand == TRUE ~ 1),
-         d_14 = case_when((expand == TRUE & expand_year==2014) ~ 1),
-         d_15 = case_when((expand == TRUE & expand_year==2015) ~ 1),
-         d_16 = case_when((expand == TRUE & expand_year==2016) ~ 1)) %>%
-  mutate(across(d:d_16, ~ifelse(is.na(.),0,.))) -> df
+ df %>% group_by(pn) %>% 
+           fill(starts_with("exp"), .direction = "up")  %>%  # Fill the NA for the years that do not appear in the aca data set.
+           mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
+           mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
+                  expand=ifelse(!is.na(expand),expand,FALSE)) %>%
+           ungroup()%>%
+           mutate(treatment_year = ifelse(expand_year<=2019, expand_year,0),
+                  treated = ifelse(expand_year<=2019, expand_ever*1,0),
+                  post = (year>=treatment_year & !(treatment_year==0) ),
+                  D = treated*post,
+                  D14 = ifelse(treatment_year<2014, 0, ifelse(treatment_year>2014, 999, treated*post)),
+                  D15 = ifelse(treatment_year<2015, 0, ifelse(treatment_year>2015, 999, treated*post)),
+                  D16 = ifelse(treatment_year<2016, 0, ifelse(treatment_year>2016, 999, treated*post)))-> df
 
+ replace_with_na(df, list(D14=999,D15=999,D16=999)) -> df
 ```
 
 ```{r DiD-TWFE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 mod.twfe <- lapply(df %>% 
-                select(d:d_16), #Select the treatments 
+                select(D:D16), #Select the treatments 
               function(Treatment) felm(unc_care ~ Treatment | pn + year | 0 | pn, df)) #Apply the specification across the different treatments and store the results in a list
-
-stargazer(mod.twfe, type='text', note="1-4 representes d, d_14,d_15 and d_16 respectevely")
+stargazer(mod.twfe, type='text', note="1-4 representes D, D14,D15 and D16 respectevely")
 ```
 
 ## Event Study
@@ -226,44 +222,24 @@ where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation 2 is essentially an interact
 
 ```{r event-study-common, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 ### Common treatment timing
-dat.reg <- df %>% group_by(state) %>% 
-            mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
-            fill(starts_with("exp"), .direction = "up") %>%  # Fill the NA for the years that do not appear in the aca data set.
-            mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
-                   expand=ifelse(!is.na(expand),expand,FALSE),
-                   treated=ifelse(expand_ever==TRUE,1,0),
-                   post_treat=ifelse(expand==TRUE,1,0),
-                   D = treated*post_treat) %>% 
-            ungroup()
-
-mod.esct <- feols(unc_care~i(year, treated, ref=2013) | pn + year,
-               cluster=~pn,
-               data=dat.reg)
+ mod.esct <- feols(unc_care~i(year, treated, ref=2013) | pn + year,
+                cluster=~pn,
+                data=df)
 esttable(mod.esct)
 iplot(mod.esct)
 ```
 
 ``` {r event-study-diff, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 ##### Differential timgin treatment
-dat.reg <- df %>% group_by(state) %>% 
-            mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
-            fill(starts_with("exp"), .direction = "up") %>%  # Fill the NA for the years that do not appear in the aca data set.
-            mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
-                   expand=ifelse(!is.na(expand),expand,FALSE),
-                   treated=ifelse(expand_ever==TRUE,1,0),
-                   post_treat=ifelse(expand==TRUE,1,0),
-                   dif_timing = ifelse(expand_ever==FALSE, 0, ifelse(expand_year==0,0,year-expand_year)),
-                   time_to_treat = ifelse(dif_timing < -7, -7, dif_timing),
-                   D = treated*post_treat) %>% 
-            ungroup()
-
-mod.esdt <- feols(unc_care~i(time_to_treat, treated, ref=-1) | pn + year,
-                  cluster=~pn,
-                  data=dat.reg)
-
-modelsummary(mod.esdt, stars=TRUE)
+df %>% mutate(dif_timing = ifelse(expand_ever==FALSE, 0, ifelse(expand_year==0,0,year-expand_year)),
+                time_to_treat = ifelse(dif_timing < -7, -7, dif_timing)) %>% 
+                ungroup() -> df
+ 
+ mod.esdt <- feols(unc_care~i(time_to_treat, treated, ref=-1) | pn + year,
+                   cluster=~pn,
+                   data=df)
 esttable(mod.esdt)
-iplot(mod.esdt)
+ iplot(mod.esdt)
 ```
 
 ## SA specification
@@ -275,38 +251,51 @@ Re-estimate your event study using the SA specification in Equation 3. Show your
 
 
 ```{r sa, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-reg.dat <- df %>% 
-            group_by(state) %>% 
-            mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
-            fill(starts_with("exp"), .direction = "up")  %>%  # Fill the NA for the years that do not appear in the aca data set.
-            mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
-                   expand=ifelse(!is.na(expand),expand,FALSE))
+dat.reg <- df %>%
+           mutate(treatment_year = ifelse(treatment_year<2014 | treatment_year>2016, 10000, treatment_year),
+                  time_to_treat = ifelse(treated==0,-1, year-treatment_year),
+                  time_to_treat = ifelse(time_to_treat < -7, -7, time_to_treat))
+ 
+                  mod.sa <- feols(unc_care~sunab(treatment_year, time_to_treat)|pn+ year,
+                                     cluster=~pn,
+                                     data=dat.reg)
+                  
+esttable(mod.sa)
+```
 
-sa <- function(data, i){
-  
-  data %>%
-      mutate(post = (year>=i), 
-      treat=post*expand_ever,
-      expand_year = ifelse(expand_ever==FALSE, 10000, ifelse(expand_year>=i,expand_year,100000)),
-      time_to_treat = ifelse(expand_ever==FALSE, -1, year-expand_year),
-      time_to_treat = ifelse(time_to_treat < ifelse(i==2014,-5,
-                                                    ifelse(i==2015, -6 , -7 )), 
-                                             ifelse(i==2014,-5, ifelse(i==2015, -6 , -7 )) , 
-                             time_to_treat)) -> x
-
-   feols(unc_care~sunab(expand_year, time_to_treat) | pn + year,
-                      cluster=~pn,
-                      data=x)
-}
-
-
-mod.sa <- list(
-  "mod.sa.2016" = sa(reg.dat, 2016),
-  "mod.sa.2015" = sa(reg.dat, 2015),
-  "mod.sa.2014" = sa(reg.dat, 2014)
-)
-
-modelsummary(mod.sa, stars = TRUE, output = "markdown")
+```{r sa-old, eval=FALSE, include=FALSE}
+# reg.dat <- df %>% 
+#             group_by(state) %>% 
+#             mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
+#             fill(starts_with("exp"), .direction = "up")  %>%  # Fill the NA for the years that do not appear in the aca data set.
+#             mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
+#                    expand=ifelse(!is.na(expand),expand,FALSE))
+# 
+# sa <- function(data, i){
+#   
+#   data %>%
+#       mutate(post = (year>=i), 
+#       treat=post*expand_ever,
+#       expand_year = ifelse(expand_ever==FALSE, 10000, ifelse(expand_year>=i,expand_year,100000)),
+#       time_to_treat = ifelse(expand_ever==FALSE, -1, year-expand_year),
+#       time_to_treat = ifelse(time_to_treat < ifelse(i==2014,-5,
+#                                                     ifelse(i==2015, -6 , -7 )), 
+#                                              ifelse(i==2014,-5, ifelse(i==2015, -6 , -7 )) , 
+#                              time_to_treat)) -> x
+# 
+#    feols(unc_care~sunab(expand_year, time_to_treat) | pn + year,
+#                       cluster=~pn,
+#                       data=x)
+# }
+# 
+# 
+# mod.sa <- list(
+#   "mod.sa.2016" = sa(reg.dat, 2016),
+#   "mod.sa.2015" = sa(reg.dat, 2015),
+#   "mod.sa.2014" = sa(reg.dat, 2014)
+# )
+# 
+# modelsummary(mod.sa, stars = TRUE, output = "markdown")
 ```
 
 ## Event Study - SA specification
@@ -321,31 +310,26 @@ coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
 Callaway and Sant'Anna (CS) offer a non-parametric solution that effectively calculates a set of group-time specific differences, $ATT(g,t)= E[y_{it}(g) - y_{it}(\infty) | G_{i}=g]$, where $g$ reflects treatment timing and $t$ denotes time. They show that under the standard DD assumptions of parallel trends and no anticipation, $ATT(g,t) = E[y_{it} - y_{i, g-1} | G_{i}=g] - E[y_{it} - y_{i,g-1} | G_{i} = \infty]$, so that $\hat{ATT}(g,t)$ is directly estimable from sample analogs. CS also propose aggregations of $\hat{ATT}(g,t)$ to form an overall ATT or a time-specific ATT (e.g., ATTs for $\tau$ periods before/after treatment). With this framework in mind, provide an alternative event study using the CS estimator. Hint: check out the `did` package in `R` or the `csdid` package in `Stata`.
 
 ```{r cs, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-reg.dat <- df%>% 
-  filter(!is.na(expand_ever)) %>%
-  mutate(post = (year>=2014), 
-         treat=post*expand_ever,
-         expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
-  filter(!is.na(unc_care)) %>%
-  group_by(state) %>%
-  mutate(state_id=cur_group_id()) %>% ungroup()
-
+df %>% group_by(state) %>% 
+  mutate(state_id=cur_group_id()) %>% 
+  group_by(pn) %>% 
+  mutate(pn_id=cur_group_id()) %>% 
+  ungroup() %>% 
+  distinct(pn_id, year, .keep_all = TRUE) ->df
 
 mod.cs <- att_gt(yname="unc_care", 
                  tname="year", 
-                 idname="state_id",
-                 gname="expand_year",
-                 data=reg.dat, 
+                 idname="pn_id",
+                 gname="treatment_year",
+                 data=df, 
                  panel=TRUE, 
                  est_method="dr",
-                 #xformula= xformula,
                  cband=TRUE,
                  bstrap=TRUE,
                  allow_unbalanced_panel=TRUE,
                  base_period="universal")
-                 #control_group="nevertreated")
-mod.cs.event <- aggte(mod.cs, type="dynamic", min_e = -5, max_e = 5)
 
+mod.cs.event<- aggte(mod.cs, type="dynamic", min_e = -7, max_e = 6)
 mod.cs
 mod.cs.event
 ggdid(mod.cs)
@@ -364,7 +348,7 @@ $$
 Using the `HonestDiD` package in `R` or `Stata`, present a sensitivity plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$. Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for some help in combining the `HonestDiD` package with CS estimates.
 1
 
-```{r Aux-func-RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+```{r Aux-func-RR, warning=FALSE, cache=TRUE, comment=NA, include=FALSE, tidy=TRUE}
 # Install some packages
 library(devtools)
 install_github("bcallaway11/BMisc", dependencies = TRUE)
@@ -492,14 +476,13 @@ honest_did.AGGTEobj <- function(es,
 ```
 
 
-```{r RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-
+```{r RR, echo=TRUE, warning=FALSE, cache=TRUE, comment=NA, tidy=TRUE}
 # code for running honest_did
 hd_cs_smooth_never <- honest_did(mod.cs.event,
                            type="smoothness", Mvec=c(0.5,1,1.5,2))
 hd_cs_smooth_never
 
-hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(0.5,1,1.5,2))
+hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(500,1000,1500,2000))
 hd_cs_rm_never
 
 # Drop 0 as that is not really allowed.
@@ -512,7 +495,7 @@ cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust
                                          hd_cs_rm_never$orig_ci)
 ```
 
-```{r RR-plots,  tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+```{r RR-plots, echo=TRUE, warning=FALSE, cache=TRUE, comment=NA, tidy=TRUE}
 cs_HDiD_smooth
 cs_HDiD_relmag
 ```
@@ -522,77 +505,80 @@ cs_HDiD_relmag
 ## Discussion
 Discuss your findings and compare estimates from different estimators (e.g., are your results sensitive to different specifications or estimators? Are your results sensitive to violation of parallel trends assumptions?).
 
-```{r write-results}
+```{r write-results, eval=FALSE, include=FALSE}
   ## Plots
-#  ggsave(here("Output","Figures", "plot1.png"),
-#         plot,  
-#         dpi = 500,
-#         width = 14, 
-#         height = 7)
-  
-#  ggsave(here("Output","Figures", "plot2.png"),
-#         plot3,  
-#         dpi = 500,
-#         width = 14, 
-#         height = 7)
-  
-#  png(file=here("Output","Figures", "plot3.png"),
-#      width=14, height=7, units="in", res=500)
-#  iplot(mod.esct, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
-#  dev.off()
-  
-#  png(file=here("Output","Figures", "plot4.png"),
-#      width=14, height=7, units="in", res=500)
-#  iplot(mod.esdt)
-#  dev.off()
-  
-#  png(file=here("Output","Figures", "plot5.png"),
-#      width=14, height=7, units="in", res=500)
-#  coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
-#  dev.off()
-  
-#  png(file=here("Output","Figures", "plot6.png"),
-#      width=14, height=7, units="in", res=500)
-#  ggdid(mod.cs)
-#  dev.off()
-  
-#  png(file=here("Output","Figures", "plot7.png"),
-#      width=14, height=7, units="in", res=500)
-#  ggdid(mod.cs.event, 
-#        title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
-#  dev.off()
+here::i_am("Main.Rmd")
 
-#  png(file=here("Output","Figures", "plot8.png"),
-#      width=14, height=7, units="in", res=500)
-#  cs_HDiD_smooth
-#  dev.off()
-  
-#  png(file=here("Output","Figures", "plot9.png"),
-#      width=14, height=7, units="in", res=500)
-#  cs_HDiD_relmag
-#  dev.off()
-  
-  
+  png(file=here("Output","Figures", "plot1.png"),
+      width=14, height=7, units="in", res=500)
+  plot  
+  dev.off()
+
+  png(file=here("Output","Figures", "plot2.png"),
+      width=14, height=7, units="in", res=500)
+  plot3
+  dev.off()
+
+  png(file=here("Output","Figures", "plot3.png"),
+      width=14, height=7, units="in", res=500)
+  iplot(mod.esct, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  dev.off()
+
+  png(file=here("Output","Figures", "plot4.png"),
+      width=14, height=7, units="in", res=500)
+  iplot(mod.esdt)
+  dev.off()
+
+  png(file=here("Output","Figures", "plot5.png"),
+      width=14, height=7, units="in", res=500)
+  coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  dev.off()
+
+  png(file=here("Output","Figures", "plot6.png"),
+      width=14, height=7, units="in", res=500)
+  ggdid(mod.cs)
+  dev.off()
+
+  png(file=here("Output","Figures", "plot7.png"),
+      width=14, height=7, units="in", res=500)
+  ggdid(mod.cs.event,
+        title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
+  dev.off()
+
+  png(file=here("Output","Figures", "plot8.png"),
+      width=14, height=7, units="in", res=500)
+  cs_HDiD_smooth
+  dev.off()
+
+  png(file=here("Output","Figures", "plot9.png"),
+      width=14, height=7, units="in", res=500)
+  cs_HDiD_relmag
+  dev.off()
+
+
   ## Tables
 #  xtable(table1)
 #  xtable(table2)
-#  stargazer(mod.twfe, type='latex', align=TRUE, title = "Table 3",
-#                      note="1-4 represents d, d_14,d_15 and d_16 respectevely",
-#                      out = here("Output", "Tables", "table3.tex")) # Consider using ModelSummary  
-#  modelsummary(mod.esct, stars = TRUE, title = "Table 4",
-#                         output= here("Output", "Tables", "table4.tex"))
-#  modelsummary(mod.esdt, stars=TRUE, title = "Table 5",
-#                         output= here("Output", "Tables", "table5.tex"))
-#  modelsummary(mod.sa, stars = TRUE, title = "Table 6",
-#                         output= here("Output", "Tables", "table6.tex"))
-#  modelsummary(mod.cs, title = "Table 7",
-#                         output= here("Output", "Tables", "table7.tex"))
-#  modelsummary(mod.cs.event, title = "Table 8",
-#                         output= here("Output", "Tables", "table8.tex"))
+  stargazer(mod.twfe, type='latex', align=TRUE, title = "Table 3",
+                      note="1-4 represents d, d_14,d_15 and d_16 respectevely",
+                      out = here("Output", "Tables", "table3.tex")) # Consider using ModelSummary
+  modelsummary(mod.esct, stars = TRUE, title = "Table 4",
+                         output= here("Output", "Tables", "table4.tex"))
+  modelsummary(mod.esdt, stars=TRUE, title = "Table 5",
+                         output= here("Output", "Tables", "table5.tex"))
+  modelsummary(mod.sa, stars = TRUE, title = "Table 6",
+                         output= here("Output", "Tables", "table6.tex"))
+  modelsummary(mod.cs, title = "Table 7",
+                         output= here("Output", "Tables", "table7.tex"))
+  modelsummary(mod.cs.event, title = "Table 8",
+                         output= here("Output", "Tables", "table8.tex"))
 
-  rm(data_aca, data_hcris, data_pos, dat.reg, reg.dat, min_wage, fig_CS, df_1, df_2, df_3)
+  rm(data_aca, data_hcris, data_pos, dat.reg, reg.dat, df_1, df_2, df_3)
   save.image(here("Output", "Output.Rdata"))
 ```
 
+```{r eval=FALSE, include=FALSE}
+knitr::purl("Main.Rmd", documentation = 1, output="Code/Main.R")
+```
 ## Reflections
 Reflect on this assignment. What did you find most challenging? What did you find most surprising? 
