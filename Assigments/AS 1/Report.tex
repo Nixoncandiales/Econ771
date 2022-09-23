@@ -3,6 +3,7 @@
 \PassOptionsToPackage{hyphens}{url}
 %
 \documentclass[
+  12pt,
 ]{article}
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
@@ -15,6 +16,7 @@
   \usepackage{unicode-math}
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+  \setmainfont[]{SourceSansPro}
 \fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -65,6 +67,8 @@
 \titlespacing\section{0pt}{24pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
 \titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{2pt plus 2pt minus 2pt}
 \usepackage{parskip}
+\usepackage{siunitx}
+\newcolumntype{d}{S[input-symbols = ()]}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
@@ -79,8 +83,22 @@
 \usepackage[normalem]{ulem}
 \usepackage{makecell}
 \usepackage{xcolor}
-\usepackage{siunitx}
-\newcolumntype{d}{S[input-symbols = ()]}
+\usepackage[default]{sourcesanspro}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -107,9 +125,45 @@ Provide and discuss a table of simple summary statistics showing the
 mean, standard deviation, min, and max of hospital total revenues and
 uncompensated care over time.
 
+\includegraphics{Report_files/figure-latex/Fig-1-1.pdf}
+\includegraphics{Report_files/figure-latex/Fig-1-2.pdf}
+
+\begin{longtable}[t]{crrrrrrrr}
+\caption{\label{tab:Tab-1}Hospital Summary Statistics}\\
+\toprule
+\multicolumn{1}{c}{ } & \multicolumn{4}{c}{Uncompensated Care} & \multicolumn{4}{c}{Total Revenue} \\
+\cmidrule(l{3pt}r{3pt}){2-5} \cmidrule(l{3pt}r{3pt}){6-9}
+year & Mean & Sd & Min & Max & Mean & Sd & Min & Max\\
+\midrule
+2003 & 13.57 & 32.05 & 0 & 777.99 & 292.35 & 397.70 & 1.66 & 4722.76\\
+2004 & 15.33 & 36.66 & 0 & 820.25 & 327.69 & 445.42 & 0.27 & 5525.73\\
+2005 & 17.41 & 37.81 & 0 & 939.13 & 380.14 & 514.68 & 1.14 & 6398.55\\
+2006 & 20.97 & 47.16 & 0 & 1074.62 & 433.73 & 558.58 & 1.33 & 6718.17\\
+2007 & 23.56 & 51.28 & 0 & 1203.37 & 484.24 & 646.76 & 0.99 & 8577.05\\
+\addlinespace
+2008 & 26.43 & 57.06 & 0 & 1361.81 & 513.43 & 655.58 & 0.97 & 7743.08\\
+2009 & 27.44 & 46.42 & 0 & 583.98 & 552.80 & 718.35 & 0.89 & 9139.32\\
+2010 & 29.89 & 72.41 & 0 & 2793.92 & 576.62 & 779.98 & 0.84 & 9857.53\\
+2011 & 26.82 & 63.17 & 0 & 2059.70 & 480.04 & 776.84 & -27.58 & 10572.29\\
+2012 & 29.87 & 72.54 & 0 & 1882.62 & 505.10 & 830.36 & 0.85 & 11865.32\\
+\addlinespace
+2013 & 31.93 & 72.63 & 0 & 1652.58 & 539.20 & 903.93 & 0.95 & 12751.71\\
+2014 & 31.79 & 77.39 & 0 & 2024.85 & 577.45 & 980.59 & 1.09 & 13376.35\\
+2015 & 29.83 & 74.67 & 0 & 2054.15 & 623.38 & 1048.30 & 1.05 & 14143.53\\
+2016 & 31.14 & 80.95 & 0 & 2390.67 & 677.54 & 1157.37 & -177.03 & 15618.75\\
+2017 & 33.38 & 87.36 & 0 & 2733.60 & 727.36 & 1263.39 & 1.00 & 16863.43\\
+\addlinespace
+2018 & 35.90 & 90.49 & 0 & 2606.35 & 782.42 & 1386.47 & 1.07 & 18677.25\\
+2019 & 39.82 & 99.48 & 0 & 2648.26 & 855.33 & 1538.23 & 0.72 & 22000.93\\
+2003-2019 & 28.77 & 71.96 & 0 & 2793.92 & 574.79 & 993.11 & -177.03 & 22000.93\\
+\bottomrule
+\end{longtable}
+
 Create a figure showing the mean hospital uncompensated care from 2000
 to 2018. Show this trend separately by hospital ownership type (private
 not for profit and private for profit).
+
+\includegraphics{Report_files/figure-latex/Fig-2-1.pdf}
 
 \hypertarget{twfe-specification}{%
 \section{TWFE Specification}\label{twfe-specification}}
@@ -118,12 +172,11 @@ Using a simple DD identification strategy, estimate the effect of
 Medicaid expansion on hospital uncompensated care using a traditional
 two-way fixed effects (TWFE) estimation:
 
-\begin{equation}
+\begin{equation}\label{eq:dd}
 y_{it} = \alpha_{i} + \gamma_{t} + \delta D_{it} + \varepsilon_{it},
-(\#eq:dd)
 \end{equation}
 
-where \(D_{it}=1(E_{i}\leq t)\) in Equation @ref(eq:dd) is an indicator
+where \(D_{it}=1(E_{i}\leq t)\) in Equation \ref{eq:dd} is an indicator
 set to 1 when a hospital is in a state that expanded as of year \(t\) or
 earlier, \(\gamma_{t}\) denotes time fixed effects, \(\alpha_{i}\)
 denotes hospital fixed effects, and \(y_{it}\) denotes the hospital's
@@ -135,21 +188,46 @@ treatment group (with never treated as the control group); and one when
 limiting to the 2016 treatment group (with never treated as the control
 group). Briefly explain any differences.
 
+\begin{table}
+
+\caption{\label{tab:Tab-2}Two Way Fixed Effects}
+\centering
+\begin{tabular}[t]{lcccc}
+\toprule
+  & D & D14 & D15 & D16\\
+\midrule
+Treatment & -28.363*** & -31.518*** & -12.173*** & -12.153***\\
+ & (1.893) & (2.185) & (1.848) & (1.550)\\
+\midrule
+Num.Obs. & 79557 & 69824 & 74768 & 77624\\
+R2 & 0.699 & 0.708 & 0.690 & 0.691\\
+R2 Adj. & 0.675 & 0.684 & 0.666 & 0.667\\
+AIC & 817114.7 & 720035.7 & 772873.5 & 800104.3\\
+BIC & 871269.6 & 767580.1 & 823742.8 & 852930.5\\
+RMSE & 38.21 & 38.97 & 39.48 & 38.91\\
+Std.Errors & by: pn & by: pn & by: pn & by: pn\\
+\bottomrule
+\multicolumn{5}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
+\end{tabular}
+\end{table}
+
 \hypertarget{event-study-specification}{%
 \section{Event Study Specification}\label{event-study-specification}}
 
 Estimate an ``event study'' version of the specification in part 3:
-\begin{equation}
+
+\begin{equation}\label{eq:event}
 y_{it} = \alpha_{i} + \gamma_{t} +\sum_{\tau < -1} D_{it}^{\tau} \delta_{\tau} + \sum_{\tau>=0} D_{it}^{\tau} \delta_{\tau} + \varepsilon_{it},
-(\#eq:event)
-\end{equation} where \(D_{it}^{\tau} = 1(t-E_{i}=\tau)\) in Equation
-@ref(eq:event) is essentially an interaction between the treatment dummy
-and a relative time dummy. In this notation and context, \(\tau\)
-denotes years relative to Medicaid expansion, so that \(\tau=-1\)
-denotes the year before a state expanded Medicaid, \(\tau=0\) denotes
-the year of expansion, etc. Estimate with two different samples: one
-based on the full sample and one based only on those that expanded in
-2014 (with never treated as the control group).
+\end{equation}
+
+where \(D_{it}^{\tau} = 1(t-E_{i}=\tau)\) in Equation \ref{eq:event} is
+essentially an interaction between the treatment dummy and a relative
+time dummy. In this notation and context, \(\tau\) denotes years
+relative to Medicaid expansion, so that \(\tau=-1\) denotes the year
+before a state expanded Medicaid, \(\tau=0\) denotes the year of
+expansion, etc. Estimate with two different samples: one based on the
+full sample and one based only on those that expanded in 2014 (with
+never treated as the control group).
 
 \hypertarget{sa-specification}{%
 \section{SA Specification}\label{sa-specification}}
@@ -234,96 +312,23 @@ you find most surprising?
 \includegraphics{Report_files/figure-latex/Figures-9.pdf}
 \includegraphics{Report_files/figure-latex/Figures-10.pdf}
 
-\begin{tabular}{r|r|r|r|r|r|r|r}
-\hline
-unc\_care\_mean & unc\_care\_sd & unc\_care\_min & unc\_care\_max & hosp\_rev\_mean & hosp\_rev\_sd & hosp\_rev\_min & hosp\_rev\_max\\
-\hline
-28.16735 & 123.623 & -97.30909 & 20405.51 & 546.2998 & 960.0214 & -177.0319 & 22000.93\\
-\hline
-\end{tabular}
-
-\begin{tabular}{r|r|r|r|r|r|r|r|r}
-\hline
-year & unc\_care\_mean & unc\_care\_sd & unc\_care\_min & unc\_care\_max & hosp\_rev\_mean & hosp\_rev\_sd & hosp\_rev\_min & hosp\_rev\_max\\
-\hline
-2003 & 13.55729 & 32.03610 & -0.128490 & 777.9874 & 196.3262 & 339.2561 & -1.757898 & 4722.759\\
-\hline
-2004 & 15.32890 & 36.66149 & 0.000001 & 820.2530 & 217.0803 & 379.3015 & 0.154394 & 5525.731\\
-\hline
-2005 & 17.40974 & 37.81384 & 0.000001 & 939.1340 & 237.4987 & 419.2160 & 0.000001 & 6398.554\\
-\hline
-2006 & 20.95880 & 47.15167 & -2.667140 & 1074.6250 & 262.1557 & 464.1907 & -0.104189 & 7784.095\\
-\hline
-2007 & 23.56387 & 51.27956 & 0.000001 & 1203.3748 & 285.9671 & 508.0396 & 0.063650 & 8577.046\\
-\hline
-2008 & 26.42960 & 57.06260 & 0.000001 & 1361.8056 & 311.2402 & 555.7333 & 0.000004 & 9293.788\\
-\hline
-2009 & 27.43706 & 46.41793 & 0.000001 & 583.9753 & 341.9184 & 613.2093 & 0.119236 & 9846.465\\
-\hline
-2010 & 29.88757 & 72.40899 & 0.000001 & 2793.9230 & 365.1954 & 647.9589 & 0.306861 & 9857.535\\
-\hline
-2011 & 26.76233 & 63.14211 & -54.283503 & 2059.6983 & 393.8051 & 712.2275 & -27.582223 & 10572.291\\
-\hline
-2012 & 29.81961 & 72.48623 & -7.440619 & 1882.6199 & 417.7530 & 765.5364 & -11.799711 & 11865.320\\
-\hline
-2013 & 31.89600 & 72.59600 & -4.503324 & 1652.5760 & 446.2969 & 833.9052 & 0.094880 & 12751.708\\
-\hline
-2014 & 31.76630 & 77.36949 & -25.850677 & 2024.8518 & 478.1198 & 905.1911 & 0.006624 & 13376.352\\
-\hline
-2015 & 29.81547 & 74.65024 & -0.033577 & 2054.1505 & 517.6197 & 970.8773 & 0.009368 & 14143.533\\
-\hline
-2016 & 35.52159 & 310.04681 & -0.018982 & 20405.5142 & 562.2181 & 1070.3765 & -177.031923 & 15618.749\\
-\hline
-2017 & 33.37365 & 87.34864 & -0.027988 & 2733.5950 & 603.0033 & 1167.5586 & 0.124513 & 16863.431\\
-\hline
-2018 & 35.88876 & 90.47501 & -0.064101 & 2606.3455 & 651.7126 & 1283.8391 & 0.282914 & 18677.245\\
-\hline
-2019 & 39.77855 & 99.47749 & -97.309089 & 2648.2579 & 706.4571 & 1419.7912 & 0.000003 & 22000.932\\
-\hline
-\end{tabular}
-
-\begin{table}[H] \centering 
-  \caption{Two Way Fixed Effect Model} 
-  \label{table-3} 
-\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
- & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
-\cline{2-5} 
-\\[-1.8ex] & \multicolumn{4}{c}{unc\_care} \\ 
- & M1 & M2 & M3 &  \\ 
-\hline \\[-1.8ex] 
- Treatment & $-$28.191$^{***}$ & $-$26.243$^{***}$ & $-$12.003$^{***}$ & $-$12.424$^{***}$ \\ 
-  & (1.883) & (1.795) & (1.811) & (1.543) \\ 
-  & & & & \\ 
-\hline \\[-1.8ex] 
-Observations & 79,557 & 79,557 & 79,557 & 79,557 \\ 
-R$^{2}$ & 0.699 & 0.697 & 0.690 & 0.690 \\ 
-Adjusted R$^{2}$ & 0.675 & 0.673 & 0.665 & 0.665 \\ 
-Residual Std. Error (df = 73725) & 39.701 & 39.829 & 40.304 & 40.313 \\ 
-\hline 
-\hline \\[-1.8ex] 
-\textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
-\end{tabular} 
-\end{table}
-
 \begin{table}
 
 \caption{\label{tab:table-4}Two Way Fixed Effects long format}
 \centering
 \begin{tabular}[t]{lcccc}
 \toprule
-  & d & d\_14 & d\_15 & d\_16\\
+  & D & D14 & D15 & D16\\
 \midrule
-Treatment & \num{-28.191}*** & \num{-26.243}*** & \num{-12.003}*** & \num{-12.424}***\\
- & (\num{1.883}) & (\num{1.795}) & (\num{1.811}) & (\num{1.543})\\
+Treatment & -28.363*** & -31.518*** & -12.173*** & -12.153***\\
+ & (1.893) & (2.185) & (1.848) & (1.550)\\
 \midrule
-Num.Obs. & \num{79557} & \num{79557} & \num{79557} & \num{79557}\\
-R2 & \num{0.699} & \num{0.697} & \num{0.690} & \num{0.690}\\
-R2 Adj. & \num{0.675} & \num{0.673} & \num{0.665} & \num{0.665}\\
-AIC & \num{817139.6} & \num{817654.2} & \num{819537.5} & \num{819575.0}\\
-BIC & \num{871294.5} & \num{871809.1} & \num{873692.4} & \num{873729.9}\\
-RMSE & \num{38.22} & \num{38.34} & \num{38.80} & \num{38.81}\\
+Num.Obs. & 79557 & 69824 & 74768 & 77624\\
+R2 & 0.699 & 0.708 & 0.690 & 0.691\\
+R2 Adj. & 0.675 & 0.684 & 0.666 & 0.667\\
+AIC & 817114.7 & 720035.7 & 772873.5 & 800104.3\\
+BIC & 871269.6 & 767580.1 & 823742.8 & 852930.5\\
+RMSE & 38.21 & 38.97 & 39.48 & 38.91\\
 Std.Errors & by: pn & by: pn & by: pn & by: pn\\
 \bottomrule
 \multicolumn{5}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
@@ -338,43 +343,43 @@ Std.Errors & by: pn & by: pn & by: pn & by: pn\\
 \toprule
   & Model 1\\
 \midrule
-year = 2003 × treated & \num{19.485}***\\
- & (\num{3.164})\\
-year = 2004 × treated & \num{18.189}***\\
- & (\num{2.908})\\
-year = 2005 × treated & \num{17.172}***\\
- & (\num{2.965})\\
-year = 2006 × treated & \num{19.119}***\\
- & (\num{3.292})\\
-year = 2007 × treated & \num{18.782}***\\
- & (\num{3.478})\\
-year = 2008 × treated & \num{15.392}***\\
- & (\num{3.328})\\
-year = 2009 × treated & \num{12.430}***\\
- & (\num{2.711})\\
-year = 2010 × treated & \num{11.285}***\\
- & (\num{2.717})\\
-year = 2011 × treated & \num{4.376}***\\
- & (\num{1.106})\\
-year = 2012 × treated & \num{1.371}\\
- & (\num{0.873})\\
-year = 2014 × treated & \num{-9.102}***\\
- & (\num{0.987})\\
-year = 2015 × treated & \num{-15.893}***\\
- & (\num{1.431})\\
-year = 2016 × treated & \num{-19.503}***\\
- & (\num{1.585})\\
-year = 2017 × treated & \num{-25.378}***\\
- & (\num{1.959})\\
-year = 2018 × treated & \num{-29.139}***\\
- & (\num{2.155})\\
-year = 2019 × treated & \num{-35.394}***\\
- & (\num{2.603})\\
+year = 2003 × treated & 13.696***\\
+ & (2.841)\\
+year = 2004 × treated & 14.798***\\
+ & (2.663)\\
+year = 2005 × treated & 15.216***\\
+ & (2.756)\\
+year = 2006 × treated & 16.779***\\
+ & (3.044)\\
+year = 2007 × treated & 16.696***\\
+ & (3.159)\\
+year = 2008 × treated & 14.246***\\
+ & (3.055)\\
+year = 2009 × treated & 11.508***\\
+ & (2.403)\\
+year = 2010 × treated & 10.283***\\
+ & (2.546)\\
+year = 2011 × treated & 3.128**\\
+ & (0.988)\\
+year = 2012 × treated & 1.217\\
+ & (0.765)\\
+year = 2014 × treated & -8.672***\\
+ & (0.860)\\
+year = 2015 × treated & -16.546***\\
+ & (1.262)\\
+year = 2016 × treated & -19.616***\\
+ & (1.373)\\
+year = 2017 × treated & -25.197***\\
+ & (1.654)\\
+year = 2018 × treated & -28.200***\\
+ & (1.804)\\
+year = 2019 × treated & -33.353***\\
+ & (2.156)\\
 \midrule
-Num.Obs. & \num{79557}\\
-AIC & \num{804621.4}\\
-BIC & \num{804779.2}\\
-RMSE & \num{38.01}\\
+Num.Obs. & 79557\\
+AIC & 804841.0\\
+BIC & 804998.9\\
+RMSE & 38.06\\
 Std.Errors & by: pn\\
 FE: pn & X\\
 FE: year & X\\
@@ -391,35 +396,35 @@ FE: year & X\\
 \toprule
   & Model 1\\
 \midrule
-time\_to\_treat = -7 × treated & \num{5.137}***\\
- & (\num{1.412})\\
-time\_to\_treat = -6 × treated & \num{4.920}**\\
- & (\num{1.502})\\
-time\_to\_treat = -5 × treated & \num{2.254}\\
- & (\num{1.551})\\
-time\_to\_treat = -4 × treated & \num{-1.602}\\
- & (\num{1.308})\\
-time\_to\_treat = -3 × treated & \num{-2.416}*\\
- & (\num{1.027})\\
-time\_to\_treat = -2 × treated & \num{-0.141}\\
- & (\num{0.578})\\
-time\_to\_treat = 0 × treated & \num{8.151}***\\
- & (\num{1.599})\\
-time\_to\_treat = 1 × treated & \num{-16.830}***\\
- & (\num{1.009})\\
-time\_to\_treat = 2 × treated & \num{-22.370}***\\
- & (\num{1.256})\\
-time\_to\_treat = 3 × treated & \num{-27.793}***\\
- & (\num{1.537})\\
-time\_to\_treat = 4 × treated & \num{-30.231}***\\
- & (\num{1.738})\\
-time\_to\_treat = 5 × treated & \num{-33.524}***\\
- & (\num{2.060})\\
+time\_to\_treat = -7 × treated & 14.553***\\
+ & (2.611)\\
+time\_to\_treat = -6 × treated & 12.287***\\
+ & (2.547)\\
+time\_to\_treat = -5 × treated & 10.850***\\
+ & (2.542)\\
+time\_to\_treat = -4 × treated & 5.346**\\
+ & (1.674)\\
+time\_to\_treat = -3 × treated & 3.606***\\
+ & (0.842)\\
+time\_to\_treat = -2 × treated & 1.750**\\
+ & (0.548)\\
+time\_to\_treat = 0 × treated & -9.201***\\
+ & (0.622)\\
+time\_to\_treat = 1 × treated & -18.916***\\
+ & (1.067)\\
+time\_to\_treat = 2 × treated & -23.692***\\
+ & (1.287)\\
+time\_to\_treat = 3 × treated & -28.244***\\
+ & (1.526)\\
+time\_to\_treat = 4 × treated & -30.934***\\
+ & (1.730)\\
+time\_to\_treat = 5 × treated & -35.122***\\
+ & (2.088)\\
 \midrule
-Num.Obs. & \num{79557}\\
-AIC & \num{805085.8}\\
-BIC & \num{805206.5}\\
-RMSE & \num{38.12}\\
+Num.Obs. & 79557\\
+AIC & 804661.4\\
+BIC & 804782.1\\
+RMSE & 38.02\\
 Std.Errors & by: pn\\
 FE: pn & X\\
 FE: year & X\\
@@ -432,44 +437,44 @@ FE: year & X\\
 
 \caption{\label{tab:table-4}SA especification}
 \centering
-\begin{tabular}[t]{lccc}
+\begin{tabular}[t]{lc}
 \toprule
-  & mod.sa.2016 & mod.sa.2015 & mod.sa.2014\\
+  & Model 1\\
 \midrule
-time\_to\_treat = -7 & \num{-5.298}** &  & \\
- & (\num{1.806}) &  & \\
-time\_to\_treat = -6 & \num{-6.820}** & \num{-6.301}** & \\
- & (\num{2.306}) & (\num{2.025}) & \\
-time\_to\_treat = -5 & \num{-1.181} & \num{-1.023} & \num{-4.815}+\\
- & (\num{3.792}) & (\num{3.790}) & (\num{2.575})\\
-time\_to\_treat = -4 & \num{-4.281}** & \num{-4.591}** & \num{-7.985}***\\
- & (\num{1.474}) & (\num{5.908}) & (\num{1.733})\\
-time\_to\_treat = -3 & \num{-2.801} & \num{-4.501}** & \num{-6.371}***\\
- & (\num{2.155}) & (\num{2.097}) & (\num{1.529})\\
-time\_to\_treat = -2 & \num{-0.286} & \num{-3.207}* & \num{-6.684}***\\
- & (\num{2.473}) & (\num{1.384}) & (\num{1.369})\\
-time\_to\_treat = 0 & \num{-2.493} & \num{-5.394}** & \num{-16.855}***\\
- & (\num{2.524}) & (\num{1.278}) & (\num{1.673})\\
-time\_to\_treat = 1 & \num{-15.240}*** & \num{-12.623}*** & \num{-26.405}***\\
- & (\num{1.783}) & (\num{1.921}) & (\num{1.890})\\
-time\_to\_treat = 2 & \num{-19.497}*** & \num{-16.957}*** & \num{-30.859}***\\
- & (\num{1.880}) & (\num{2.156}) & (\num{2.158})\\
-time\_to\_treat = 3 & \num{-23.461}*** & \num{-20.513}*** & \num{-35.758}***\\
- & (\num{2.161}) & (\num{2.128}) & (\num{2.431})\\
-time\_to\_treat = 4 &  & \num{-19.194}*** & \num{-38.103}***\\
- &  & (\num{5.484}) & (\num{2.538})\\
-time\_to\_treat = 5 &  &  & \num{-42.934}***\\
- &  &  & (\num{3.003})\\
+time\_to\_treat = -7 & 15.552***\\
+ & (2.563)\\
+time\_to\_treat = -6 & 14.639***\\
+ & (2.875)\\
+time\_to\_treat = -5 & 12.228***\\
+ & (2.528)\\
+time\_to\_treat = -4 & 7.590***\\
+ & (1.767)\\
+time\_to\_treat = -3 & 3.401***\\
+ & (0.895)\\
+time\_to\_treat = -2 & 1.638**\\
+ & (0.634)\\
+time\_to\_treat = 0 & -9.411***\\
+ & (0.723)\\
+time\_to\_treat = 1 & -18.360***\\
+ & (1.129)\\
+time\_to\_treat = 2 & -22.200***\\
+ & (1.280)\\
+time\_to\_treat = 3 & -26.974***\\
+ & (1.528)\\
+time\_to\_treat = 4 & -29.782***\\
+ & (1.729)\\
+time\_to\_treat = 5 & -34.456***\\
+ & (2.107)\\
 \midrule
-Num.Obs. & \num{79557} & \num{79557} & \num{79557}\\
-AIC & \num{807862.7} & \num{807729.3} & \num{804897.4}\\
-BIC & \num{807964.8} & \num{807831.4} & \num{804999.5}\\
-RMSE & \num{38.79} & \num{38.76} & \num{38.07}\\
-Std.Errors & by: pn & by: pn & by: pn\\
-FE: pn & X & X & X\\
-FE: year & X & X & X\\
+Num.Obs. & 79557\\
+AIC & 804610.3\\
+BIC & 804731.0\\
+RMSE & 38.00\\
+Std.Errors & by: pn\\
+FE: pn & X\\
+FE: year & X\\
 \bottomrule
-\multicolumn{4}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
+\multicolumn{2}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
 \end{tabular}
 \end{table}
 
@@ -481,71 +486,143 @@ FE: year & X & X & X\\
 \toprule
   & Model 1\\
 \midrule
-ATT(2014,2012) & \num{0.501}\\
- & (\num{0.852})\\
-ATT(2014,2013) & \num{0.000}\\
-ATT(2014,2014) & \num{-10.982}\\
- & (\num{2.115})\\
-ATT(2014,2015) & \num{-19.827}\\
- & (\num{3.640})\\
-ATT(2014,2016) & \num{-22.794}\\
- & (\num{4.308})\\
-ATT(2014,2017) & \num{-27.690}\\
- & (\num{5.275})\\
-ATT(2014,2018) & \num{-30.212}\\
- & (\num{6.353})\\
-ATT(2014,2019) & \num{-35.792}\\
- & (\num{8.740})\\
-ATT(2015,2012) & \num{6.244}\\
- & (\num{2.258})\\
-ATT(2015,2013) & \num{5.781}\\
- & (\num{1.853})\\
-ATT(2015,2014) & \num{0.000}\\
-ATT(2015,2015) & \num{-5.401}\\
- & (\num{2.480})\\
-ATT(2015,2016) & \num{-9.522}\\
- & (\num{2.284})\\
-ATT(2015,2017) & \num{-16.522}\\
- & (\num{3.369})\\
-ATT(2015,2018) & \num{-20.673}\\
- & (\num{4.328})\\
-ATT(2015,2019) & \num{-25.534}\\
- & (\num{6.872})\\
-ATT(2016,2012) & \num{3.523}\\
- & (\num{4.775})\\
-ATT(2016,2013) & \num{2.544}\\
- & (\num{4.380})\\
-ATT(2016,2014) & \num{0.879}\\
- & (\num{1.537})\\
-ATT(2016,2015) & \num{0.000}\\
-ATT(2016,2016) & \num{-4.752}\\
- & (\num{1.310})\\
-ATT(2016,2017) & \num{-18.249}\\
- & (\num{4.751})\\
-ATT(2016,2018) & \num{-23.546}\\
- & (\num{5.796})\\
-ATT(2016,2019) & \num{-31.190}\\
- & (\num{7.334})\\
-ATT(2019,2012) & \num{-2.711}\\
- & (\num{11.516})\\
-ATT(2019,2013) & \num{-4.623}\\
- & (\num{11.396})\\
-ATT(2019,2014) & \num{-3.978}\\
- & (\num{9.381})\\
-ATT(2019,2015) & \num{-3.711}\\
- & (\num{6.772})\\
-ATT(2019,2016) & \num{-0.441}\\
- & (\num{4.826})\\
-ATT(2019,2017) & \num{-3.331}\\
- & (\num{3.430})\\
-ATT(2019,2018) & \num{0.000}\\
-ATT(2019,2019) & \num{-15.267}\\
- & (\num{3.390})\\
+ATT(2014,2003) & 5.619\\
+ & (2.375)\\
+ATT(2014,2004) & 5.711\\
+ & (2.274)\\
+ATT(2014,2005) & 5.374\\
+ & (2.530)\\
+ATT(2014,2006) & 5.922\\
+ & (2.684)\\
+ATT(2014,2007) & 3.030\\
+ & (2.449)\\
+ATT(2014,2008) & 1.638\\
+ & (2.699)\\
+ATT(2014,2009) & -2.067\\
+ & (2.026)\\
+ATT(2014,2010) & -3.365\\
+ & (1.991)\\
+ATT(2014,2011) & 2.530\\
+ & (1.087)\\
+ATT(2014,2012) & 0.090\\
+ & (0.939)\\
+ATT(2014,2013) & 0.000\\
+ATT(2014,2014) & -11.446\\
+ & (0.960)\\
+ATT(2014,2015) & -20.250\\
+ & (1.319)\\
+ATT(2014,2016) & -23.016\\
+ & (1.438)\\
+ATT(2014,2017) & -27.688\\
+ & (1.633)\\
+ATT(2014,2018) & -30.492\\
+ & (1.775)\\
+ATT(2014,2019) & -35.639\\
+ & (2.004)\\
+ATT(2015,2003) & 9.581\\
+ & (3.160)\\
+ATT(2015,2004) & 9.444\\
+ & (3.557)\\
+ATT(2015,2005) & 8.175\\
+ & (3.349)\\
+ATT(2015,2006) & 5.645\\
+ & (3.583)\\
+ATT(2015,2007) & 2.815\\
+ & (3.404)\\
+ATT(2015,2008) & -0.399\\
+ & (3.676)\\
+ATT(2015,2009) & 0.605\\
+ & (3.357)\\
+ATT(2015,2010) & 16.846\\
+ & (22.388)\\
+ATT(2015,2011) & 4.925\\
+ & (1.828)\\
+ATT(2015,2012) & 5.675\\
+ & (1.251)\\
+ATT(2015,2013) & 5.192\\
+ & (1.282)\\
+ATT(2015,2014) & 0.000\\
+ATT(2015,2015) & -6.085\\
+ & (1.716)\\
+ATT(2015,2016) & -10.157\\
+ & (1.495)\\
+ATT(2015,2017) & -17.013\\
+ & (1.813)\\
+ATT(2015,2018) & -21.307\\
+ & (1.944)\\
+ATT(2015,2019) & -25.460\\
+ & (2.135)\\
+ATT(2016,2003) & 29.158\\
+ & (4.927)\\
+ATT(2016,2004) & 21.529\\
+ & (4.244)\\
+ATT(2016,2005) & 19.723\\
+ & (6.081)\\
+ATT(2016,2006) & 12.756\\
+ & (3.590)\\
+ATT(2016,2007) & 10.826\\
+ & (3.354)\\
+ATT(2016,2008) & 6.127\\
+ & (3.635)\\
+ATT(2016,2009) & 2.996\\
+ & (4.008)\\
+ATT(2016,2010) & 2.476\\
+ & (3.834)\\
+ATT(2016,2011) & 8.916\\
+ & (2.575)\\
+ATT(2016,2012) & 3.534\\
+ & (2.469)\\
+ATT(2016,2013) & 3.086\\
+ & (2.306)\\
+ATT(2016,2014) & 1.219\\
+ & (1.472)\\
+ATT(2016,2015) & 0.000\\
+ATT(2016,2016) & -4.421\\
+ & (1.027)\\
+ATT(2016,2017) & -17.219\\
+ & (1.922)\\
+ATT(2016,2018) & -22.605\\
+ & (1.971)\\
+ATT(2016,2019) & -29.956\\
+ & (2.160)\\
+ATT(2019,2003) & 3.792\\
+ & (7.601)\\
+ATT(2019,2004) & 3.579\\
+ & (7.524)\\
+ATT(2019,2005) & 3.881\\
+ & (7.405)\\
+ATT(2019,2006) & 2.088\\
+ & (8.039)\\
+ATT(2019,2007) & 13.455\\
+ & (16.782)\\
+ATT(2019,2008) & 2.485\\
+ & (8.036)\\
+ATT(2019,2009) & 1.421\\
+ & (7.635)\\
+ATT(2019,2010) & -5.484\\
+ & (7.566)\\
+ATT(2019,2011) & -2.569\\
+ & (7.007)\\
+ATT(2019,2012) & -3.883\\
+ & (6.746)\\
+ATT(2019,2013) & -6.017\\
+ & (6.656)\\
+ATT(2019,2014) & -5.034\\
+ & (6.686)\\
+ATT(2019,2015) & -5.227\\
+ & (6.265)\\
+ATT(2019,2016) & -0.849\\
+ & (1.817)\\
+ATT(2019,2017) & -3.429\\
+ & (1.477)\\
+ATT(2019,2018) & 0.000\\
+ATT(2019,2019) & -15.544\\
+ & (1.490)\\
 \midrule
-Num.Obs. & \num{51}\\
-Std.Errors & by: state\_id\\
-ngroup & \num{4.000}\\
-ntime & \num{8.000}\\
+Num.Obs. & 5815\\
+Std.Errors & by: pn\_id\\
+ngroup & 4.000\\
+ntime & 17.000\\
 control.group & nevertreated\\
 est.method & dr\\
 \bottomrule
@@ -560,33 +637,37 @@ est.method & dr\\
 \toprule
   & Model 1\\
 \midrule
-ATT(-5) & \num{-3.978}\\
- & (\num{9.229})\\
-ATT(-4) & \num{-0.094}\\
- & (\num{5.270})\\
-ATT(-3) & \num{3.277}\\
- & (\num{3.012})\\
-ATT(-2) & \num{0.764}\\
- & (\num{0.947})\\
-ATT(-1) & \num{0.000}\\
-ATT(0) & \num{-10.375}\\
- & (\num{2.090})\\
-ATT(1) & \num{-18.762}\\
- & (\num{3.406})\\
-ATT(2) & \num{-22.253}\\
- & (\num{4.142})\\
-ATT(3) & \num{-27.251}\\
- & (\num{5.016})\\
-ATT(4) & \num{-29.744}\\
- & (\num{6.283})\\
-ATT(5) & \num{-35.792}\\
- & (\num{8.920})\\
+ATT(-7) & 2.333\\
+ & (2.261)\\
+ATT(-6) & 1.235\\
+ & (2.336)\\
+ATT(-5) & 0.653\\
+ & (2.575)\\
+ATT(-4) & -2.060\\
+ & (1.549)\\
+ATT(-3) & 2.769\\
+ & (0.944)\\
+ATT(-2) & 0.581\\
+ & (0.680)\\
+ATT(-1) & 0.000\\
+ATT(0) & -10.562\\
+ & (0.753)\\
+ATT(1) & -18.852\\
+ & (1.103)\\
+ATT(2) & -22.281\\
+ & (1.305)\\
+ATT(3) & -27.093\\
+ & (1.558)\\
+ATT(4) & -29.855\\
+ & (1.721)\\
+ATT(5) & -35.639\\
+ & (2.108)\\
 \midrule
-Num.Obs. & \num{51}\\
-Std.Errors & by: state\_id\\
+Num.Obs. & 5815\\
+Std.Errors & by: pn\_id\\
 type & dynamic\\
-ngroup & \num{4.000}\\
-ntime & \num{8.000}\\
+ngroup & 4.000\\
+ntime & 17.000\\
 control.group & nevertreated\\
 est.method & dr\\
 \bottomrule

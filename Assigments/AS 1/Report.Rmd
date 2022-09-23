@@ -6,6 +6,7 @@ output:
   pdf_document:
     latex_engine: lualatex
     keep_tex: true
+link-citations: yes
 header-includes:
   - \usepackage{fontspec}
   - \usepackage{polyglossia}
@@ -21,6 +22,26 @@ header-includes:
   - \titlespacing\section{0pt}{24pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
   - \titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{2pt plus 2pt minus 2pt}
   - \usepackage{parskip}
+  - \usepackage{siunitx}
+  - \newcolumntype{d}{S[input-symbols = ()]}
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage{wrapfig}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+  - \usepackage{pdflscape}
+  - \usepackage{tabu}
+  - \usepackage{threeparttable}
+  - \usepackage{threeparttablex}
+  - \usepackage[normalem]{ulem}
+  - \usepackage{makecell}
+  - \usepackage{xcolor}
+  - \usepackage[default]{sourcesanspro}
+  - \usepackage[T1]{fontenc}
+fontsize: 12pt
+mainfont: SourceSansPro
 editor_options: 
   markdown: 
     wrap: 72
@@ -31,7 +52,9 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, here, did, fixest, stargazer, tinytex, rmarkdown, knitr, kableExtra, plotly, knitr, bookdown, modelsummary, xtable)
 knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
 here::i_am("Main.Rmd")
-load(here("Output", "Rdata.Rdata"))
+load(here("Output", "Output.Rdata"))
+options("modelsummary_format_numeric_latex" = "plain")
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Summary Statistics
@@ -40,9 +63,49 @@ Provide and discuss a table of simple summary statistics showing the
 mean, standard deviation, min, and max of hospital total revenues and
 uncompensated care over time.
 
+```{r Fig-1, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE}
+plot1
+plot2
+```
+
+```{r Tab-1, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, results='asis'}
+#All year summary
+df %>% 
+  ungroup() %>%
+  summarise_at(c("unc_care", "hosp_rev"), 
+               list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
+#Over time Summary
+df %>%
+  group_by(year) %>%
+  summarise_at(c('unc_care', 'hosp_rev'),
+               list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
+  relocate(starts_with("unc"), starts_with("hosp"))-> table2
+
+#Rbind both Tables
+table1$year <- "2003-2019"
+table1 <- table1 %>% relocate(year)
+table <- rbind(table2,table1) %>% relocate(year)
+
+#Display the Table in Latex
+kable(table, 
+      digits=2, 
+      format = "latex", 
+      align="crrrrrrrr",
+      col.names = c("year", "Mean", "Sd", "Min", "Max",
+                           "Mean", "Sd", "Min", "Max"),
+      longtable = T, booktabs = T, caption = "Hospital Summary Statistics") %>% 
+kable_styling(latex_options = c("scale_down", "hold_position"), 
+              position = "center")  %>% 
+add_header_above(c(" ", "Uncompensated Care" = 4, "Total Revenue" = 4))
+```
+
 Create a figure showing the mean hospital uncompensated care from 2000
 to 2018. Show this trend separately by hospital ownership type (private
 not for profit and private for profit).
+
+```{r Fig-2, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE}
+plot3
+```
 
 # TWFE Specification
 
@@ -51,12 +114,11 @@ Medicaid expansion on hospital uncompensated care using a traditional
 two-way fixed effects (TWFE) estimation:
 
 ```{=tex}
-\begin{equation}
+\begin{equation}\label{eq:dd}
 y_{it} = \alpha_{i} + \gamma_{t} + \delta D_{it} + \varepsilon_{it},
-(\#eq:dd)
 \end{equation}
 ```
-where $D_{it}=1(E_{i}\leq t)$ in Equation \@ref(eq:dd) is an indicator
+where $D_{it}=1(E_{i}\leq t)$ in Equation \ref{eq:dd} is an indicator
 set to 1 when a hospital is in a state that expanded as of year $t$ or
 earlier, $\gamma_{t}$ denotes time fixed effects, $\alpha_{i}$ denotes
 hospital fixed effects, and $y_{it}$ denotes the hospital's amount of
@@ -68,20 +130,36 @@ treatment group (with never treated as the control group); and one when
 limiting to the 2016 treatment group (with never treated as the control
 group). Briefly explain any differences.
 
+```{r Tab-2, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE}
+modelsummary(mod.twfe,
+          title = "Two Way Fixed Effects",
+          label="tab-4",
+          table.placement = "H",
+          column.labels = c("M1", "M2", "M3"),
+          model.numbers = FALSE,
+          header=FALSE,
+          stars = TRUE,
+          output = "latex")
+
+```
+
 # Event Study Specification
 
 Estimate an "event study" version of the specification in part 3:
-\begin{equation}
+
+```{=tex}
+\begin{equation}\label{eq:event}
 y_{it} = \alpha_{i} + \gamma_{t} +\sum_{\tau < -1} D_{it}^{\tau} \delta_{\tau} + \sum_{\tau>=0} D_{it}^{\tau} \delta_{\tau} + \varepsilon_{it},
-(\#eq:event)
-\end{equation} where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation
-\@ref(eq:event) is essentially an interaction between the treatment
-dummy and a relative time dummy. In this notation and context, $\tau$
-denotes years relative to Medicaid expansion, so that $\tau=-1$ denotes
-the year before a state expanded Medicaid, $\tau=0$ denotes the year of
-expansion, etc. Estimate with two different samples: one based on the
-full sample and one based only on those that expanded in 2014 (with
-never treated as the control group).
+\end{equation}
+```
+where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation \ref{eq:event} is
+essentially an interaction between the treatment dummy and a relative
+time dummy. In this notation and context, $\tau$ denotes years relative
+to Medicaid expansion, so that $\tau=-1$ denotes the year before a state
+expanded Medicaid, $\tau=0$ denotes the year of expansion, etc. Estimate
+with two different samples: one based on the full sample and one based
+only on those that expanded in 2014 (with never treated as the control
+group).
 
 # SA Specification
 
@@ -90,11 +168,12 @@ Equation \@ref(eq:event) can be written as a non-conxvex average of all
 other group-time specific average treatment effects. They propose an
 interaction weighted specification:
 
+```{=tex}
 \begin{equation}
 y_{it} = \alpha_{i} + \gamma_{t} +\sum_{e} \sum_{\tau \neq -1} \left(D_{it}^{\tau} \times 1(E_{i}=e)\right) \delta_{e, \tau} + \varepsilon_{it}.
 (\#eq:iwevent)
 \end{equation}
-
+```
 Re-estimate your event study using the SA specification in Equation
 \@ref(eq:iwevent). Show your results for $\hat{\delta}_{e, \tau}$ in a
 Table, focusing on states with $E_{i}=2014$, $E_{i}=2015$, and
@@ -174,23 +253,6 @@ comparison group")
 cs_HDiD_smooth
 
 cs_HDiD_relmag
-```
-
-```{r table-2, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, results='asis'}
-kable(table1 %>% relocate(starts_with("unc"), starts_with("hosp")), format = "latex")
-
-
-kable(table2 %>% relocate(year), format = "latex")
-```
-
-```{r table-3, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, results='asis'}
-stargazer(mod.twfe,
-          title = "Two Way Fixed Effect Model",
-          label="table-3",
-          table.placement = "H",
-          column.labels = c("M1", "M2", "M3"),
-          model.numbers = FALSE,
-          header=FALSE)
 ```
 
 ```{r table-4, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, results='asis'}
