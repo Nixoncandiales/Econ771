@@ -1,47 +1,19 @@
 ---
-title: "Asigment 1"
-author: "Nixon Candiales"
+title: "Econ771 - Empirical Exercise 1"
+author: "Nixon Torres Candiales"
 date: \today
 output: 
   pdf_document:
     latex_engine: lualatex
     keep_tex: true
 link-citations: yes
+linestretch: 1.25
 header-includes:
-  - \usepackage{fontspec}
-  - \usepackage{polyglossia}
-  - \setmainlanguage[babelshorthands=true]{german}
-  - \setmainfont{merriweather}
-  - \setsansfont{Montserrat}
-  - \geometry{vmargin=1in,hmargin=1.25in}
-  - \usepackage{xcolor}
-  - \usepackage{titlesec}
-  - \definecolor{Blue}{HTML}{2F5496}
-  - \titleformat{\section}{\Large\sffamily\color{Blue}}{}{0pt}{}
-  - \titleformat{\subsection}{\large\sffamily\color{Blue}}{}{0pt}{}
-  - \titlespacing\section{0pt}{24pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
-  - \titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{2pt plus 2pt minus 2pt}
-  - \usepackage{parskip}
-  - \usepackage{siunitx}
-  - \newcolumntype{d}{S[input-symbols = ()]}
-  - \usepackage{booktabs}
-  - \usepackage{longtable}
-  - \usepackage{array}
-  - \usepackage{multirow}
-  - \usepackage{wrapfig}
-  - \usepackage{float}
-  - \usepackage{colortbl}
-  - \usepackage{pdflscape}
-  - \usepackage{tabu}
-  - \usepackage{threeparttable}
-  - \usepackage{threeparttablex}
-  - \usepackage[normalem]{ulem}
-  - \usepackage{makecell}
-  - \usepackage{xcolor}
-  - \usepackage[default]{sourcesanspro}
-  - \usepackage[T1]{fontenc}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  - \usepackage{subfig}
 fontsize: 12pt
-mainfont: SourceSansPro
+font: Latin Modern Math
 editor_options: 
   markdown: 
     wrap: 72
@@ -49,7 +21,7 @@ editor_options:
 
 ```{r setup-load-output, include=FALSE, warning=FALSE}
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, here, did, fixest, stargazer, tinytex, rmarkdown, knitr, kableExtra, plotly, knitr, bookdown, modelsummary, xtable)
+pacman::p_load(tidyverse, here, did, fixest, stargazer, tinytex, rmarkdown, knitr, kableExtra, plotly, knitr, bookdown, modelsummary, xtable, tinytex)
 knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
 here::i_am("Main.Rmd")
 load(here("Output", "Output.Rdata"))
@@ -61,12 +33,22 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Provide and discuss a table of simple summary statistics showing the
 mean, standard deviation, min, and max of hospital total revenues and
-uncompensated care over time.
+uncompensated care over time. We start first by downloading and merging
+all the Data from the Github repository. We present the distribution of
+the variables of interest, Uncompensated care and Hospital Revenue over
+time
 
-```{r Fig-1, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE}
+```{r Fig-1, include=TRUE, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE,  comment=FALSE, message= FALSE,  fig.cap = "Box-plot", fig.subcap=c('Uncompensated Care', 'Revenue'), out.width='.49\\linewidth', fig.asp=1, fig.ncol = 2 }
 plot1
 plot2
 ```
+
+
+We see evidence of negative entries in uncompensated care as well as
+extreme atypical values that might be caused by mistyping. As such, we
+subset the data by not including the top and bottom 0.5% of the
+observations. The mean, standard deviation, and minimum and maximum
+values across the years are presented in table 1 of summary statistics.
 
 ```{r Tab-1, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, results='asis'}
 #All year summary
@@ -94,73 +76,124 @@ kable(table,
       col.names = c("year", "Mean", "Sd", "Min", "Max",
                            "Mean", "Sd", "Min", "Max"),
       longtable = T, booktabs = T, caption = "Hospital Summary Statistics") %>% 
-kable_styling(latex_options = c("scale_down", "hold_position"), 
+kable_styling(latex_options = c("hold_position"), 
               position = "center")  %>% 
 add_header_above(c(" ", "Uncompensated Care" = 4, "Total Revenue" = 4))
 ```
 
-Create a figure showing the mean hospital uncompensated care from 2000
-to 2018. Show this trend separately by hospital ownership type (private
-not for profit and private for profit).
+Next, we create a figure showing the mean hospital uncompensated care
+from 2003 to 2019. We show this trend separately by hospital ownership
+type in figure 3. We present an smooth trend to easily identify shifts
+after the adoption of medicare expansion in 2014. We can see an abrupt
+bump from years 2010 to 2011, this might be due to the adoption of the
+new form and a change in the way to measure uncompensated care \^[after
+2010 uncompensated care = total uncompensated care - total uncompensated
+partial payments + bad debt]. Also, in recent years, it seems for-profit
+hospitals get to provide more uncompensated care than not for profit
+hospitals.
 
-```{r Fig-2, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE}
+```{r Fig-3, include=TRUE, echo=FALSE, fig.cap = "Evolution of Uncompensated Care Over Time", warning=FALSE,comment=NA, message=FALSE}
 plot3
 ```
+\newpage
 
 # TWFE Specification
 
-Using a simple DD identification strategy, estimate the effect of
+Using a simple DD identification strategy, we estimate the effect of
 Medicaid expansion on hospital uncompensated care using a traditional
 two-way fixed effects (TWFE) estimation:
 
-```{=tex}
-\begin{equation}\label{eq:dd}
+\begin{equation}
+\label{eq:dd}
 y_{it} = \alpha_{i} + \gamma_{t} + \delta D_{it} + \varepsilon_{it},
 \end{equation}
-```
+
 where $D_{it}=1(E_{i}\leq t)$ in Equation \ref{eq:dd} is an indicator
 set to 1 when a hospital is in a state that expanded as of year $t$ or
 earlier, $\gamma_{t}$ denotes time fixed effects, $\alpha_{i}$ denotes
 hospital fixed effects, and $y_{it}$ denotes the hospital's amount of
-uncompensated care in year $t$. Present four estimates from this
-estimation in a table: one based on the full sample (regardless of
-treatment timing); one when limiting to the 2014 treatment group (with
-never treated as the control group); one when limiting to the 2015
-treatment group (with never treated as the control group); and one when
-limiting to the 2016 treatment group (with never treated as the control
-group). Briefly explain any differences.
+uncompensated care in year $t$. We present four estimates from this
+estimation in table \ref{Tab-2}: one based on the full sample (1); one when limiting to the 2014 treatment group (2); 
+one when limiting to the 2015
+treatment group (3); and one when
+limiting to the 2016 treatment group (3).
 
-```{r Tab-2, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE}
+A first appreciation of our results indicate that the ATE of medicaid expansion on uncompensated care is negative. The point estimate varies when limiting the treatment sample for 2014 to 2016 as well as the confidence intervals but we get a consistent trend across the samples. We see the effect is larger when limiting the sample to the states that expanded in 2014.
+
+```{r Tab-2, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, results='asis', label="Tab-2"}
+dep_var <- c(1:4)
+names(mod.twfe) <- c(dep_var)
+
 modelsummary(mod.twfe,
           title = "Two Way Fixed Effects",
-          label="tab-4",
+          style = "aer",
+          label="Tab-2",
           table.placement = "H",
-          column.labels = c("M1", "M2", "M3"),
-          model.numbers = FALSE,
+          column.labels = c("M1", "M2", "M3", "M4"),
+          model.numbers = TRUE,
           header=FALSE,
           stars = TRUE,
+          gof_omit = "R2 Adj.|BIC|AIC",
           output = "latex")
-
 ```
 
+
+\newpage
 # Event Study Specification
 
-Estimate an "event study" version of the specification in part 3:
+We estimate an event study version of the specification in part 3:
 
-```{=tex}
-\begin{equation}\label{eq:event}
+\begin{equation}
+\label{eq:event}
 y_{it} = \alpha_{i} + \gamma_{t} +\sum_{\tau < -1} D_{it}^{\tau} \delta_{\tau} + \sum_{\tau>=0} D_{it}^{\tau} \delta_{\tau} + \varepsilon_{it},
 \end{equation}
-```
+
 where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation \ref{eq:event} is
-essentially an interaction between the treatment dummy and a relative
-time dummy. In this notation and context, $\tau$ denotes years relative
-to Medicaid expansion, so that $\tau=-1$ denotes the year before a state
-expanded Medicaid, $\tau=0$ denotes the year of expansion, etc. Estimate
+ an interaction between the treatment indicator and a relative
+time indicator. $\tau$ denotes years relative
+to Medicaid expansion. In this case $\tau=-1$ denotes the year before a state
+expanded Medicaid and the control group for those never treated. $\tau=0$ denotes the year of expansion, and so on.
+
+Table \ref{Tab-3} presents the estimates for the common 
 with two different samples: one based on the full sample and one based
 only on those that expanded in 2014 (with never treated as the control
 group).
 
+```{r Tab-3, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-3", results='asis'}
+   modelsummary(mod.esct,
+                title = "Event Study Sample 2014",
+                style = "aer",
+                table.placement = "H",
+                column.labels = c("M1", "M2", "M3", "M4"),
+                model.numbers = TRUE,
+                header=FALSE,
+                stars = TRUE,
+                gof_omit = "R2 Adj.|BIC|AIC",
+                output = "latex")
+```   
+
+```{r Tab-4, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-4", results='asis'}
+modelsummary(mod.esdt,
+                title = "Event Estudy Full Sample",
+                style = "aer",
+                table.placement = "H",
+                column.labels = c("M1", "M2", "M3", "M4"),
+                model.numbers = TRUE,
+                header=FALSE,
+                stars = TRUE,
+                gof_omit = "R2 Adj.|BIC|AIC",
+                output = "latex")
+```
+
+
+```{r Fig-4, include=TRUE, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE,  comment=FALSE, message= FALSE,  fig.cap = "Event Study", fig.subcap=c('Sample 2014', 'Full Sample'), out.width='.49\\linewidth', fig.asp=1, fig.ncol = 2 }
+iplot(mod.esct, main= "Effect of Medicaid Eaxpansion on Uncompensated
+Care")
+
+iplot(mod.esdt, main= "Effect of Medicaid Eaxpansion on Uncompensated
+Care")
+```
+\newpage
 # SA Specification
 
 Sun and Abraham(SA) show that the $\delta_{\tau}$ coefficients in
@@ -186,6 +219,8 @@ can do this automatically in `R` with the `fixest` package (using the
 tables/figures manually and also help to get the standard errors
 correct.
 
+
+\newpage
 # CS Specification
 
 Callaway and Sant'Anna (CS) offer a non-parametric solution that
@@ -201,6 +236,7 @@ treatment). With this framework in mind, provide an alternative event
 study using the CS estimator. Hint: check out the `did` package in `R`
 or the `csdid` package in `Stata`.
 
+\newpage
 # RR Specification
 
 Rambachan and Roth (RR) show that traditional tests of parallel
@@ -216,6 +252,7 @@ plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$.
 Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for
 some help in combining the `HonestDiD` package with CS estimates.
 
+\newpage
 # Discussion
 
 Discuss your findings and compare estimates from different estimators
@@ -223,23 +260,15 @@ Discuss your findings and compare estimates from different estimators
 estimators? Are your results sensitive to violation of parallel trends
 assumptions?).
 
+\newpage
 # Reflection
 
 Reflect on this assignment. What did you find most challenging? What did
 you find most surprising?
 
 ```{r Figures, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE}
-plot1
 
-plot2
 
-plot3
-
-iplot(mod.esct, main= "Effect of Medicaid Eaxpansion on Uncompensated
-Care")
-
-iplot(mod.esdt, main= "Effect of Medicaid Eaxpansion on Uncompensated
-Care")
 
 coefplot(mod.sa, main= "Effect of Medicaid Eaxpansion on Uncompensated
 Care")

@@ -118,14 +118,6 @@ plot
 # ## Those two values are extremely atypical... consider remove those!!
 
 
-## ----load-libraries, include=FALSE------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-library(tidyverse)
-library(ggthemes)
-library(crosswalkr)
-library(lfe)
-library(stargazer)
-
-
 ## ----plot-own-typ, warning=FALSE, comment=NA, message = FALSE---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 df %>%
   filter(!(own_typ=='other')) %>%
@@ -171,9 +163,11 @@ stargazer(mod.twfe, type='text', note="1-4 representes D, D14,D15 and D16 respec
 
 ## ----event-study-common, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE----------------------------------------------------------------------------------------------------------------------------------------------
 ### Common treatment timing
+reg.dat <- df %>% filter(!is.na(D14))
+
  mod.esct <- feols(unc_care~i(year, treated, ref=2013) | pn + year,
                 cluster=~pn,
-                data=df)
+                data=reg.dat)
 esttable(mod.esct)
 iplot(mod.esct)
 
@@ -277,9 +271,9 @@ library(devtools)
 install_github("bcallaway11/BMisc", dependencies = TRUE)
 install_github("bcallaway11/did", dependencies = TRUE)
 install_github("asheshrambachan/HonestDiD", dependencies = TRUE)
-#--------------------------------------------------------------------------
+
 # Load packages
-#--------------------------------------------------------------------------
+
 # Libraries
 # Load libraries
 library(ggplot2)
@@ -289,7 +283,7 @@ library(tidyverse)
 library(dplyr)
 library(did)
 library(HonestDiD)
-## -----------------------------------------------------------------------------
+
 #' @title honest_did
 #'
 #' @description a function to compute a sensitivity analysis
@@ -494,6 +488,6 @@ here::i_am("Main.Rmd")
   save.image(here("Output", "Output.Rdata"))
 
 
-## ----eval=FALSE, include=FALSE----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ----main-code, eval=FALSE, include=FALSE-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 knitr::purl("Main.Rmd", documentation = 1, output="Code/Main.R")
 

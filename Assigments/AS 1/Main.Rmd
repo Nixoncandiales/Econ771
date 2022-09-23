@@ -213,9 +213,11 @@ where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation 2 is essentially an interact
 
 ```{r event-study-common, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 ### Common treatment timing
+reg.dat <- df %>% filter(!is.na(D14))
+
  mod.esct <- feols(unc_care~i(year, treated, ref=2013) | pn + year,
                 cluster=~pn,
-                data=df)
+                data=reg.dat)
 esttable(mod.esct)
 iplot(mod.esct)
 ```
