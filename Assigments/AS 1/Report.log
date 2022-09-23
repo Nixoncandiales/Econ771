@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.15.0 (TeX Live 2022)  (format=lualatex 2022.9.23)  23 SEP 2022 16:55
+This is LuaHBTeX, Version 1.15.0 (TeX Live 2022)  (format=lualatex 2022.9.23)  23 SEP 2022 17:18
  restricted system commands enabled.
 **Report.tex
 (./Report.tex
@@ -548,23 +548,7 @@ Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 285.
 )
 \Hy@SectionHShift=\skip69
-) (./Report.aux
-
-LaTeX Warning: Label `tab:table-4' multiply defined.
-
-
-LaTeX Warning: Label `tab:table-4' multiply defined.
-
-
-LaTeX Warning: Label `tab:table-4' multiply defined.
-
-
-LaTeX Warning: Label `tab:table-4' multiply defined.
-
-
-LaTeX Warning: Label `tab:table-4' multiply defined.
-
-)
+) (./Report.aux)
 \openout1 = Report.aux
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 89.
@@ -949,104 +933,97 @@ Package luatex.def Info: Report_files/figure-latex/Fig-1-2.pdf  used on input li
 [1
 
 {/Users/nix/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}<./Report_files/figure-latex/Fig-1-1.pdf><./Report_files/figure-latex/Fig-1-2.pdf>]
-<Report_files/figure-latex/Fig-3-1.pdf, id=63, 456.70625pt x 313.17pt>
-File: Report_files/figure-latex/Fig-3-1.pdf Graphic file (type pdf)
-<use Report_files/figure-latex/Fig-3-1.pdf>
-Package luatex.def Info: Report_files/figure-latex/Fig-3-1.pdf  used on input line 155.
+<Report_files/figure-latex/Fig-2-1.pdf, id=63, 456.70625pt x 313.17pt>
+File: Report_files/figure-latex/Fig-2-1.pdf Graphic file (type pdf)
+<use Report_files/figure-latex/Fig-2-1.pdf>
+Package luatex.def Info: Report_files/figure-latex/Fig-2-1.pdf  used on input line 157.
 (luatex.def)             Requested size: 456.71906pt x 313.17877pt.
-[2] [3<./Report_files/figure-latex/Fig-3-1.pdf>]
+[2] [3<./Report_files/figure-latex/Fig-2-1.pdf>]
 
-LaTeX Warning: Reference `Tab-2' on page 4 undefined on input line 174.
+LaTeX Warning: Reference `Tab-2' on page 4 undefined on input line 180.
 
 [4]
 
-LaTeX Warning: Reference `Tab-3' on page 5 undefined on input line 225.
+LaTeX Warning: Reference `Tab-3' on page 5 undefined on input line 231.
 
-<Report_files/figure-latex/Fig-4-1.pdf, id=94, 436.63126pt x 438.63875pt>
+
+LaTeX Warning: Reference `Tab-4' on page 5 undefined on input line 232.
+
+
+LaTeX Warning: Reference `Fig-2' on page 5 undefined on input line 235.
+
+<Report_files/figure-latex/Fig-3-1.pdf, id=95, 436.63126pt x 438.63875pt>
+File: Report_files/figure-latex/Fig-3-1.pdf Graphic file (type pdf)
+<use Report_files/figure-latex/Fig-3-1.pdf>
+Package luatex.def Info: Report_files/figure-latex/Fig-3-1.pdf  used on input line 336.
+(luatex.def)             Requested size: 230.18091pt x 231.2392pt.
+<Report_files/figure-latex/Fig-3-2.pdf, id=96, 436.63126pt x 438.63875pt>
+File: Report_files/figure-latex/Fig-3-2.pdf Graphic file (type pdf)
+<use Report_files/figure-latex/Fig-3-2.pdf>
+Package luatex.def Info: Report_files/figure-latex/Fig-3-2.pdf  used on input line 336.
+(luatex.def)             Requested size: 230.18091pt x 231.2392pt.
+[5<./Report_files/figure-latex/Fig-3-1.pdf><./Report_files/figure-latex/Fig-3-2.pdf>] [6] [7]
+
+LaTeX Warning: Reference `table-5' on page 8 undefined on input line 351.
+
+
+LaTeX Warning: Hyper reference `Fig-5' on page 8 undefined on input line 402.
+
+
+LaTeX Warning: Reference `Fig-5' on page 8 undefined on input line 402.
+
+<Report_files/figure-latex/Fig-4-1.pdf, id=131, 436.63126pt x 292.09125pt>
 File: Report_files/figure-latex/Fig-4-1.pdf Graphic file (type pdf)
 <use Report_files/figure-latex/Fig-4-1.pdf>
-Package luatex.def Info: Report_files/figure-latex/Fig-4-1.pdf  used on input line 324.
-(luatex.def)             Requested size: 230.18091pt x 231.2392pt.
-<Report_files/figure-latex/Fig-4-2.pdf, id=95, 436.63126pt x 438.63875pt>
-File: Report_files/figure-latex/Fig-4-2.pdf Graphic file (type pdf)
-<use Report_files/figure-latex/Fig-4-2.pdf>
-Package luatex.def Info: Report_files/figure-latex/Fig-4-2.pdf  used on input line 324.
-(luatex.def)             Requested size: 230.18091pt x 231.2392pt.
-[5<./Report_files/figure-latex/Fig-4-1.pdf><./Report_files/figure-latex/Fig-4-2.pdf>] [6] [7] [8] [9] [10] [11]
-<Report_files/figure-latex/Figures-1.pdf, id=156, 436.63126pt x 301.125pt>
-File: Report_files/figure-latex/Figures-1.pdf Graphic file (type pdf)
-<use Report_files/figure-latex/Figures-1.pdf>
-Package luatex.def Info: Report_files/figure-latex/Figures-1.pdf  used on input line 408.
-(luatex.def)             Requested size: 436.63019pt x 301.12425pt.
-<Report_files/figure-latex/Figures-2.pdf, id=157, 458.71375pt x 304.13625pt>
-File: Report_files/figure-latex/Figures-2.pdf Graphic file (type pdf)
-<use Report_files/figure-latex/Figures-2.pdf>
-Package luatex.def Info: Report_files/figure-latex/Figures-2.pdf  used on input line 409.
-(luatex.def)             Requested size: 458.72662pt x 304.14478pt.
-<Report_files/figure-latex/Figures-3.pdf, id=158, 458.71375pt x 304.13625pt>
-File: Report_files/figure-latex/Figures-3.pdf Graphic file (type pdf)
-<use Report_files/figure-latex/Figures-3.pdf>
-Package luatex.def Info: Report_files/figure-latex/Figures-3.pdf  used on input line 410.
-(luatex.def)             Requested size: 458.72662pt x 304.14478pt.
-<Report_files/figure-latex/Figures-4.pdf, id=159, 446.66875pt x 310.15875pt>
-File: Report_files/figure-latex/Figures-4.pdf Graphic file (type pdf)
-<use Report_files/figure-latex/Figures-4.pdf>
-Package luatex.def Info: Report_files/figure-latex/Figures-4.pdf  used on input line 411.
-(luatex.def)             Requested size: 446.66765pt x 310.15799pt.
-<Report_files/figure-latex/Figures-5.pdf, id=160, 446.66875pt x 310.15875pt>
-File: Report_files/figure-latex/Figures-5.pdf Graphic file (type pdf)
-<use Report_files/figure-latex/Figures-5.pdf>
-Package luatex.def Info: Report_files/figure-latex/Figures-5.pdf  used on input line 412.
-(luatex.def)             Requested size: 446.66765pt x 310.15799pt.
+Package luatex.def Info: Report_files/figure-latex/Fig-4-1.pdf  used on input line 409.
+(luatex.def)             Requested size: 436.63019pt x 292.09052pt.
+[8<./Report_files/figure-latex/Fig-4-1.pdf>] [9]
+<Report_files/figure-latex/Fig-5-1.pdf, id=152, 458.71375pt x 448.67625pt>
+File: Report_files/figure-latex/Fig-5-1.pdf Graphic file (type pdf)
+<use Report_files/figure-latex/Fig-5-1.pdf>
+Package luatex.def Info: Report_files/figure-latex/Fig-5-1.pdf  used on input line 433.
+(luatex.def)             Requested size: 230.18224pt x 225.14543pt.
+<Report_files/figure-latex/Fig-5-2.pdf, id=153, 458.71375pt x 448.67625pt>
+File: Report_files/figure-latex/Fig-5-2.pdf Graphic file (type pdf)
+<use Report_files/figure-latex/Fig-5-2.pdf>
+Package luatex.def Info: Report_files/figure-latex/Fig-5-2.pdf  used on input line 433.
+(luatex.def)             Requested size: 230.18224pt x 225.14543pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 408--413
-[][]
- []
+LaTeX Warning: Float too large for page by 1408.9795pt on input line 585.
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 408--413
-[]
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 408--413
-[]
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 408--413
-[]
- []
-
-[12<./Report_files/figure-latex/Figures-1.pdf>] [13<./Report_files/figure-latex/Figures-2.pdf><./Report_files/figure-latex/Figures-3.pdf>]
-
-LaTeX Warning: Float too large for page by 1408.9795pt on input line 729.
-
-[14<./Report_files/figure-latex/Figures-4.pdf><./Report_files/figure-latex/Figures-5.pdf>] [15] [16] [17] [18] [19] [20] (./Report.aux)
+[10<./Report_files/figure-latex/Fig-5-1.pdf><./Report_files/figure-latex/Fig-5-2.pdf>] [11] [12]
+<Report_files/figure-latex/Fig-6-1.pdf, id=189, 446.66875pt x 454.69875pt>
+File: Report_files/figure-latex/Fig-6-1.pdf Graphic file (type pdf)
+<use Report_files/figure-latex/Fig-6-1.pdf>
+Package luatex.def Info: Report_files/figure-latex/Fig-6-1.pdf  used on input line 652.
+(luatex.def)             Requested size: 230.1835pt x 234.32164pt.
+<Report_files/figure-latex/Fig-6-2.pdf, id=190, 446.66875pt x 454.69875pt>
+File: Report_files/figure-latex/Fig-6-2.pdf Graphic file (type pdf)
+<use Report_files/figure-latex/Fig-6-2.pdf>
+Package luatex.def Info: Report_files/figure-latex/Fig-6-2.pdf  used on input line 652.
+(luatex.def)             Requested size: 230.1835pt x 234.32164pt.
+[13<./Report_files/figure-latex/Fig-6-1.pdf><./Report_files/figure-latex/Fig-6-2.pdf>] [14] [15] (./Report.aux)
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: There were multiply-defined labels.
-
 Package rerunfilecheck Info: File `Report.out' has not changed.
-(rerunfilecheck)             Checksum: A9C34E49BAE5B3E6C0A2F851C461339D;1022.
+(rerunfilecheck)             Checksum: 787BEC16EBA1EDFEFD9306D403B59B9F;1023.
 )
 
 Here is how much of LuaTeX's memory you used:
- 21217 strings out of 477356
+ 21242 strings out of 477356
  100000,953878 words of node,token memory allocated
  580 words of node memory still in use:
    6 hlist, 2 vlist, 2 rule, 2 glue, 4 kern, 1 glyph, 14 attribute, 64 glue_spec, 14 attribute_list, 1 write, 1 user_defined nodes
-   avail lists: 2:4750,3:195,4:36,5:543,6:41,7:9056,8:67,9:2111,10:10,11:235
- 41477 multiletter control sequences out of 65536+600000
- 64 fonts using 19221479 bytes
- 86i,10n,121p,334b,471s stack positions out of 10000i,1000n,20000p,200000b,200000s
+   avail lists: 2:2814,3:195,4:35,5:516,6:41,7:7863,8:67,9:1954,10:10,11:235
+ 41502 multiletter control sequences out of 65536+600000
+ 64 fonts using 19221403 bytes
+ 86i,10n,121p,342b,471s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/nix/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm/lmmono12-regular.otf></Users/nix/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm-math/latinmodern-math.otf></Users/nix/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm-math/latinmodern-math.otf></Users/nix/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm/lmroman10-regular.otf></Users/nix/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm/lmroman12-bold.otf></Users/nix/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm/lmroman12-regular.otf></Users/nix/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm/lmroman17-regular.otf>
-Output written on Report.pdf (20 pages, 637510 bytes).
+Output written on Report.pdf (15 pages, 633098 bytes).
 
-PDF statistics: 288 PDF objects out of 1000 (max. 8388607)
- 212 compressed objects within 3 object streams
+PDF statistics: 273 PDF objects out of 1000 (max. 8388607)
+ 202 compressed objects within 3 object streams
  56 named destinations out of 1000 (max. 131072)
  65 words of extra memory for PDF output out of 10000 (max. 100000000)
 

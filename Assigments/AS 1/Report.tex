@@ -152,7 +152,13 @@ uncompensated partial payments + bad debt{]}. Also, in recent years, it
 seems for-profit hospitals get to provide more uncompensated care than
 not for profit hospitals.
 
-\includegraphics{Report_files/figure-latex/Fig-3-1.pdf} \newpage
+\begin{figure}
+\centering
+\includegraphics{Report_files/figure-latex/Fig-2-1.pdf}
+\caption{Evolution of Uncompensated Care Over Time}
+\end{figure}
+
+\newpage
 
 \hypertarget{twfe-specification}{%
 \section{TWFE Specification}\label{twfe-specification}}
@@ -222,9 +228,15 @@ this case \(\tau=-1\) denotes the year before a state expanded Medicaid
 and the control group for those never treated. \(\tau=0\) denotes the
 year of expansion, and so on.
 
-Table \ref{Tab-3} presents the estimates for the common with two
-different samples: one based on the full sample and one based only on
-those that expanded in 2014 (with never treated as the control group).
+Table \ref{Tab-3} presents the estimates for the common treatment time
+for the 2014 sample, whereas \ref{Tab-4} presents the estimates for the
+staggered intervention for the full sample. In both specifications the
+control group is formed by the never treated. Also, we can observe in
+\ref{Fig-2} the event study coefficients plot. It is clear the drop in
+uncompensated care after the first year of the medicaid expansion. Also
+the ATT seems to increase as \(\tau\) increases. We can see that the
+average treatment on the treated is the highest 5 years after the
+treatment.
 
 \begin{table}
 
@@ -321,220 +333,32 @@ FE: year & X\\
 \end{table}
 
 \begin{figure}
-\subfloat[Sample 2014\label{fig:Fig-4-1}]{\includegraphics[width=.49\linewidth]{Report_files/figure-latex/Fig-4-1} }\subfloat[Full Sample\label{fig:Fig-4-2}]{\includegraphics[width=.49\linewidth]{Report_files/figure-latex/Fig-4-2} }\caption{Event Study}\label{fig:Fig-4}
+\subfloat[Sample 2014\label{fig:Fig-3-1}]{\includegraphics[width=.49\linewidth]{Report_files/figure-latex/Fig-3-1} }\subfloat[Full Sample\label{fig:Fig-3-2}]{\includegraphics[width=.49\linewidth]{Report_files/figure-latex/Fig-3-2} }\caption{Event Study}\label{fig:Fig-3}
 \end{figure}
 \newpage
 
 \hypertarget{sa-specification}{%
 \section{SA Specification}\label{sa-specification}}
 
-Sun and Abraham(SA) show that the \(\delta_{\tau}\) coefficients in
-Equation @ref(eq:event) can be written as a non-conxvex average of all
-other group-time specific average treatment effects. They propose an
-interaction weighted specification:
+No we move to Sun and Abraham(SA) specification and estimate a
+non-conxvex average of all other group-time specific average treatment
+effects. The interaction weighted specification is given by:
 
-\begin{equation}
+\begin{equation}\label{eq:iwevent}
 y_{it} = \alpha_{i} + \gamma_{t} +\sum_{e} \sum_{\tau \neq -1} \left(D_{it}^{\tau} \times 1(E_{i}=e)\right) \delta_{e, \tau} + \varepsilon_{it}.
-(\#eq:iwevent)
 \end{equation}
 
-Re-estimate your event study using the SA specification in Equation
-@ref(eq:iwevent). Show your results for \(\hat{\delta}_{e, \tau}\) in a
-Table, focusing on states with \(E_{i}=2014\), \(E_{i}=2015\), and
-\(E_{i}=2016\).
-
-Present an event study graph based on the results in part 5. Hint: you
-can do this automatically in \texttt{R} with the \texttt{fixest} package
-(using the \texttt{sunab} syntax for interactions), or with
-\texttt{eventstudyinteract} in \texttt{Stata}. These packages help to
-avoid mistakes compared to doing the tables/figures manually and also
-help to get the standard errors correct.
-
-\newpage
-
-\hypertarget{cs-specification}{%
-\section{CS Specification}\label{cs-specification}}
-
-Callaway and Sant'Anna (CS) offer a non-parametric solution that
-effectively calculates a set of group-time specific differences,
-\(ATT(g,t)= E[y_{it}(g) - y_{it}(\infty) | G_{i}=g]\), where \(g\)
-reflects treatment timing and \(t\) denotes time. They show that under
-the standard DD assumptions of parallel trends and no anticipation,
-\(ATT(g,t) = E[y_{it} - y_{i, g-1} | G_{i}=g] - E[y_{it} - y_{i,g-1} | G_{i} = \infty]\),
-so that \(\hat{ATT}(g,t)\) is directly estimable from sample analogs. CS
-also propose aggregations of \(\hat{ATT}(g,t)\) to form an overall ATT
-or a time-specific ATT (e.g., ATTs for \(\tau\) periods before/after
-treatment). With this framework in mind, provide an alternative event
-study using the CS estimator. Hint: check out the \texttt{did} package
-in \texttt{R} or the \texttt{csdid} package in \texttt{Stata}.
-
-\newpage
-
-\hypertarget{rr-specification}{%
-\section{RR Specification}\label{rr-specification}}
-
-Rambachan and Roth (RR) show that traditional tests of parallel
-pre-trends may be underpowered, and they provide an alternative
-estimator that essentially bounds the treatment effects by the size of
-an assumed violation in parallel trends. One such bound RR propose is to
-limit the post-treatment violation of parallel trends to be no worse
-than some multiple of the pre-treatment violation of parallel trends.
-Assuming linear trends, such a violation is reflected by
-\[\Delta(\bar{M}) = \left\{ \delta : \forall t \geq 0, \lvert (\delta_{t+1} - \delta_{t}) - (\delta_{t} - \delta_{t-1}) \rvert \leq \bar{M} \times \max_{s<0} \lvert (\delta_{s+1} - \delta_{s}) - (\delta_{s} - \delta_{s-1}) \rvert \right\}.\]
-Using the \texttt{HonestDiD} package in \texttt{R} or \texttt{Stata},
-present a sensitivity plot of your CS ATT estimates using
-\(\bar{M} = \{0, 0.5, 1, 1.5, 2\}\). Check out the GitHub repo
-\href{https://github.com/pedrohcgs/CS_RR}{here} for some help in
-combining the \texttt{HonestDiD} package with CS estimates.
-
-\newpage
-
-\hypertarget{discussion}{%
-\section{Discussion}\label{discussion}}
-
-Discuss your findings and compare estimates from different estimators
-(e.g., are your results sensitive to different specifications or
-estimators? Are your results sensitive to violation of parallel trends
-assumptions?).
-
-\newpage
-
-\hypertarget{reflection}{%
-\section{Reflection}\label{reflection}}
-
-Reflect on this assignment. What did you find most challenging? What did
-you find most surprising?
-
-\includegraphics{Report_files/figure-latex/Figures-1.pdf}
-\includegraphics{Report_files/figure-latex/Figures-2.pdf}
-\includegraphics{Report_files/figure-latex/Figures-3.pdf}
-\includegraphics{Report_files/figure-latex/Figures-4.pdf}
-\includegraphics{Report_files/figure-latex/Figures-5.pdf}
+\ref{table-5} presents the Re-estimate coefficients for the event study
+using the SA specification. For this specification we focus on the
+states that expanded either on 2014, 2015 or 2016 and include those in
+the treatment group. Whereas the control group is formed by the never
+treated observations. Providers that are in a state that expanded after
+2016 are not considered in this part. The coefficients presented in the
+table are \(\hat{\delta}_{e, \tau}\).
 
 \begin{table}
 
-\caption{\label{tab:table-4}Two Way Fixed Effects long format}
-\centering
-\begin{tabular}[t]{lcccc}
-\toprule
-  & 1 & 2 & 3 & 4\\
-\midrule
-Treatment & -28.363*** & -31.518*** & -12.173*** & -12.153***\\
- & (1.893) & (2.185) & (1.848) & (1.550)\\
-\midrule
-Num.Obs. & 79557 & 69824 & 74768 & 77624\\
-R2 & 0.699 & 0.708 & 0.690 & 0.691\\
-R2 Adj. & 0.675 & 0.684 & 0.666 & 0.667\\
-AIC & 817114.7 & 720035.7 & 772873.5 & 800104.3\\
-BIC & 871269.6 & 767580.1 & 823742.8 & 852930.5\\
-RMSE & 38.21 & 38.97 & 39.48 & 38.91\\
-Std.Errors & by: pn & by: pn & by: pn & by: pn\\
-\bottomrule
-\multicolumn{5}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
-\end{tabular}
-\end{table}
-
-\begin{table}
-
-\caption{\label{tab:table-4}Event Study Common Treatment}
-\centering
-\begin{tabular}[t]{lc}
-\toprule
-  & Model 1\\
-\midrule
-year = 2003 × treated & 12.199***\\
- & (2.978)\\
-year = 2004 × treated & 14.048***\\
- & (2.840)\\
-year = 2005 × treated & 14.556***\\
- & (2.936)\\
-year = 2006 × treated & 16.852***\\
- & (3.294)\\
-year = 2007 × treated & 16.307***\\
- & (3.373)\\
-year = 2008 × treated & 14.229***\\
- & (3.324)\\
-year = 2009 × treated & 10.901***\\
- & (2.492)\\
-year = 2010 × treated & 8.781***\\
- & (2.309)\\
-year = 2011 × treated & 3.213**\\
- & (1.033)\\
-year = 2012 × treated & 1.204\\
- & (0.797)\\
-year = 2014 × treated & -10.301***\\
- & (0.892)\\
-year = 2015 × treated & -19.522***\\
- & (1.331)\\
-year = 2016 × treated & -22.619***\\
- & (1.438)\\
-year = 2017 × treated & -27.455***\\
- & (1.700)\\
-year = 2018 × treated & -30.317***\\
- & (1.838)\\
-year = 2019 × treated & -34.989***\\
- & (2.191)\\
-\midrule
-Num.Obs. & 69824\\
-AIC & 709145.8\\
-BIC & 709301.4\\
-RMSE & 38.82\\
-Std.Errors & by: pn\\
-FE: pn & X\\
-FE: year & X\\
-\bottomrule
-\multicolumn{2}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
-\end{tabular}
-\end{table}
-
-\begin{table}
-
-\caption{\label{tab:table-4}Even Study Staggered}
-\centering
-\begin{tabular}[t]{lc}
-\toprule
-  & Model 1\\
-\midrule
-time\_to\_treat = -7 × treated & 14.553***\\
- & (2.611)\\
-time\_to\_treat = -6 × treated & 12.287***\\
- & (2.547)\\
-time\_to\_treat = -5 × treated & 10.850***\\
- & (2.542)\\
-time\_to\_treat = -4 × treated & 5.346**\\
- & (1.674)\\
-time\_to\_treat = -3 × treated & 3.606***\\
- & (0.842)\\
-time\_to\_treat = -2 × treated & 1.750**\\
- & (0.548)\\
-time\_to\_treat = 0 × treated & -9.201***\\
- & (0.622)\\
-time\_to\_treat = 1 × treated & -18.916***\\
- & (1.067)\\
-time\_to\_treat = 2 × treated & -23.692***\\
- & (1.287)\\
-time\_to\_treat = 3 × treated & -28.244***\\
- & (1.526)\\
-time\_to\_treat = 4 × treated & -30.934***\\
- & (1.730)\\
-time\_to\_treat = 5 × treated & -35.122***\\
- & (2.088)\\
-\midrule
-Num.Obs. & 79557\\
-AIC & 804661.4\\
-BIC & 804782.1\\
-RMSE & 38.02\\
-Std.Errors & by: pn\\
-FE: pn & X\\
-FE: year & X\\
-\bottomrule
-\multicolumn{2}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
-\end{tabular}
-\end{table}
-
-\begin{table}
-
-\caption{\label{tab:table-4}SA especification}
+\caption{\label{tab:Tab-5}Event Estudy SA Specification}
 \centering
 \begin{tabular}[t]{lc}
 \toprule
@@ -566,8 +390,6 @@ time\_to\_treat = 5 & -34.456***\\
  & (2.107)\\
 \midrule
 Num.Obs. & 79557\\
-AIC & 804610.3\\
-BIC & 804731.0\\
 RMSE & 38.00\\
 Std.Errors & by: pn\\
 FE: pn & X\\
@@ -577,9 +399,43 @@ FE: year & X\\
 \end{tabular}
 \end{table}
 
+Also, \Ref{Fig-5} presents the coefficients plot for the SA
+specification. We can see how this smooth the pre-trend before the
+medicaid expansion. Under this especification we see the Uncompensated
+care is significatly declining even before the expansion.
+
+\begin{figure}
+\centering
+\includegraphics{Report_files/figure-latex/Fig-4-1.pdf}
+\caption{Effect of Medicaid Eaxpansion on Uncompensated - SA
+Specification}
+\end{figure}
+
+\newpage
+
+\hypertarget{cs-specification}{%
+\section{CS Specification}\label{cs-specification}}
+
+Callaway and Sant'Anna (CS) offer a non-parametric solution that
+effectively calculates a set of group-time specific differences,
+\(ATT(g,t)= E[y_{it}(g) - y_{it}(\infty) | G_{i}=g]\), where \(g\)
+reflects treatment timing and \(t\) denotes time. They show that under
+the standard DD assumptions of parallel trends and no anticipation,
+\(ATT(g,t) = E[y_{it} - y_{i, g-1} | G_{i}=g] - E[y_{it} - y_{i,g-1} | G_{i} = \infty]\),
+so that \(\hat{ATT}(g,t)\) is directly estimable from sample analogs. CS
+also propose aggregations of \(\hat{ATT}(g,t)\) to form an overall ATT
+or a time-specific ATT (e.g., ATTs for \(\tau\) periods before/after
+treatment). With this framework in mind, provide an alternative event
+study using the CS estimator. Hint: check out the \texttt{did} package
+in \texttt{R} or the \texttt{csdid} package in \texttt{Stata}.
+
+\begin{figure}
+\subfloat[ATT by Cohorts\label{fig:Fig-5-1}]{\includegraphics[width=.49\linewidth]{Report_files/figure-latex/Fig-5-1} }\subfloat[Event Study\label{fig:Fig-5-2}]{\includegraphics[width=.49\linewidth]{Report_files/figure-latex/Fig-5-2} }\caption{CS Specification}\label{fig:Fig-5}
+\end{figure}
+
 \begin{table}
 
-\caption{\label{tab:table-4}CS specification}
+\caption{\label{tab:Tab-6}DiD CS Specification}
 \centering
 \begin{tabular}[t]{lc}
 \toprule
@@ -730,7 +586,7 @@ est.method & dr\\
 
 \begin{table}
 
-\caption{\label{tab:table-4}CS specification Event Study}
+\caption{\label{tab:Tab-7}Event Estudy CS Specification}
 \centering
 \begin{tabular}[t]{lc}
 \toprule
@@ -772,5 +628,46 @@ est.method & dr\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\newpage
+
+\hypertarget{rr-specification}{%
+\section{RR Specification}\label{rr-specification}}
+
+Rambachan and Roth (RR) show that traditional tests of parallel
+pre-trends may be underpowered, and they provide an alternative
+estimator that essentially bounds the treatment effects by the size of
+an assumed violation in parallel trends. One such bound RR propose is to
+limit the post-treatment violation of parallel trends to be no worse
+than some multiple of the pre-treatment violation of parallel trends.
+Assuming linear trends, such a violation is reflected by
+\[\Delta(\bar{M}) = \left\{ \delta : \forall t \geq 0, \lvert (\delta_{t+1} - \delta_{t}) - (\delta_{t} - \delta_{t-1}) \rvert \leq \bar{M} \times \max_{s<0} \lvert (\delta_{s+1} - \delta_{s}) - (\delta_{s} - \delta_{s-1}) \rvert \right\}.\]
+Using the \texttt{HonestDiD} package in \texttt{R} or \texttt{Stata},
+present a sensitivity plot of your CS ATT estimates using
+\(\bar{M} = \{0, 0.5, 1, 1.5, 2\}\). Check out the GitHub repo
+\href{https://github.com/pedrohcgs/CS_RR}{here} for some help in
+combining the \texttt{HonestDiD} package with CS estimates.
+
+\begin{figure}
+\subfloat[Smooth\label{fig:Fig-6-1}]{\includegraphics[width=.49\linewidth]{Report_files/figure-latex/Fig-6-1} }\subfloat[Sensitivity\label{fig:Fig-6-2}]{\includegraphics[width=.49\linewidth]{Report_files/figure-latex/Fig-6-2} }\caption{RR Specification}\label{fig:Fig-6}
+\end{figure}
+
+\newpage
+
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
+
+Discuss your findings and compare estimates from different estimators
+(e.g., are your results sensitive to different specifications or
+estimators? Are your results sensitive to violation of parallel trends
+assumptions?).
+
+\newpage
+
+\hypertarget{reflection}{%
+\section{Reflection}\label{reflection}}
+
+Reflect on this assignment. What did you find most challenging? What did
+you find most surprising?
 
 \end{document}
