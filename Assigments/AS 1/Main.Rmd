@@ -151,15 +151,6 @@ plot
 ## By Ownership Type
 Create a figure showing the mean hospital uncompensated care from 2000 to 2018. Show this trend separately by hospital ownership type (private not for profit and private for profit).
 
-```{r load-libraries, include=FALSE}
-library(tidyverse)
-library(ggthemes)
-library(crosswalkr)
-library(lfe)
-library(stargazer)
-```
-
-
 ```{r plot-own-typ, warning=FALSE, comment=NA, message = FALSE}
 df %>%
   filter(!(own_typ=='other')) %>%
@@ -354,9 +345,9 @@ library(devtools)
 install_github("bcallaway11/BMisc", dependencies = TRUE)
 install_github("bcallaway11/did", dependencies = TRUE)
 install_github("asheshrambachan/HonestDiD", dependencies = TRUE)
-#--------------------------------------------------------------------------
+
 # Load packages
-#--------------------------------------------------------------------------
+
 # Libraries
 # Load libraries
 library(ggplot2)
@@ -366,7 +357,7 @@ library(tidyverse)
 library(dplyr)
 library(did)
 library(HonestDiD)
-## -----------------------------------------------------------------------------
+
 #' @title honest_did
 #'
 #' @description a function to compute a sensitivity analysis
@@ -577,7 +568,7 @@ here::i_am("Main.Rmd")
   save.image(here("Output", "Output.Rdata"))
 ```
 
-```{r eval=FALSE, include=FALSE}
+```{r main-code, eval=FALSE, include=FALSE}
 knitr::purl("Main.Rmd", documentation = 1, output="Code/Main.R")
 ```
 ## Reflections

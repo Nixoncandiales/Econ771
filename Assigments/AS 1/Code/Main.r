@@ -4,7 +4,8 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, haven, descriptr, HonestDiD
 knitr::opts_knit$set(root.dir = here("Assigments", "AS 1"))
 
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
-knitr::opts_chunk$set(error = TRUE, cache =F)
+knitr::opts_chunk$set(error = TRUE, cache =TRUE)
+
 hook_in <- function(x, options) {
     x <- x[!grepl("^#\\s+", x)]
     paste0("```r\n",
@@ -19,18 +20,6 @@ here::i_am("Main.Rmd")
 if (!exists("data_hcris")) data_hcris <- read.delim(here("Output", "HCRIS", "HCRIS_Data.txt"))
 if (!exists("data_pos")) data_pos <- read_stata(here("Output", "POS", "pos.dta"))
 if (!exists("data_aca")) data_aca <- read.delim(here("Output", "ACA", "acs_medicaid.txt"))
-
-
-## ----data-hcris, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA-------------------------------------------------------------------------------------------------------------------------------------------------------
-ds_screener(data_hcris)
-
-
-## ----data-pos, include=TRUE, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA---------------------------------------------------------------------------------------------------------------------------------------------------------
-ds_screener(data_pos)
-
-
-## ----data-medicaid, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ds_screener(data_aca)
 
 
 ## ----merge-1, include=TRUE, warning=FALSE-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -96,13 +85,13 @@ df <- df %>%  filter(!(pn==151327 & year ==2016) & unc_care > 0)
 df %>% ggplot(aes(x = year, y = unc_care, group=year)) +
   geom_boxplot() + 
   theme_tufte() +
-    labs(x="Years", y="Uncompensated Care Millions", 
+    labs(x="Years", y="Millions of Dollars", 
        title = "Distribution Hospital Uncompensated Care Over Time")-> plot1
 
 df %>% ggplot(aes(x = year, y = hosp_rev, group=year)) + 
   geom_boxplot() + 
   theme_tufte() +
-    labs(x="Years", y="Hospital Revenue Millions", 
+    labs(x="Years", y="Millions of Dollars", 
        title = "Distribution Hospital Total Revenue Over Time") -> plot2
 
 plot <- plot1  / plot2 
@@ -156,19 +145,19 @@ plot3
 
 
 ## ----DiD, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE-------------------------------------------------------------------------------------------------------------------------------------------------------------
- df %>%        group_by(pn) %>% 
-               fill(starts_with("exp"), .direction = "up")  %>%  # Fill the NA for the years that do not appear in the aca data set.
-               mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
-               mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
-                      expand=ifelse(!is.na(expand),expand,FALSE)) %>%
-               ungroup()%>%
-               mutate(treatment_year = ifelse(expand_year<=2019, expand_year,0),
-                      treated = ifelse(expand_year<=2019, expand_ever*1,0),
-                      post = (year>=treatment_year & !(treatment_year==0) ),
-                      D = treated*post,
-                      D14 = ifelse(treatment_year<2014, 0, ifelse(treatment_year>2014, 999, treated*post)),
-                      D15 = ifelse(treatment_year<2015, 0, ifelse(treatment_year>2015, 999, treated*post)),
-                      D16 = ifelse(treatment_year<2016, 0, ifelse(treatment_year>2016, 999, treated*post)))-> df
+ df %>% group_by(pn) %>% 
+           fill(starts_with("exp"), .direction = "up")  %>%  # Fill the NA for the years that do not appear in the aca data set.
+           mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
+           mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
+                  expand=ifelse(!is.na(expand),expand,FALSE)) %>%
+           ungroup()%>%
+           mutate(treatment_year = ifelse(expand_year<=2019, expand_year,0),
+                  treated = ifelse(expand_year<=2019, expand_ever*1,0),
+                  post = (year>=treatment_year & !(treatment_year==0) ),
+                  D = treated*post,
+                  D14 = ifelse(treatment_year<2014, 0, ifelse(treatment_year>2014, 999, treated*post)),
+                  D15 = ifelse(treatment_year<2015, 0, ifelse(treatment_year>2015, 999, treated*post)),
+                  D16 = ifelse(treatment_year<2016, 0, ifelse(treatment_year>2016, 999, treated*post)))-> df
 
  replace_with_na(df, list(D14=999,D15=999,D16=999)) -> df
 
@@ -203,6 +192,19 @@ esttable(mod.esdt)
 
 
 ## ----sa, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+dat.reg <- df %>%
+           mutate(treatment_year = ifelse(treatment_year<2014 | treatment_year>2016, 10000, treatment_year),
+                  time_to_treat = ifelse(treated==0,-1, year-treatment_year),
+                  time_to_treat = ifelse(time_to_treat < -7, -7, time_to_treat))
+ 
+                  mod.sa <- feols(unc_care~sunab(treatment_year, time_to_treat)|pn+ year,
+                                     cluster=~pn,
+                                     data=dat.reg)
+                  
+esttable(mod.sa)
+
+
+## ----sa-old, eval=FALSE, include=FALSE--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # reg.dat <- df %>% 
 #             group_by(state) %>% 
 #             mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
@@ -237,18 +239,6 @@ esttable(mod.esdt)
 # modelsummary(mod.sa, stars = TRUE, output = "markdown")
 
 
-dat.reg <- df %>%
-           mutate(treatment_year = ifelse(treatment_year<2014 | treatment_year>2016, 10000, treatment_year),
-                  time_to_treat = ifelse(treated==0,-1, year-treatment_year),
-                  time_to_treat = ifelse(time_to_treat < -5, -5, time_to_treat))
- 
-                  mod.sa <- feols(unc_care~sunab(treatment_year, time_to_treat)|pn+ year,
-                                     cluster=~pn,
-                                     data=dat.reg)
-                  
-esttable(mod.sa)
-
-
 ## ----sa-plot, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE---------------------------------------------------------------------------------------------------------------------------------------------------------
 coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
 
@@ -265,7 +255,7 @@ mod.cs <- att_gt(yname="unc_care",
                  tname="year", 
                  idname="pn_id",
                  gname="treatment_year",
-                 data=a, 
+                 data=df, 
                  panel=TRUE, 
                  est_method="dr",
                  cband=TRUE,
@@ -281,7 +271,7 @@ ggdid(mod.cs.event,
       title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
 
 
-## ----Aux-func-RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE-----------------------------------------------------------------------------------------------------------------------------------------------------
+## ----Aux-func-RR, warning=FALSE, cache=TRUE, comment=NA, include=FALSE, tidy=TRUE-------------------------------------------------------------------------------------------------------------------------------------------------
 # Install some packages
 library(devtools)
 install_github("bcallaway11/BMisc", dependencies = TRUE)
@@ -408,8 +398,7 @@ honest_did.AGGTEobj <- function(es,
 }
 
 
-## ----RR, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+## ----RR, echo=TRUE, warning=FALSE, cache=TRUE, comment=NA, tidy=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # code for running honest_did
 hd_cs_smooth_never <- honest_did(mod.cs.event,
                            type="smoothness", Mvec=c(0.5,1,1.5,2))
@@ -428,31 +417,24 @@ cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust
                                          hd_cs_rm_never$orig_ci)
 
 
-## ----RR-plots,  tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE-------------------------------------------------------------------------------------------------------------------------------------------------------
+## ----RR-plots, echo=TRUE, warning=FALSE, cache=TRUE, comment=NA, tidy=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------
 cs_HDiD_smooth
 cs_HDiD_relmag
 
 
-## ----write-results----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ----write-results, eval=FALSE, include=FALSE-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ## Plots
 here::i_am("Main.Rmd")
-  ggsave(here("Output","Figures", "plot0.png"),
-         plot1,
-         dpi = 500,
-         width = 14,
-         height = 7)
 
-  ggsave(here("Output","Figures", "plot1.png"),
-         plot2,
-         dpi = 500,
-         width = 14,
-         height = 7)
+  png(file=here("Output","Figures", "plot1.png"),
+      width=14, height=7, units="in", res=500)
+  plot  
+  dev.off()
 
-  ggsave(here("Output","Figures", "plot2.png"),
-         plot3,
-         dpi = 500,
-         width = 14,
-         height = 7)
+  png(file=here("Output","Figures", "plot2.png"),
+      width=14, height=7, units="in", res=500)
+  plot3
+  dev.off()
 
   png(file=here("Output","Figures", "plot3.png"),
       width=14, height=7, units="in", res=500)
@@ -508,10 +490,10 @@ here::i_am("Main.Rmd")
   modelsummary(mod.cs.event, title = "Table 8",
                          output= here("Output", "Tables", "table8.tex"))
 
-  rm(data_aca, data_hcris, data_pos, dat.reg, reg.dat, min_wage, fig_CS, df_1, df_2, df_3)
+  rm(data_aca, data_hcris, data_pos, dat.reg, reg.dat, df_1, df_2, df_3)
   save.image(here("Output", "Output.Rdata"))
 
 
-## ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ----eval=FALSE, include=FALSE----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 knitr::purl("Main.Rmd", documentation = 1, output="Code/Main.R")
 
