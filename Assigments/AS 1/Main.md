@@ -612,19 +612,19 @@ Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for
 some help in combining the `HonestDiD` package with CS estimates. 1
 
 ``` r
-hd_cs_smooth_never <- honest_did(mod.cs.event, type = "smoothness", Mvec = c(0.5,
-    1, 1.5, 2))
+hd_cs_smooth_never <- honest_did(mod.cs.event, type = "smoothness", Mvec = c(500,
+    1000, 1500, 2000))
 hd_cs_smooth_never
 ```
 
     $robust_ci
     # A tibble: 4 × 5
-         lb    ub method Delta       M
-      <dbl> <dbl> <chr>  <chr>   <dbl>
-    1 -12.1 -8.61 FLCI   DeltaSD   0.5
-    2 -12.8 -8.31 FLCI   DeltaSD   1  
-    3 -13.3 -7.81 FLCI   DeltaSD   1.5
-    4 -13.8 -7.31 FLCI   DeltaSD   2  
+          lb    ub method Delta       M
+       <dbl> <dbl> <chr>  <chr>   <dbl>
+    1  -512.  491. FLCI   DeltaSD   500
+    2 -1012.  991. FLCI   DeltaSD  1000
+    3 -1512. 1491. FLCI   DeltaSD  1500
+    4 -2012. 1991. FLCI   DeltaSD  2000
 
     $orig_ci
     # A tibble: 1 × 4
@@ -636,19 +636,19 @@ hd_cs_smooth_never
     [1] "smoothness"
 
 ``` r
-hd_cs_rm_never <- honest_did(mod.cs.event, type = "relative_magnitude", Mbarvec = c(500,
-    1000, 1500, 2000))
+hd_cs_rm_never <- honest_did(mod.cs.event, type = "relative_magnitude", Mbarvec = c(0.5,
+    1, 1.5, 2))
 hd_cs_rm_never
 ```
 
     $robust_ci
     # A tibble: 4 × 5
-         lb    ub method Delta    Mbar
-      <dbl> <dbl> <chr>  <chr>   <dbl>
-    1    -1     1 C-LF   DeltaRM   500
-    2    -1     1 C-LF   DeltaRM  1000
-    3    -1     1 C-LF   DeltaRM  1500
-    4    -1     1 C-LF   DeltaRM  2000
+         lb       ub method Delta    Mbar
+      <dbl>    <dbl> <chr>  <chr>   <dbl>
+    1   Inf -Inf     C-LF   DeltaRM   0.5
+    2   Inf -Inf     C-LF   DeltaRM   1  
+    3    -1    0.434 C-LF   DeltaRM   1.5
+    4    -1    1     C-LF   DeltaRM   2  
 
     $orig_ci
     # A tibble: 1 × 4

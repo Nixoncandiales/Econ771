@@ -472,10 +472,10 @@ honest_did.AGGTEobj <- function(es,
 ```{r RR, echo=TRUE, warning=FALSE, cache=TRUE, comment=NA, tidy=TRUE}
 # code for running honest_did
 hd_cs_smooth_never <- honest_did(mod.cs.event,
-                           type="smoothness", Mvec=c(0.5,1,1.5,2))
+                           type="smoothness", Mvec=c(500,1000,1500,2000))
 hd_cs_smooth_never
 
-hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(500,1000,1500,2000))
+hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(0.5,1,1.5,2))
 hd_cs_rm_never
 
 # Drop 0 as that is not really allowed.
