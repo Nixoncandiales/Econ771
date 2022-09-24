@@ -303,8 +303,16 @@ Discuss your findings and compare estimates from different estimators
 estimators? Are your results sensitive to violation of parallel trends
 assumptions?).
 
+Across all different specifications we see a robust result, the ATE is negative, that is the reduction in Uncomponsetad Care provided by hospitals is due to the exogenous policy shock, the expansion Medicaid across states. We have robust evidence to say this is a cusal effect. 
+
 \newpage
 # Reflection
 
 Reflect on this assignment. What did you find most challenging? What did
 you find most surprising?
+
+The first challenge was to collect all data sets and merge them into one, which requires a few programming skills and institutional knowledge of the field. I encountered one specific problem while combining POS and HCRIS data since I was not aware of the possibility that providers changed the ownership compositions over time. I was not aware of this situation until very late.
+
+A second challenge was implementing the HonestDiD package. My results were not interpretable or plausible when dealing with the original grid.
+
+I can get two main takeaways from this assignment. The importance of developing a transparent and reproducible workflow allowed me to make the changes easily) and improve my coding skills to avoid code repetition and improve accuracy and efficiency.
