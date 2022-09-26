@@ -96,16 +96,23 @@ Provide and discuss a table of simple summary statistics showing the mean, stand
 From the `HCRIS_data.txt` we select the variables `provider_number`, `year`, `uncomp_care`, `tot_uncomp_care_charges`, `tot_pat_rev`. We create a new variable that stores the uncompensated care records, then we group by year and calculate the summary statistics as follows.
 
 ```{r summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-df %>% ungroup() %>%
-  summarise_at(c("unc_care", "hosp_rev"), list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
-
+#All year summary
+df %>% 
+  ungroup() %>%
+  summarise_at(c("unc_care", "hosp_rev"), 
+               list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
+#Over time Summary
 df %>%
   group_by(year) %>%
-  summarise_at(c('unc_care', 'hosp_rev'),list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
-  relocate(starts_with("unc"), starts_with("hosp")) -> table2
+  summarise_at(c('unc_care', 'hosp_rev'),
+               list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
+  relocate(starts_with("unc"), starts_with("hosp"))-> table2
 
-table1
-table2
+#Rbind both Tables
+table1$year <- "2003-2019"
+table1 <- table1 %>% relocate(year)
+table <- rbind(table2,table1) %>% relocate(year)
+table
 ```
 
 ```{r plot-summary-stats, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
@@ -179,7 +186,8 @@ where $D_{it}=1(E_{i}\leq t)$ in Equation 1 is an indicator set to 1 when a hosp
 
 
 ```{r DiD, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
- df %>% group_by(pn) %>% 
+ df %>% distinct(pn, year, .keep_all = TRUE) %>%
+           group_by(pn) %>% 
            fill(starts_with("exp"), .direction = "up")  %>%  # Fill the NA for the years that do not appear in the aca data set.
            mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
            mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
@@ -190,8 +198,8 @@ where $D_{it}=1(E_{i}\leq t)$ in Equation 1 is an indicator set to 1 when a hosp
                   post = (year>=treatment_year & !(treatment_year==0) ),
                   D = treated*post,
                   D14 = ifelse(treatment_year<2014, 0, ifelse(treatment_year>2014, 999, treated*post)),
-                  D15 = ifelse(treatment_year<2015, 0, ifelse(treatment_year>2015, 999, treated*post)),
-                  D16 = ifelse(treatment_year<2016, 0, ifelse(treatment_year>2016, 999, treated*post)))-> df
+                  D15 = ifelse(treatment_year==2014, 999, ifelse(treatment_year<2015, 0, ifelse(treatment_year>2015, 999, treated*post))),
+                  D16 = ifelse((treatment_year==2014 | treatment_year==2015) , 999, ifelse(treatment_year>2016, 999, treated*post)))-> df
 
  replace_with_na(df, list(D14=999,D15=999,D16=999)) -> df
 ```
@@ -213,27 +221,39 @@ where $D_{it}^{\tau} = 1(t-E_{i}=\tau)$ in Equation 2 is essentially an interact
 
 ```{r event-study-common, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 ### Common treatment timing
-reg.dat <- df %>% filter(!is.na(D14))
+reg.dat <- df %>% filter(!is.na(D14)) %>% mutate(relative_time = year-2014)
 
- mod.esct <- feols(unc_care~i(year, treated, ref=2013) | pn + year,
+ mod.esct <- feols(unc_care~i(relative_time, treated, ref=-1) | pn + year,
                 cluster=~pn,
                 data=reg.dat)
 esttable(mod.esct)
 iplot(mod.esct)
+rm(reg.dat)
 ```
 
 ``` {r event-study-diff, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
 ##### Differential timgin treatment
 df %>% mutate(dif_timing = ifelse(expand_ever==FALSE, 0, ifelse(expand_year==0,0,year-expand_year)),
-                time_to_treat = ifelse(dif_timing < -7, -7, dif_timing)) %>% 
+                time_to_treat = ifelse(dif_timing < -11, -11, dif_timing),
+              relative_time = time_to_treat) %>% 
                 ungroup() -> df
  
- mod.esdt <- feols(unc_care~i(time_to_treat, treated, ref=-1) | pn + year,
+ mod.esdt <- feols(unc_care~i(relative_time, treated, ref=-1) | pn + year,
                    cluster=~pn,
-                   data=df)
+                   data=df, 
+                   coef_rename = c("drat" = "Explanator", "vs" = "Explanator"))
 esttable(mod.esdt)
- iplot(mod.esdt)
+iplot(mod.esdt)
 ```
+```{r pruebas}
+mod.es <- list("2014 Sample"=mod.esct, "Full Sample"=mod.esdt) 
+
+modelsummary(mod.es, output = "markdown")
+modelplot(mod.es)
+iplot(mod.es)
+coefplot(mod.es)
+```
+
 
 ## SA specification
 Sun and Abraham (SA) show that the $\delta_{\tau}$ coefficients in Equation 2 can be written as a non-convex average of all other group-time specific average treatment effects. They propose an interaction weighted specification:
@@ -243,59 +263,61 @@ $$
 Re-estimate your event study using the SA specification in Equation 3. Show your results for $\hat{\delta}_{e, \tau}$ in a Table, focusing on states with $E_{i}=2014$, $E_{i}=2015$, and $E_{i}=2016$.
 
 
-```{r sa, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-dat.reg <- df %>%
-           mutate(treatment_year = ifelse(treatment_year<2014 | treatment_year>2016, 10000, treatment_year),
-                  time_to_treat = ifelse(treated==0,-1, year-treatment_year),
-                  time_to_treat = ifelse(time_to_treat < -7, -7, time_to_treat))
- 
-                  mod.sa <- feols(unc_care~sunab(treatment_year, time_to_treat)|pn+ year,
-                                     cluster=~pn,
-                                     data=dat.reg)
-                  
-esttable(mod.sa)
+```{r sa-new, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
+# dat.reg <- df %>%
+#            mutate(treatment_year = ifelse(treatment_year<2014 | treatment_year>2016, 10000, treatment_year),
+#                   time_to_treat = ifelse(treated==0,-1, year-treatment_year),
+#                   time_to_treat = ifelse(time_to_treat < -7, -7, time_to_treat))
+#  
+#                   mod.sa <- feols(unc_care~sunab(treatment_year, time_to_treat)|pn+ year,
+#                                      cluster=~pn,
+#                                      data=dat.reg)
+#                   
+# esttable(mod.sa)
 ```
 
-```{r sa-old, eval=FALSE, include=FALSE}
-# reg.dat <- df %>% 
-#             group_by(state) %>% 
-#             mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
-#             fill(starts_with("exp"), .direction = "up")  %>%  # Fill the NA for the years that do not appear in the aca data set.
-#             mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
-#                    expand=ifelse(!is.na(expand),expand,FALSE))
-# 
-# sa <- function(data, i){
-#   
-#   data %>%
-#       mutate(post = (year>=i), 
-#       treat=post*expand_ever,
-#       expand_year = ifelse(expand_ever==FALSE, 10000, ifelse(expand_year>=i,expand_year,100000)),
-#       time_to_treat = ifelse(expand_ever==FALSE, -1, year-expand_year),
-#       time_to_treat = ifelse(time_to_treat < ifelse(i==2014,-5,
-#                                                     ifelse(i==2015, -6 , -7 )), 
-#                                              ifelse(i==2014,-5, ifelse(i==2015, -6 , -7 )) , 
-#                              time_to_treat)) -> x
-# 
-#    feols(unc_care~sunab(expand_year, time_to_treat) | pn + year,
-#                       cluster=~pn,
-#                       data=x)
-# }
-# 
-# 
-# mod.sa <- list(
-#   "mod.sa.2016" = sa(reg.dat, 2016),
-#   "mod.sa.2015" = sa(reg.dat, 2015),
-#   "mod.sa.2014" = sa(reg.dat, 2014)
-# )
-# 
-# modelsummary(mod.sa, stars = TRUE, output = "markdown")
+```{r sa-old, include=TRUE}
+reg.dat <- df %>%
+            group_by(state) %>%
+            mutate(expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
+            fill(starts_with("exp"), .direction = "up")  %>%  # Fill the NA for the years that do not appear in the aca data set.
+            mutate(expand_ever=ifelse(is.na(expand_ever),FALSE,expand_ever),
+                   expand=ifelse(!is.na(expand),expand,FALSE))
+
+sa <- function(data, i){
+
+  data %>%
+      mutate(post = (year>=i),
+      treat=post*expand_ever,
+      expand_year = ifelse(expand_ever==FALSE, 10000, ifelse(expand_year>=i,expand_year,100000)),
+      time_to_treat = ifelse(expand_ever==FALSE, -1, year-expand_year),
+      time_to_treat = ifelse(time_to_treat < ifelse(i==2014,-7,
+                                                    ifelse(i==2015, -7 , -7 )),
+                                             ifelse(i==2014,-7, ifelse(i==2015, -7 , -7 )) ,
+                             time_to_treat)) -> x
+
+   feols(unc_care~sunab(expand_year, time_to_treat) | pn + year,
+                      cluster=~pn,
+                      data=x)
+}
+
+
+mod.sa <- list(
+  "2014 Sample" = sa(reg.dat, 2014),
+  "2015 Sample" = sa(reg.dat, 2015),
+  "2016 Sample" = sa(reg.dat, 2016)
+)
+
+modelsummary(mod.sa, stars = TRUE, output = "markdown")
+modelplot(mod.sa)
+rm(reg.dat)
 ```
 
 ## Event Study - SA specification
 Present an event study graph based on the results in part 5. Hint: you can do this automatically in `R` with the `fixest` package (using the `sunab` syntax for interactions), or with `eventstudyinteract` in `Stata`. These packages help to avoid mistakes compared to doing the tables/figures manually and also help to get the standard errors correct.
 
 ``` {r sa-plot, tidy=TRUE, echo=TRUE, cache=TRUE, comment=NA, warning=FALSE}
-coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+iplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
 ```
 
 
@@ -323,11 +345,12 @@ mod.cs <- att_gt(yname="unc_care",
                  base_period="universal")
 
 mod.cs.event<- aggte(mod.cs, type="dynamic", min_e = -7, max_e = 6)
-mod.cs
-mod.cs.event
+
 ggdid(mod.cs)
 ggdid(mod.cs.event, 
       title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
+
+mod.cs <- list("ATT(g,t)"=mod.cs, "Dynamic Effects:"=mod.cs.event)
 ```
 
 
@@ -365,7 +388,7 @@ library(HonestDiD)
 #' @description a function to compute a sensitivity analysis
 #'  using the approach of Rambachan and Roth (2021)
 #' @param es an event study
-honest_did <- function(es, ...) {
+if (!exists("honest_did"))  honest_did <- function(es, ...) {
   UseMethod("honest_did", es)
 }
 #' @title honest_did.AGGTEobj
@@ -471,11 +494,11 @@ honest_did.AGGTEobj <- function(es,
 
 ```{r RR, echo=TRUE, warning=FALSE, cache=TRUE, comment=NA, tidy=TRUE}
 # code for running honest_did
-hd_cs_smooth_never <- honest_did(mod.cs.event,
+if (!exists("hd_cs_smooth_never")) hd_cs_smooth_never <- honest_did(mod.cs.event,
                            type="smoothness", Mvec=c(500,1000,1500,2000))
 hd_cs_smooth_never
 
-hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(0.5,1,1.5,2))
+if (!exists("hd_cs_rm_never")) hd_cs_rm_never <- honest_did(mod.cs.event, type="relative_magnitude", Mbarvec=c(0.5,1,1.5,2))
 hd_cs_rm_never
 
 # Drop 0 as that is not really allowed.
@@ -514,36 +537,31 @@ here::i_am("Main.Rmd")
 
   png(file=here("Output","Figures", "plot3.png"),
       width=14, height=7, units="in", res=500)
-  iplot(mod.esct, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  iplot(mod.es, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
   dev.off()
 
   png(file=here("Output","Figures", "plot4.png"),
       width=14, height=7, units="in", res=500)
-  iplot(mod.esdt)
+  coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
   dev.off()
 
   png(file=here("Output","Figures", "plot5.png"),
       width=14, height=7, units="in", res=500)
-  coefplot(mod.sa, main="Effect of Medicaid Eaxpansion on Uncompensated Care")
+  ggdid(mod.cs[[1]])
   dev.off()
 
   png(file=here("Output","Figures", "plot6.png"),
       width=14, height=7, units="in", res=500)
-  ggdid(mod.cs)
+  ggdid(mod.cs[[2]],
+        title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
   dev.off()
 
   png(file=here("Output","Figures", "plot7.png"),
       width=14, height=7, units="in", res=500)
-  ggdid(mod.cs.event,
-        title = "Event-study aggregation \n DiD based on conditional PTA and using never-treated as comparison group")
-  dev.off()
-
-  png(file=here("Output","Figures", "plot8.png"),
-      width=14, height=7, units="in", res=500)
   cs_HDiD_smooth
   dev.off()
 
-  png(file=here("Output","Figures", "plot9.png"),
+  png(file=here("Output","Figures", "plot8.png"),
       width=14, height=7, units="in", res=500)
   cs_HDiD_relmag
   dev.off()
@@ -555,23 +573,24 @@ here::i_am("Main.Rmd")
   stargazer(mod.twfe, type='latex', align=TRUE, title = "Table 3",
                       note="1-4 represents d, d_14,d_15 and d_16 respectevely",
                       out = here("Output", "Tables", "table3.tex")) # Consider using ModelSummary
-  modelsummary(mod.esct, stars = TRUE, title = "Table 4",
+  modelsummary(mod.es[[1]], stars = TRUE, title = "Table 4",
                          output= here("Output", "Tables", "table4.tex"))
-  modelsummary(mod.esdt, stars=TRUE, title = "Table 5",
+  modelsummary(mod.es[[2]], stars=TRUE, title = "Table 5",
                          output= here("Output", "Tables", "table5.tex"))
   modelsummary(mod.sa, stars = TRUE, title = "Table 6",
                          output= here("Output", "Tables", "table6.tex"))
-  modelsummary(mod.cs, title = "Table 7",
+  modelsummary(mod.cs[[1]], title = "Table 7",
                          output= here("Output", "Tables", "table7.tex"))
-  modelsummary(mod.cs.event, title = "Table 8",
+  modelsummary(mod.cs[[2]], title = "Table 8",
                          output= here("Output", "Tables", "table8.tex"))
 
-  rm(data_aca, data_hcris, data_pos, dat.reg, reg.dat, df_1, df_2, df_3)
-  save.image(here("Output", "Output.Rdata"))
+  rm(data_aca, data_hcris, data_pos, df, df_1, df_2, df_3, hd_cs_rm_never, hd_cs_smooth_never, mod.cs.event, mod.esct, mod.esdt, plot, table1, table2, honest_did, honest_did.AGGTEobj, hook_in, sa)
+
 ```
 
 ```{r main-code, eval=FALSE, include=FALSE}
-knitr::purl("Main.Rmd", documentation = 1, output="Code/Main.R")
+  save.image(here("Output", "Output.Rdata"))
+  knitr::purl("Main.Rmd", documentation = 1, output="Code/Main.R")
 ```
 ## Reflections
 Reflect on this assignment. What did you find most challenging? What did you find most surprising? 

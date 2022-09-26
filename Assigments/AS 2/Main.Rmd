@@ -3,15 +3,12 @@ title: "Assigment 2 - Empirical Exercise"
 date: "Due: Friday, October 14"
 output: github_document
 always_allow_html: true
-extra_dependencies:
-  amsmath: null
 math: true    
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 # Overview
 In this assignment, we're going to work through some applied issues related to instrumental variables. For a long time, IV (or 2SLS) was a very common identification strategy for applied empirical micro, but it fell out of favor as people became more aware of the assumptions underlying the estimator and better understood what IV actually estimates (not the ATE in most cases). People also started to find other strategies that were more compelling in some applications (and of course with some other assumptions). In this assignment, we're going to study the effects of a physician's affiliation with a hospital on physician practice patterns, and we'll instrument for physician affiliation using some specific Medicare payment shocks.
 
@@ -21,11 +18,11 @@ Please "submit" your answers as a GitHub repository link. In this repo, please i
 # Resources and data
 The data for this assignment comes from three sources:
 
-1. [MD-PPAS](https://resdac.org/cms-data/files/md-ppas); The Medicare Data on Provider Practice and Specialty includes data on physician specialties, practice IDs, demographics, and place of service. Be sure to follow the link and read the data documentation. We'll use these data to construct a measure of physician integration
+1. [MD-PPAS](https://resdac.org/cms-data/files/md-ppas); The Medicare Data on Provider Practice and Specialty includes data on physician specialties, practice IDs, demographics, and place of service. Be sure to follow the link and read the data documentation. We'll use these data to construct a measure of physician integration ** Review
 
-2. [Medicare Utilization and Payment Data](https://data.cms.gov/provider-summary-by-type-of-service/medicare-physician-other-practitioners/medicare-physician-other-practitioners-by-provider-and-service): These files provide data on the quantities and Medicare spending of each physician and service. We'll use these data to construct an instrument for our integration measure and to capture total physician-level billing activity.
+2. [Medicare Utilization and Payment Data](https://data.cms.gov/provider-summary-by-type-of-service/medicare-physician-other-practitioners/medicare-physician-other-practitioners-by-provider-and-service): These files provide data on the quantities and Medicare spending of each physician and service. We'll use these data to construct an instrument for our integration measure and to capture total physician-level billing activity. **Review
 
-3. [Physician Fee Schedule 2010 Update](https://github.com/imccart/PFS_Update_2010): Our instrument mainly consists of a shock to physician payments introduced in 2010. The shock further increased payments for services in an outpatient facility compared to services billed in a physician's office. The GitHub repo (linked above) provides code to recreate a dataset with service-specific price shocks introduced by the 2010 fee schedule update.
+3. [Physician Fee Schedule 2010 Update](https://github.com/imccart/PFS_Update_2010): Our instrument mainly consists of a shock to physician payments introduced in 2010. The shock further increased payments for services in an outpatient facility compared to services billed in a physician's office. The GitHub repo (linked above) provides code to recreate a dataset with service-specific price shocks introduced by the 2010 fee schedule update.** Review
 
 # Questions
 In your GitHub repository, please be sure to clearly address/answer the following questions.

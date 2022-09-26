@@ -2,43 +2,43 @@
 
 \caption{Table 6}
 \centering
-\begin{tabular}[t]{lc}
+\begin{tabular}[t]{lccc}
 \toprule
-  & Model 1\\
+  & 2014 Sample & 2015 Sample & 2016 Sample\\
 \midrule
-time\_to\_treat = -7 & 15.552***\\
- & (2.563)\\
-time\_to\_treat = -6 & 14.639***\\
- & (2.875)\\
-time\_to\_treat = -5 & 12.228***\\
- & (2.528)\\
-time\_to\_treat = -4 & 7.590***\\
- & (1.767)\\
-time\_to\_treat = -3 & 3.401***\\
- & (0.895)\\
-time\_to\_treat = -2 & 1.638**\\
- & (0.634)\\
-time\_to\_treat = 0 & -9.411***\\
- & (0.723)\\
-time\_to\_treat = 1 & -18.360***\\
- & (1.129)\\
-time\_to\_treat = 2 & -22.200***\\
- & (1.280)\\
-time\_to\_treat = 3 & -26.974***\\
- & (1.528)\\
-time\_to\_treat = 4 & -29.782***\\
- & (1.729)\\
-time\_to\_treat = 5 & -34.456***\\
- & (2.107)\\
+time\_to\_treat = -7 & \num{14.282}*** & \num{-0.704} & \num{-8.627}+\\
+ & (\num{2.696}) & (\num{3.178}) & (\num{5.167})\\
+time\_to\_treat = -6 & \num{12.448}*** & \num{-3.045} & \num{-12.580}***\\
+ & (\num{2.856}) & (\num{2.335}) & (\num{3.619})\\
+time\_to\_treat = -5 & \num{10.754}*** & \num{2.300} & \num{-8.890}**\\
+ & (\num{2.867}) & (\num{5.836}) & (\num{2.767})\\
+time\_to\_treat = -4 & \num{6.472}** & \num{-5.025}*** & \num{-8.697}***\\
+ & (\num{1.966}) & (\num{1.367}) & (\num{2.257})\\
+time\_to\_treat = -3 & \num{3.650}*** & \num{-3.000}*** & \num{-6.676}***\\
+ & (\num{0.992}) & (\num{0.884}) & (\num{1.354})\\
+time\_to\_treat = -2 & \num{1.337}+ & \num{-1.956}** & \num{-4.002}***\\
+ & (\num{0.697}) & (\num{0.696}) & (\num{0.914})\\
+time\_to\_treat = 0 & \num{-10.782}*** & \num{-4.164}*** & \num{-6.574}***\\
+ & (\num{0.766}) & (\num{0.878}) & (\num{0.731})\\
+time\_to\_treat = 1 & \num{-19.683}*** & \num{-7.731}*** & \num{-12.905}***\\
+ & (\num{1.140}) & (\num{1.046}) & (\num{1.789})\\
+time\_to\_treat = 2 & \num{-23.433}*** & \num{-11.979}*** & \num{-16.813}***\\
+ & (\num{1.300}) & (\num{1.181}) & (\num{1.886})\\
+time\_to\_treat = 3 & \num{-28.423}*** & \num{-15.415}*** & \num{-21.161}***\\
+ & (\num{1.543}) & (\num{1.256}) & (\num{2.023})\\
+time\_to\_treat = 4 & \num{-31.627}*** & \num{-13.092}*** & \\
+ & (\num{1.735}) & (\num{1.574}) & \\
+time\_to\_treat = 5 & \num{-37.157}*** &  & \\
+ & (\num{2.089}) &  & \\
 \midrule
-Num.Obs. & 79557\\
-AIC & 804610.3\\
-BIC & 804731.0\\
-RMSE & 38.00\\
-Std.Errors & by: pn\\
-FE: pn & X\\
-FE: year & X\\
+Num.Obs. & \num{61856} & \num{61856} & \num{61856}\\
+AIC & \num{629287.1} & \num{631668.7} & \num{631800.0}\\
+BIC & \num{629404.5} & \num{631777.1} & \num{631899.3}\\
+RMSE & \num{39.16} & \num{39.92} & \num{39.96}\\
+Std.Errors & by: pn & by: pn & by: pn\\
+FE: pn & X & X & X\\
+FE: year & X & X & X\\
 \bottomrule
-\multicolumn{2}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
+\multicolumn{4}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
 \end{tabular}
 \end{table}

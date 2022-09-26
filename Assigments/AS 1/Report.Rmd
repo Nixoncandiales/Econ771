@@ -51,23 +51,6 @@ observations. The mean, standard deviation, and minimum and maximum
 values across the years are presented in table 1 of summary statistics.
 
 ```{r Tab-1, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, results='asis'}
-#All year summary
-df %>% 
-  ungroup() %>%
-  summarise_at(c("unc_care", "hosp_rev"), 
-               list(mean = mean, sd = sd, min = min, max = max), na.rm = TRUE) -> table1
-#Over time Summary
-df %>%
-  group_by(year) %>%
-  summarise_at(c('unc_care', 'hosp_rev'),
-               list(mean = mean, sd = sd, min = min, max = max), na.rm=T) %>%
-  relocate(starts_with("unc"), starts_with("hosp"))-> table2
-
-#Rbind both Tables
-table1$year <- "2003-2019"
-table1 <- table1 %>% relocate(year)
-table <- rbind(table2,table1) %>% relocate(year)
-
 #Display the Table in Latex
 kable(table, 
       digits=2, 
@@ -122,7 +105,7 @@ limiting to the 2016 treatment group (3).
 A first appreciation of our results indicate that the ATE of medicaid expansion on uncompensated care is negative. The point estimate varies when limiting the treatment sample for 2014 to 2016 as well as the confidence intervals but we get a consistent trend across the samples. We see the effect is larger when limiting the sample to the states that expanded in 2014.
 
 ```{r Tab-2, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, results='asis', label="Tab-2"}
-dep_var <- c(1:4)
+dep_var <- c("Full Sample", "2014 Sample", "2015 Sample", "2016 Sample")
 names(mod.twfe) <- c(dep_var)
 
 modelsummary(mod.twfe,
@@ -135,7 +118,9 @@ modelsummary(mod.twfe,
           header=FALSE,
           stars = TRUE,
           gof_omit = "R2 Adj.|BIC|AIC",
-          output = "latex")
+          output = "latex")%>% 
+          #notes = list("Each column represents a different treatment sample used in the estimation")) %>% 
+add_header_above(c(" ", "Uncompensated Care" = 4))
 ```
 
 
@@ -159,8 +144,8 @@ Table \ref{Tab-3} presents the estimates for the common treatment time for the 2
 Also, we can observe in \ref{Fig-2} the event study coefficients plot. It is clear the drop in uncompensated care after the first year of the medicaid expansion. Also the ATT seems to increase as $\tau$ increases. We can see that the average treatment on the treated is the highest 5 years after the treatment.
 
 ```{r Tab-3, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-3", results='asis'}
-   modelsummary(mod.esct,
-                title = "Event Study Sample 2014",
+   modelsummary(mod.es,
+                title = "Event Study",
                 style = "aer",
                 table.placement = "H",
                 column.labels = c("M1", "M2", "M3", "M4"),
@@ -168,29 +153,35 @@ Also, we can observe in \ref{Fig-2} the event study coefficients plot. It is cle
                 header=FALSE,
                 stars = TRUE,
                 gof_omit = "R2 Adj.|BIC|AIC",
-                output = "latex")
+                output = "latex") %>% 
+add_header_above(c(" ", "Uncompensated Care" = 2))
 ```   
 
-```{r Tab-4, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-4", results='asis'}
-modelsummary(mod.esdt,
-                title = "Event Estudy Full Sample",
-                style = "aer",
-                table.placement = "H",
-                column.labels = c("M1", "M2", "M3", "M4"),
-                model.numbers = TRUE,
-                header=FALSE,
-                stars = TRUE,
-                gof_omit = "R2 Adj.|BIC|AIC",
-                output = "latex")
+```{r Tab-3b, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-3b", results='asis'}
+# modelsummary(mod.esdt,
+#                 title = "Event Estudy Full Sample",
+#                 style = "aer",
+#                 table.placement = "H",
+#                 column.labels = c("M1", "M2", "M3", "M4"),
+#                 model.numbers = TRUE,
+#                 header=FALSE,
+#                 stars = TRUE,
+#                 gof_omit = "R2 Adj.|BIC|AIC",
+#                 output = "latex")
 ```
 
-
-```{r Fig-3, include=TRUE, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE,  comment=FALSE, message= FALSE,  fig.cap = "Event Study", fig.subcap=c('Sample 2014', 'Full Sample'), out.width='.49\\linewidth', fig.asp=1, fig.ncol = 2 }
-iplot(mod.esct, main= "Effect of Medicaid Eaxpansion on Uncompensated
+```{r Fig-3a, include=TRUE, echo=FALSE, fig.cap = "Event Study", warning=FALSE,comment=NA, message=FALSE, label="Fig-3"}
+iplot(mod.es, main= "Effect of Medicaid Eaxpansion on Uncompensated
 Care")
 
-iplot(mod.esdt, main= "Effect of Medicaid Eaxpansion on Uncompensated
-Care")
+legend("bottomleft", col = c(1, 2), pch = c(20, 17), legend = c("2014 Sample", "Full Sample"))
+```
+
+```{r Fig-3b, include=FALSE, evaluate=FALSE, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE,  comment=FALSE, message= FALSE,  fig.cap = "Event Study", fig.subcap=c('Sample 2014', 'Full Sample'), out.width='.49\\linewidth', fig.asp=1, fig.ncol = 2 }
+# iplot(mod.esct, main= "Effect of Medicaid Eaxpansion on Uncompensated
+# Care")
+# iplot(mod.esdt, main= "Effect of Medicaid Eaxpansion on Uncompensated
+# Care")
 ```
 \newpage
 # SA Specification
@@ -205,9 +196,9 @@ y_{it} = \alpha_{i} + \gamma_{t} +\sum_{e} \sum_{\tau \neq -1} \left(D_{it}^{\ta
 ```
 \ref{table-5} presents the Re-estimate coefficients for the event study using the SA specification. For this specification we focus on the states that expanded either on 2014, 2015 or 2016 and include those in the treatment group. Whereas the control group is formed by the never treated observations. Providers that are in a state that expanded after 2016 are not considered in this part. The coefficients presented in the table are $\hat{\delta}_{e, \tau}$.
 
-```{r Tab-5, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-5", results='asis'}
+```{r Tab-4, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-4", results='asis'}
 modelsummary(mod.sa,
-                title = "Event Estudy SA Specification",
+                title = "Event Estudy Sun and Abraham(SA) Specification",
                 style = "aer",
                 table.placement = "H",
                 column.labels = c("M1", "M2", "M3", "M4"),
@@ -215,12 +206,16 @@ modelsummary(mod.sa,
                 header=FALSE,
                 stars = TRUE,
                 gof_omit = "R2 Adj.|BIC|AIC",
-                output = "latex")
+                output = "latex") %>%
+                #notes = list("Each column represents a different tratment sample")) %>% 
+add_header_above(c(" ", "Uncompensated Care" = 3))
 ```
 Also, \Ref{Fig-5} presents the coefficients plot for the SA specification. We can see how this smooth the pre-trend before the medicaid expansion. Under this especification we see the Uncompensated care is significatly declining even before the expansion. 
 
-```{r Fig-4, include=TRUE, echo=FALSE, fig.cap = "Effect of Medicaid Eaxpansion on Uncompensated - SA Specification", warning=FALSE,comment=NA, message=FALSE, label="Fig-4"}
+```{r Fig-4, include=TRUE, echo=FALSE, fig.cap = "Effect of Medicaid Eaxpansion on Uncompensated Care - SA Specification for different treatment samples", warning=FALSE,comment=NA, message=FALSE, label="Fig-4"}
 coefplot(mod.sa, main= "Event Study SA Specification")
+legend("topright", col = c(1, 2, 3), pch = c(20, 15, 17), 
+       legend = c("2014", "2015", "2016"))
 ```
 
 
@@ -242,36 +237,40 @@ treatment). With this framework in mind, provide an alternative event
 study using the CS estimator. Hint: check out the `did` package in `R`
 or the `csdid` package in `Stata`.
 
-```{r Fig-5, include=TRUE, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE,  comment=FALSE, message= FALSE,  fig.cap = "CS Specification", fig.subcap=c('ATT by Cohorts', 'Event Study'), out.width='.49\\linewidth', fig.asp=1, fig.ncol = 2 }
-ggdid(mod.cs)
+```{r Fig-5, include=TRUE, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE,  comment=FALSE, message= FALSE,  fig.cap = "Callaway and Sant’Anna (CS) Specification", fig.subcap=c('ATT by Cohorts', 'Event Study'), out.width='.49\\linewidth', fig.asp=1, fig.ncol = 2 }
+ggdid(mod.cs[[1]])
 
-ggdid(mod.cs.event,
+ggdid(mod.cs[[2]],
 title = "Event-study aggregation \\n DiD using never-treated as
 comparison group")
 ```
 
 ```{r Tab-6, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-6", results='asis'}
-modelsummary(mod.cs,
+modelsummary(mod.cs[1], 
+                shape = term + response ~ statistic,
                 title = "DiD CS Specification",
                 style = "aer",
                 table.placement = "H",
-                column.labels = c("M1", "M2", "M3", "M4"),
                 model.numbers = TRUE,
                 header=FALSE,
                 gof_omit = "R2 Adj.|BIC|AIC",
-                output = "latex")
+                output = "latex", 
+                estimate  = "{estimate} [{conf.low}, {conf.high}]",
+                statistic = NULL) %>%
+  kable_styling(font_size = 6)
 ```
 
 ```{r Tab-7, include=TRUE, echo=FALSE, warning=FALSE, comment=NA, message=FALSE, label="Tab-7", results='asis'}
-modelsummary(mod.cs.event,
-                title = "Event Estudy CS Specification",
+modelsummary(mod.cs[2],
+                title = "ATT's based on event-study/dynamic aggregation:",
                 style = "aer",
                 table.placement = "H",
                 column.labels = c("M1", "M2", "M3", "M4"),
                 model.numbers = TRUE,
                 header=FALSE,
                 gof_omit = "R2 Adj.|BIC|AIC",
-                output = "latex")
+                output = "latex", 
+                shape = term + response ~ statistic)
 ```
 
 \newpage
@@ -290,7 +289,7 @@ plot of your CS ATT estimates using $\bar{M} = \{0, 0.5, 1, 1.5, 2\}$.
 Check out the GitHub repo [here](https://github.com/pedrohcgs/CS_RR) for
 some help in combining the `HonestDiD` package with CS estimates.
 
-```{r Fig-6, include=TRUE, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE,  comment=FALSE, message= FALSE,  fig.cap = "RR Specification", fig.subcap=c('Smooth', 'Sensitivity'), out.width='.49\\linewidth', fig.asp=1, fig.ncol = 2 }
+```{r Fig-6, include=TRUE, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE,  comment=FALSE, message= FALSE,  fig.cap = "Rambachan and Roth (RR) Specification", fig.subcap=c('Smooth', 'Relative Magnitude'), out.width='.49\\linewidth', fig.asp=1, fig.ncol = 2 }
 cs_HDiD_smooth
 cs_HDiD_relmag
 ```
@@ -315,4 +314,4 @@ The first challenge was to collect all data sets and merge them into one, which 
 
 A second challenge was implementing the HonestDiD package. My results were not interpretable or plausible when dealing with the original grid.
 
-I can get two main takeaways from this assignment. The importance of developing a transparent and reproducible workflow allowed me to make the changes easily) and improve my coding skills to avoid code repetition and improve accuracy and efficiency.
+The main takeaways from this assignment is the importance of developing a transparent and reproducible workflow that allows to make the changes easily and improving my coding skills to avoid code repetition and improve accuracy and efficiency.

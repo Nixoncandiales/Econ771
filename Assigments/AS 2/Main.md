@@ -30,14 +30,15 @@ The data for this assignment comes from three sources:
     Data on Provider Practice and Specialty includes data on physician
     specialties, practice IDs, demographics, and place of service. Be
     sure to follow the link and read the data documentation. We’ll use
-    these data to construct a measure of physician integration
+    these data to construct a measure of physician integration \*\*
+    Review
 
 2.  [Medicare Utilization and Payment
     Data](https://data.cms.gov/provider-summary-by-type-of-service/medicare-physician-other-practitioners/medicare-physician-other-practitioners-by-provider-and-service):
     These files provide data on the quantities and Medicare spending of
     each physician and service. We’ll use these data to construct an
     instrument for our integration measure and to capture total
-    physician-level billing activity.
+    physician-level billing activity. \*\*Review
 
 3.  [Physician Fee Schedule 2010
     Update](https://github.com/imccart/PFS_Update_2010): Our instrument
@@ -46,7 +47,7 @@ The data for this assignment comes from three sources:
     facility compared to services billed in a physician’s office. The
     GitHub repo (linked above) provides code to recreate a dataset with
     service-specific price shocks introduced by the 2010 fee schedule
-    update.
+    update.\*\* Review
 
 # Questions
 
