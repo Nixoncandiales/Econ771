@@ -24,7 +24,7 @@ if (!exists("dat.PUF")) { # Read PUF data
       dat.PUF <- read_dat("PUF")
       dat.PUF <- lapply(dat.PUF, function(x) x %>% select(!(starts_with("STDE") | contains("standard")))) ##  Select the commom variables in each data frame
       dat.PUF <- lapply(dat.PUF, function(x) setNames(x, tolower(names(x)))) #Set the Var names all to lower case
-      dat.PUF <- lapply(dat.PUF, function(x) x %>% filter(grepl("MD|M.D.", nppes_credentials))) #filter for MD base on nppes_credentials
+      dat.PUF <- lapply(dat.PUF, function(x) x %>% filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE))) #filter for MD base on nppes_credentials
       dat.PUF <- data.table::rbindlist(dat.PUF) # Marge all data sets into one data.frame
 }
 
