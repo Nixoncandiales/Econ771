@@ -1,14 +1,44 @@
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, here, vroom, ggthemes, fixest, modelsummary, robomit)
+## ----setup, include=FALSE--------------------------------------------------------------------------------------------------------
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(include = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
 
-setwd("/Users/nix/Documents/GitHub/Econ771/Assigments/AS 2")
+# Import the required packages and set the working directory
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse,vroom, here, sqldf, ggthemes, fixest, modelsummary, plm)
+setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
 
-#Create a character vector containing the ath to all files.
+
+## ----Merge_V2, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------------------
+# Merge and Random Sample Version 1, (define a function to load, merge and sample... to costly in memory (took forever))
+#--------------------------------------------------------------------------------------------------------------
+#----All Data
+# source(here("Code", "Merge.R")) # Just need to run it once for ever !!!!! #Version 1 of the merging code
+# Function to load a 1% sample of the Data Set... to speed coding.
+#----Random Sample.
+# source(here("Code", "Rdsample.R")) # Works Really nice!!!!!!!
+# if (!exists("dat.MDPPAS.sample")) dat.MDPPAS.sample <- read_my_sample("MDPPAS")
+# if (!exists("dat.PUF.sample")) dat.PUF.sample <- read_my_sample("PUF")
+# rm(read_my_sample)
+# Read the Sample1 output # -----> I forgot to include year in PUF data!!! do not work with this
+# load(here("Output", "As2.Rdata"))
+
+#--------------------------------------------------------------------------------------------------------------
+# Merge and Random Sample Version 2, (does it iterative not in a function)
+#--------------------------------------------------------------------------------------------------------------
+
+#Create a character vector containing the path to all files.
 list.files(path = paste0("/Users/nix/Documents/GitHub/Econ771/Assigments/AS 2/Data/"),
            recursive = TRUE,
             pattern = "\\.txt$|\\.csv$",
             full.names = TRUE) -> dir
+
+#------
+#----- For loop to read the data in iteration and store them in a list
+#------
 
 j=1 # counter to index list position
 list.dat.fr = list() #Create an empty list to save the dataframe
@@ -28,48 +58,57 @@ for (i in 2012:2017) {
 
   #Store the inner join of MDPPAS and PUF in a list -> gives just the cases that we observe in both dataser
   list.dat.fr[[j]] <- inner_join(a,b, by="npi")
-#  list.dat.fr[[j]] <-  list.dat.fr[[j]] %>% 
-#                            slice_sample(prop=0.01)
-  j = j + 1 #increase the counter fot the next list index
+  # Take 1% Rdsample to fit the data in my own computer (I do not have much memory)
+  list.dat.fr[[j]] <-  list.dat.fr[[j]] %>% 
+                            slice_sample(prop=0.01)
+  j = j + 1 #increase the counter for the next list index
 }
 
 
-# Select Commom variables 
+# Select Common variables 
 list.dat.fr <- lapply(list.dat.fr, function(x) x %>% select(!(starts_with("STDE") | contains("standard"))))
 
 # Merge all data sets inside the list into 1 data frame
  dat.fr <- data.table::rbindlist(list.dat.fr)
 
-#Remove from memory not neccesary objects
+#Remove from memory not necessary objects
  rm(dir, dir.mdppas, dir.puf, i, j, a, b, list.dat.fr)
 
 
-# Q1 ---------------------------------------------------------------------------------------------------------
+
+## ----Q1, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------------------
+#table 1
   dat.fr %>% 
-  ungroup() %>%
-      transmute( #Create temporal variables just to speed the coding. (Check how to calculate the actual variables later.)
-             Total_Spending= average_medicare_allowed_amt*line_srvc_cnt, 
-             Total_Claims= line_srvc_cnt, 
-             Total_Patients= bene_unique_cnt
-        ) %>%
-      summarise_at(c('Total_Spending', 'Total_Claims', 'Total_Patients'),
-                   list(Mean = mean, Std.Dev. = sd, Min = min, Max = max), na.rm=T) %>%
-      pivot_longer(cols = everything(),
-                   names_to = c("colNames", ".value"), 
-                   names_sep = "_",
-                 names_prefix = "Total_")
-
- # Q2 ---------------------------------------------------------------------------------------------------------
-dat.fr <- dat.fr %>%
-  group_by(Year, npi) %>%
-  mutate(
-    int = ifelse( pos_opd / (pos_opd + pos_office + pos_asc) >= 0.75,1,0),
-#    tot_claims_count = rowSums(across(starts_with("claim_")), na.rm = TRUE),
-#    log_y = log(tot_claims_count)
-  )
+        ungroup() %>%
+        transmute( #Create temporal variables just to speed the coding. (Check how to calculate the actual variables later)
+               Total_Spending= average_medicare_allowed_amt*line_srvc_cnt, 
+               Total_Claims= line_srvc_cnt, 
+               Total_Patients= bene_unique_cnt
+          ) %>%
+        summarise_at(c('Total_Spending', 'Total_Claims', 'Total_Patients'),
+                     list(Mean = mean, Std.Dev. = sd, Min = min, Max = max), na.rm=T) %>%
+        pivot_longer(cols = everything(),
+                     names_to = c("colNames", ".value"), 
+                     names_sep = "_",
+                     names_prefix = "Total_") -> table1
+  table1
 
 
-# Create plot
+## ----Q2--------------------------------------------------------------------------------------------------------------------------
+## Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
+#pos_asc -> % of line items delivered in ambulatory surgery center (asc)
+#pos_office ->  % of line items delivered in office
+#pos_opd -> % of items delivered in hospital outpatient department (opd)
+
+
+# Create int variable, proxy for integration ratio and total claims count
+   dat.fr <- dat.fr %>%
+                group_by(Year, npi) %>%
+                mutate(
+                  int = ifelse( pos_opd / (pos_opd + pos_office + pos_asc) >= 0.75,1,0),
+                )
+
+# plot
 dat.fr  %>%  
   group_by(Year, int) %>%
   filter(!is.na(int)) %>%
@@ -80,30 +119,98 @@ dat.fr  %>%
   theme_tufte()+ 
   labs(x="Years", y="Number of Claims", 
        title = "Mean of physician-level claims for integrated versus non-integrated physicians over time") -> plot1
- 
- plot1
+  plot1
 
-# Q3 ---------------------------------------------------------------------------------------------------------
-# Drop phys that were integrated as of 2012.
+
+## ----Q3--------------------------------------------------------------------------------------------------------------------------
+# Drop phys that were integrated as of 2012. Also drop observation where int=NA
 dat.fr <- dat.fr %>% 
-      filter(!(Year==2012 & int==1))
+            filter(!(Year==2012 & int==1) & !(is.na(int)))
 
  reg.dat <- dat.fr %>% 
-   filter(!(is.na(int))) %>%
- select(c("Year", "npi", "line_srvc_cnt", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
- mutate(
-  log_y = log(line_srvc_cnt),
-  y = line_srvc_cnt
-  ) %>%
-  group_by(Year,npi) %>%
-  summarize_all(mean, na.rm = TRUE)
+               filter(!(is.na(int))) %>%
+               select(c("Year", "npi", "line_srvc_cnt", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
+               mutate(
+                      log_y = log(line_srvc_cnt),
+                      y = line_srvc_cnt
+              ) %>%
+              group_by(Year,npi) %>%
+              summarize_all(mean, na.rm = TRUE)
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
 modelsummary(mod.ols, output = "markdown")
-# create proxy for integration ratio and total claims count
-
-# Q4 ---------------------------------------------------------------------------------------------------------
 
 
+## ----Q4--------------------------------------------------------------------------------------------------------------------------
+# load robomit
+require(robomit)
+
+# estimate delta*
+for (i in seq(0,2,0.5)){
+  for (j in seq(0.5,1,0.1)) {
+    print(o_delta(y = "log_y", # dependent variable
+            x = "int", # independent treatment variable
+            # id = "npi",
+            # time = "Year",
+            con = "average_submitted_chrg_amt + average_medicare_payment_amt", # related control variables
+            beta = i, # beta
+            R2max = j, # maximum R-square
+            type = "lm", # model type
+            data = reg.dat)) # dataset
+    # estimate and visualize bootstrapped beta*s
+  }
+}
+###    The only model I was able to run :( I do not think is the one we need to use... Check!!
+### -> here I am not including fixed effects. If i include them my pc exploits! not enough memory!
+
+# Nice graph Just for fun.
+o_beta_boot_viz(y = "log_y", # dependent variable
+                x = "int", # independent treatment variable
+                con = "average_submitted_chrg_amt + average_medicare_payment_amt", # related control variables
+                delta = 0, # delta
+                R2max = 0.9, # maximum R-square
+                type = "lm", # model type
+                data = reg.dat,
+                sim = 10,
+                rep = FALSE,
+                obs = 10,
+                CI = 95,
+                bin = 15) # dataset
+
+# estimate delta*
+o_delta(y = "log_y", # dependent variable
+        x = "int", # independent treatment variable
+        id = "npi",
+        time = "Year",
+        con = "average_submitted_chrg_amt + average_medicare_payment_amt", # related control variables
+        beta = 0, # beta
+        R2max = 0.9, # maximum R-square
+        type = "plm", # model type
+        data = reg.dat) # dataset
+
+## -> Including FIXED EFFECTS and PANEL MODEL...Why i am getting error here!!!!!!!!!!!!!!?
+
+
+## ---- eval=FALSE, echo=TRUE------------------------------------------------------------------------------------------------------
+##   price.shock <- medicare.puf %>% inner_join(taxid.base, by="npi") %>%
+##     inner_join(pfs.yearly %>%
+##                  select(hcpcs, dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007),
+##                by=c("hcpcs_code"="hcpcs")) %>%
+##     mutate_at(vars(dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007), replace_na, 0) %>%
+##     mutate(price_shock = case_when(
+##             i<=2013 ~ ((i-2009)/4)*dprice_rel_2010,
+##             i>2013  ~ dprice_rel_2010),
+##           denom = line_srvc_cnt*price_nonfac_orig_2010,
+##           numer = price_shock*line_srvc_cnt*price_nonfac_orig_2010) %>%
+##     group_by(npi) %>%
+##     summarize(phy_numer=sum(numer, na.rm=TRUE), phy_denom=sum(denom, na.rm=TRUE), tax_id=first(tax_id)) %>%
+##     ungroup() %>%
+##     mutate(phy_rev_change=phy_numer/phy_denom) %>%
+##     group_by(tax_id) %>%
+##     summarize(practice_rev_change=sum(phy_rev_change, na.rm=TRUE)) %>%
+##     ungroup()
+
+
+## --------------------------------------------------------------------------------------------------------------------------------
 
 
