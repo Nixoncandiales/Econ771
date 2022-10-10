@@ -22,4 +22,3 @@ read_my_sample <- function (x) {
   names(dat) <- col_names
   return(dat)
 }
-
