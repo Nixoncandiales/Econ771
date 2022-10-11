@@ -46,21 +46,18 @@ if (!exists("dat.PUF")) { # Read PUF data
                           y[[n]]$Year <- n
                           return (y[[n]])
                         }, dat.PUF
-      )
+                        )
 #      dat.PUF <- lapply(dat.PUF, function(x) x %>% filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE)))
 
-             for (i in 1:6){ #filter for MD base on nppes_credentials
-         dat.PUF[[i]] <- dat.PUF[[i]] %>% filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE))
-       }
+      for (i in 1:6){ #filter for MD base on nppes_credentials
+            dat.PUF[[i]] <- dat.PUF[[i]] %>% filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE)) 
+      }
       dat.PUF <- data.table::rbindlist(dat.PUF) # Marge all data sets into one data.frame
       
       vroom_write(dat.PUF, here("Output", "dat.PUF.csv"), "," ) #Write the CSV file
       rm(dat.PUF)
       message("PUF data has been merged, pre-proccesed and written on disk...")
 }
-
-
-
 
 #Save .Rdata environment
 #save.image(here("Output", "Output_As2.Rdata"))

@@ -28,8 +28,10 @@ list.files(path = paste0("/Users/nix/Documents/GitHub/Econ771/Assigments/AS 2/Da
 
 for (i in 2012:2017) {
   #Get the path for the specific year i.
-  dir.mdppas = dir[(grepl(i, dir, ignore.case = TRUE) & grepl("MDPPAS", dir, ignore.case = TRUE))]
-  dir.puf = dir[(grepl(i, dir, ignore.case = TRUE) & grepl("PUF", dir, ignore.case = TRUE))]
+  dir.mdppas = dir[(grepl(i, dir, ignore.case = TRUE) & 
+                    grepl("MDPPAS", dir, ignore.case = TRUE))]
+  dir.puf = dir[(grepl(i, dir, ignore.case = TRUE) & 
+                 grepl("PUF", dir, ignore.case = TRUE))]
   
   #------
   #Read the MDPPAS data for the Year i. create and filter out int=NA
@@ -42,7 +44,6 @@ for (i in 2012:2017) {
     mutate(
       int = ifelse( pos_opd / (pos_opd + pos_office + pos_asc) >= 0.75,1,0), #Create int variable for Q2
     ) %>%
-    filter(!(is.na(int))) %>%
     select(Year,npi,int, group1, group2)
   
   #------
@@ -56,11 +57,11 @@ for (i in 2012:2017) {
             filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE)) %>%
             group_by(npi) %>%
             summarise(
-                  line_srvc_cnt = sum(line_srvc_cnt, na.rm = TRUE),
-                  bene_unique_cnt = sum(bene_unique_cnt, na.rm = TRUE),
-                  average_medicare_allowed_amt = sum(average_medicare_allowed_amt, na.rm = TRUE),
-                  average_submitted_chrg_amt = sum(average_submitted_chrg_amt, na.rm = TRUE),
-                  average_medicare_payment_amt =  sum(average_medicare_payment_amt, na.rm = TRUE)
+                  line_srvc_cnt                 = sum(line_srvc_cnt, na.rm = TRUE),
+                  bene_unique_cnt               = sum(bene_unique_cnt, na.rm = TRUE),
+                  average_medicare_allowed_amt  = sum(average_medicare_allowed_amt, na.rm = TRUE),
+                  average_submitted_chrg_amt    = sum(average_submitted_chrg_amt, na.rm = TRUE),
+                  average_medicare_payment_amt  = sum(average_medicare_payment_amt, na.rm = TRUE)
                 )
 
   # Write the inner join of MDPPAS and PUF in Disk in rectangular form for Year i 
