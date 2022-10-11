@@ -1,8 +1,9 @@
 ## ----setup, include=FALSE--------------------------------------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(include = TRUE)
-knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(cache = F)
 
+## ----load-pack, include=FALSE----------------------------------------------------------------------------------------------------
 # Import the required packages and set the working directory
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm)
@@ -11,17 +12,13 @@ here::i_am("Main.Rmd")
 
 
 ## ----Merge_V2, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------------
-# Merge the data and select the varuables required for the analisys.
+#-----------------------------------------------------------------------------
+## Merge the data and select the variables required for the analysis.
+#-----------------------------------------------------------------------------
 # source(here("Code", "Merge2.R"))
 
-# Append the Data and Read it.
-   list.files(path = paste0("/Users/nix/Documents/GitHub/Econ771/Assigments/AS 2/Output/Merge"),
-             recursive = TRUE,
-             pattern = "\\.csv$",
-             full.names = TRUE) -> dir
-   dat <- vroom(dir)
-   rm(dir)
-
+# Read the merged data
+dat<- vroom(here("Output", "dat.csv"))
 
 
 ## ----Q1, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------------------
@@ -43,10 +40,11 @@ here::i_am("Main.Rmd")
 
 
 ## ----Q2--------------------------------------------------------------------------------------------------------------------------
-## Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
-#pos_asc -> % of line items delivered in ambulatory surgery center (asc)
-#pos_office ->  % of line items delivered in office
-#pos_opd -> % of items delivered in hospital outpatient department (opd)
+# Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
+# pos_asc -> % of line items delivered in ambulatory surgery center (asc)
+# pos_office ->  % of line items delivered in office
+# pos_opd -> % of items delivered in hospital outpatient department (opd)
+# This variables where used in the creation of INT in the Merge2.R file.
 
 # plot
 dat  %>%  
@@ -58,13 +56,13 @@ dat  %>%
   theme_tufte()+ 
   labs(x="Years", y="Number of Claims", 
        title = "Mean of physician-level claims for integrated versus non-integrated physicians over time") -> plot1
-  plot1  
+  plot1
 
 
 ## ----Q3--------------------------------------------------------------------------------------------------------------------------
-# Drop phys that were integrated as of 2012. Also drop observation where int=NA
+# Drop phys that were integrated as of 2012 and run the regression
 reg.dat <- dat %>% 
-               filter(!(Year==2012 & int==1) & !(is.na(int))) %>%
+               filter(!(Year==2012 & int==1)) %>%
                select(c("Year", "npi", "line_srvc_cnt", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
                mutate(
                         log_y = log(line_srvc_cnt),
@@ -74,16 +72,21 @@ reg.dat <- dat %>%
                 summarize_all(mean, na.rm = TRUE)
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
-modelsummary(mod.ols, output = "markdown")
+mod.fe <- modelsummary(mod.ols, output = "modelsummary_list") #store the result is a modelsummary_list to reduce memory space
 
 
 ## ----Q4--------------------------------------------------------------------------------------------------------------------------
-# load robomit
+#-----------------------------------------------------------------------------
+## load robomit
+#-----------------------------------------------------------------------------
 require(robomit)
 
-# estimate delta*
+#-----------------------------------------------------------------------------
+## For loop to loop trough \rho (i) and R^2_max (j) -> interested in Delta*
+#-----------------------------------------------------------------------------
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
+    # estimate delta*
     print(o_delta(y = "log_y", # dependent variable
             x = "int", # independent treatment variable
             # id = "npi",
@@ -92,38 +95,39 @@ for (i in seq(0,2,0.5)){
             beta = i, # beta
             R2max = j, # maximum R-square
             type = "lm", # model type
-            data = reg.dat)) # dataset
-    # estimate and visualize bootstrapped beta*s
+            data = reg.dat)) # data set
   }
 }
-# Include the Fixed effects and controls
 
-# Nice graph Just for fun.
+#-----------------------------------------------------------------------------
+## Nice graph Just for fun ---> if time permits do a grid for all 
+##                                \rho (i) and R^2_max (j) combinations
+#-----------------------------------------------------------------------------
+# 
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
-o_beta_boot_viz(y = "log_y", # dependent variable
-                x = "int", # independent treatment variable
-                con = "average_submitted_chrg_amt + average_medicare_payment_amt +npi + Year", # related control variables
-                delta = 1, # delta
-                R2max = 0.9, # maximum R-square
-                type = "lm", # model type
-                data = reg.dat,
-                sim = 10,
-                rep = FALSE,
-                obs = 10,
-                CI = 95,
-                bin = 15) # dataset
-  }
+          o_beta_boot_viz(y = "log_y", # dependent variable
+                          x = "int", # independent treatment variable
+                          con = "average_submitted_chrg_amt + average_medicare_payment_amt +npi + Year", # related control variables
+                          delta = 1, # delta
+                          R2max = 0.9, # maximum R-square
+                          type = "lm", # model type
+                          data = reg.dat,
+                          sim = 10,
+                          rep = FALSE,
+                          obs = 10,
+                          CI = 95,
+                          bin = 15) # dataset
+            }
 }
 
-#To do:
-#how to present this results in a table... and most important what to include?
+# To do:
+# how to present this results in a table... and most important what to include?
 # Ask!!!
+# Idea plot the coefficients and stored them in a loop!!
 
-### Idea plot the coefficients and stored them in a loop!!
 
-
-## ---- eval=FALSE, echo=TRUE------------------------------------------------------------------------------------------------------
+## ----instrument, eval=FALSE, echo=TRUE-------------------------------------------------------------------------------------------
 ##   price.shock <- medicare.puf %>% inner_join(taxid.base, by="npi") %>%
 ##     inner_join(pfs.yearly %>%
 ##                  select(hcpcs, dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007),

@@ -13,7 +13,7 @@
 # load(here("Output", "As2.Rdata"))
 
 #--------------------------------------------------------------------------------------------------------------
-# Merge and Random Sample Version 2, (does it iterative not in a function) (Take each proces and append)
+# Merge and Random Sample Version 2, (script does it iterative not in a function) 
 #--------------------------------------------------------------------------------------------------------------
 
 #Create a character vector containing the path to all files.
@@ -23,7 +23,7 @@ list.files(path = paste0("/Users/nix/Documents/GitHub/Econ771/Assigments/AS 2/Da
            full.names = TRUE) -> dir
 
 #------
-#----- For loop to read the data in iteration and store them in a list
+#----- For loop to read the data in iterations by each year, clean and append
 #------
 
 for (i in 2012:2017) {
@@ -32,33 +32,60 @@ for (i in 2012:2017) {
   dir.puf = dir[(grepl(i, dir, ignore.case = TRUE) & grepl("PUF", dir, ignore.case = TRUE))]
   
   #------
-  #Read the MDPPAS data for the Year i. filter out int=NA
+  #Read the MDPPAS data for the Year i. create and filter out int=NA
   #------
   a <- vroom(dir.mdppas)
-  a$npi = as.character(a$npi) #Make sure npi has the same type character on both data frames
+  a$npi = as.character(a$npi) #Make sure npi has the same type 'character' on both data frames
   a <- a %>%
     select(npi, Year, pos_asc, pos_opd, pos_office, group1, group2) %>%
     group_by(Year, npi) %>%
     mutate(
       int = ifelse( pos_opd / (pos_opd + pos_office + pos_asc) >= 0.75,1,0), #Create int variable for Q2
     ) %>%
-    filter(!(is.na(int)))
+    filter(!(is.na(int))) %>%
+    select(Year,npi,int, group1, group2)
   
   #------
-  #Read the PUF data for the Year i. Keep all MD observations
+  #Read the PUF data for the Year i. Keep all MD observations. Collapse to Physician level; 1 observation per \{npi ~ Year\}
   #------
   b <- vroom(dir.puf)
   names(b) = tolower(names(b))
-  b <- b %>%
-    select(npi, nppes_credentials, average_medicare_allowed_amt, average_submitted_chrg_amt, 
-           average_medicare_payment_amt,line_srvc_cnt, bene_unique_cnt) %>%
-    filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE))
-  
-  #Store the inner join of MDPPAS and PUF in a list -> gives just the cases that we observe in both dataser
+  b <-   b %>%
+            select(npi, nppes_credentials, average_medicare_allowed_amt, average_submitted_chrg_amt, 
+                   average_medicare_payment_amt,line_srvc_cnt, bene_unique_cnt) %>%
+            filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE)) %>%
+            group_by(npi) %>%
+            summarise(
+                  line_srvc_cnt = sum(line_srvc_cnt, na.rm = TRUE),
+                  bene_unique_cnt = sum(bene_unique_cnt, na.rm = TRUE),
+                  average_medicare_allowed_amt = sum(average_medicare_allowed_amt, na.rm = TRUE),
+                  average_submitted_chrg_amt = sum(average_submitted_chrg_amt, na.rm = TRUE),
+                  average_medicare_payment_amt =  sum(average_medicare_payment_amt, na.rm = TRUE)
+                )
+
+  # Write the inner join of MDPPAS and PUF in Disk in rectangular form for Year i 
+  # -> gives just the cases that we observe in both data sets
   dat <- inner_join(a,b, by="npi")
   vroom_write(dat, paste0(here("Output", "Merge","dat_"),i,".csv"), delim = ",", col_names = TRUE)
 }
-#Remove from memory not necessary objects
-rm(dir, dir.mdppas, dir.puf, i, j, a, b, list.dat.fr, dat)
-#Clean memory
-gc()
+
+#------
+# Clean memory
+#------ 
+
+  #Remove from memory not auxiliary objects
+  rm(dir, dir.mdppas, dir.puf, i, a, b, dat)
+  #Clean memory
+  gc()
+
+#------
+# Append all the data.frames created in the loop in rectangular form
+#------
+  list.files(path = paste0("/Users/nix/Documents/GitHub/Econ771/Assigments/AS 2/Output/Merge"),
+             recursive = TRUE,
+             pattern = "\\.csv$",
+             full.names = TRUE) -> dir
+  dat <- vroom(dir)
+  vroom_write(dat, file = here("Output", "dat.csv"), delim = ",")
+  rm(dir, dat)
+  message("MDPPAS and PUF were merged and the resulting Data.Frame is written in disk ~/Output/dat.csv")

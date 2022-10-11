@@ -18,8 +18,10 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(include = TRUE)
-knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(cache = F)
+```
 
+```{r load-pack, include=FALSE}
 # Import the required packages and set the working directory
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm)
@@ -43,17 +45,13 @@ The data for this assignment comes from three sources:
 3. [Physician Fee Schedule 2010 Update](https://github.com/imccart/PFS_Update_2010): Our instrument mainly consists of a shock to physician payments introduced in 2010. The shock further increased payments for services in an outpatient facility compared to services billed in a physician's office. The GitHub repo (linked above) provides code to recreate a dataset with service-specific price shocks introduced by the 2010 fee schedule update. To save us some time, I've posed the final dataset from that repo into our class data folder.
 
 ```{r Merge_V2, include=TRUE, echo=TRUE}
-# Merge the data and select the varuables required for the analisys.
+#-----------------------------------------------------------------------------
+## Merge the data and select the variables required for the analysis.
+#-----------------------------------------------------------------------------
 # source(here("Code", "Merge2.R"))
 
-# Append the Data and Read it.
-   list.files(path = paste0("/Users/nix/Documents/GitHub/Econ771/Assigments/AS 2/Output/Merge"),
-             recursive = TRUE,
-             pattern = "\\.csv$",
-             full.names = TRUE) -> dir
-   dat <- vroom(dir)
-   rm(dir)
-
+# Read the merged data
+dat<- vroom(here("Output", "dat.csv"))
 ```
 
 # Questions
@@ -89,10 +87,11 @@ INT_{it} = \mathbf{1} \left(\frac{HOPD_{it}}{HOPD_{it} + OFFICE_{it} + ASC_{it}}
 where $HOPD_{it}$ reflects the total number of claims in which physician $i$ bills in a hospital outpatient setting, $OFFICE_{it}$ is the total number of claims billed to an office setting, and $ASC_{it}$ is the total number of claims billed to an ambulatory surgery center. As reflected in Equation \@ref(eq:int), you can assume that any physician with at least 75% of claims billed in an outpatient setting is integrated with a hospital. Using this 75% threshold, plot the mean of total physician-level claims for integrated versus non-integrated physicians over time.
 
 ```{r Q2}
-## Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
-#pos_asc -> % of line items delivered in ambulatory surgery center (asc)
-#pos_office ->  % of line items delivered in office
-#pos_opd -> % of items delivered in hospital outpatient department (opd)
+# Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
+# pos_asc -> % of line items delivered in ambulatory surgery center (asc)
+# pos_office ->  % of line items delivered in office
+# pos_opd -> % of items delivered in hospital outpatient department (opd)
+# This variables where used in the creation of INT in the Merge2.R file.
 
 # plot
 dat  %>%  
@@ -104,7 +103,7 @@ dat  %>%
   theme_tufte()+ 
   labs(x="Years", y="Number of Claims", 
        title = "Mean of physician-level claims for integrated versus non-integrated physicians over time") -> plot1
-  plot1  
+  plot1
 ```
 
 3. Estimate the relationship between integration on total physician claims using OLS, with the following specification:
@@ -115,9 +114,9 @@ y_{it} = \delta INT_{it} + \beta x_{it} + \gamma_{i} + \gamma_{t} + \varepsilon_
 where $INT_{it}$ is defined in Equation \@ref(eq:int), $x_{it}$ captures time-varying physician characteristics, and $\gamma_{i}$ and $\gamma_{t}$ denote physician and time fixed effects. Please focus on physician's that weren't yet integrated as of 2012, that way we have some pre-integration data for everyone. Impose this restriction for the remaining questions. Feel free to experiment with different covariates in $x_{it}$ or simply omit that term and only include the fixed effects.
 
 ```{r Q3}
-# Drop phys that were integrated as of 2012. Also drop observation where int=NA
+# Drop phys that were integrated as of 2012 and run the regression
 reg.dat <- dat %>% 
-               filter(!(Year==2012 & int==1) & !(is.na(int))) %>%
+               filter(!(Year==2012 & int==1)) %>%
                select(c("Year", "npi", "line_srvc_cnt", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
                mutate(
                         log_y = log(line_srvc_cnt),
@@ -127,7 +126,7 @@ reg.dat <- dat %>%
                 summarize_all(mean, na.rm = TRUE)
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
-modelsummary(mod.ols, output = "markdown")
+mod.fe <- modelsummary(mod.ols, output = "modelsummary_list") #store the result is a modelsummary_list to reduce memory space
 ```
 
 4. How much should we be "worried" about endogeneity here? Extending the work of @altonji2005, @oster2019 derives the expression
@@ -138,12 +137,17 @@ modelsummary(mod.ols, output = "markdown")
 where $x_{1}$ captures our observable covariates (or fixed effects in our case); $\delta$ denotes the treatment effect of interest; $\hat{\delta}_{D,x_{1}}$ denotes the coefficient on $D$ from a regression of $y$ on $D$ and $x_{1}$; $R_{D,x_{1}}^{2}$ denotes the $R^{2}$ from that regression; $\hat{\delta}_{D}$ denotes the coefficient on $D$ from a regression of $y$ on $D$ only; $R_{D}^{2}$ reflects the $R^{2}$ from that regression; $R_{max}^{2}$ denotes an unobserved "maximum" $R^{2}$ from a regression of $y$ on $D$, observed covariates $x_{1}$, and some unobserved covariates $x_{2}$; and $\rho$ denotes the degree of selection on observed variables relative to unobserved variables. One approach that Oster suggests is to consider a range of $R^{2}_{max}$ and $\rho$ to bound the estimated treatment effect, where the bounds are given by $\left[ \hat{\delta}_{D,x_{1}}, \delta^{*}(R^{2}_{max}, \rho) \right]$. Construct these bounds based on all combinations of $\rho \in (0, .5, 1, 1.5, 2)$ and $R_{max}^{2} \in (0.5, 0.6, 0.7, 0.8, 0.9, 1)$ and present your results in a table. What do your results say about the extent to which selection on observables could be problematic here? Hint: you can also look into `psacalc` in `Stata` or `robomit` in `R` for implementation of @oster2019 in `Stata` or `R`, respectively.
 
 ```{r Q4}
-# load robomit
+#-----------------------------------------------------------------------------
+## load robomit
+#-----------------------------------------------------------------------------
 require(robomit)
 
-# estimate delta*
+#-----------------------------------------------------------------------------
+## For loop to loop trough \rho (i) and R^2_max (j) -> interested in Delta*
+#-----------------------------------------------------------------------------
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
+    # estimate delta*
     print(o_delta(y = "log_y", # dependent variable
             x = "int", # independent treatment variable
             # id = "npi",
@@ -152,35 +156,36 @@ for (i in seq(0,2,0.5)){
             beta = i, # beta
             R2max = j, # maximum R-square
             type = "lm", # model type
-            data = reg.dat)) # dataset
-    # estimate and visualize bootstrapped beta*s
+            data = reg.dat)) # data set
   }
 }
-# Include the Fixed effects and controls
 
-# Nice graph Just for fun.
+#-----------------------------------------------------------------------------
+## Nice graph Just for fun ---> if time permits do a grid for all 
+##                                \rho (i) and R^2_max (j) combinations
+#-----------------------------------------------------------------------------
+# 
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
-o_beta_boot_viz(y = "log_y", # dependent variable
-                x = "int", # independent treatment variable
-                con = "average_submitted_chrg_amt + average_medicare_payment_amt +npi + Year", # related control variables
-                delta = 1, # delta
-                R2max = 0.9, # maximum R-square
-                type = "lm", # model type
-                data = reg.dat,
-                sim = 10,
-                rep = FALSE,
-                obs = 10,
-                CI = 95,
-                bin = 15) # dataset
-  }
+          o_beta_boot_viz(y = "log_y", # dependent variable
+                          x = "int", # independent treatment variable
+                          con = "average_submitted_chrg_amt + average_medicare_payment_amt +npi + Year", # related control variables
+                          delta = 1, # delta
+                          R2max = 0.9, # maximum R-square
+                          type = "lm", # model type
+                          data = reg.dat,
+                          sim = 10,
+                          rep = FALSE,
+                          obs = 10,
+                          CI = 95,
+                          bin = 15) # dataset
+            }
 }
 
-#To do:
-#how to present this results in a table... and most important what to include?
+# To do:
+# how to present this results in a table... and most important what to include?
 # Ask!!!
-
-### Idea plot the coefficients and stored them in a loop!!
+# Idea plot the coefficients and stored them in a loop!!
 ```
 
 5. Construct the change in Medicare payments achievable for an integrated versus non-integrated physician practice due to the 2010 update to the physician fee schedule, $\Delta P_{it}$. Use this as an instrument for $INT_{it}$ in a 2SLS estimator following the same specification as in Equation \@ref(eq:ols). Present your results along with those of your "first stage" and "reduced form".
@@ -188,7 +193,7 @@ o_beta_boot_viz(y = "log_y", # dependent variable
 Here is a little code snippet to help you work with the fee schedule update and the utilization and payment data in constructing the instrument. In this code chunk, the `medicare.puf` object is the provider and utilization data for a specific year, the `pfs.yearly` object is the physician fee schedule update data for the same year (except for years after 2013, in which case `pfs.yearly` should just be the 2013 data because the price shock is fully implemented as of 2013), and the `taxid.base` object is the MD-PPAS data from 2009 limited to just the NPI and the group1 variable (the group1 and group2 variables are encrypted versions of the physician's tax ID, and I use the 2009 data so that I get a baseline measure of the practice before the price shock takes effect). The purpose of this code is to first merge the price shock information into service-level quantity data, then construct the total increase in revenue from the price shock based on observed quantities (that's the `numer` variable), and divide by the total hypothetical revenue if payments never changed. The resulting `phy_rev_change` is intended to measure the increase in revenue for a given physician relative to revenue without the price shock. Finally, I average this across all physicians in a practice based on their observed practice affiliation as of 2009 and multiply by the practice size (I really just sum the ratio, but that's the same thing). The resulting `practice_rev_change` variable is what you should use as your instrument for $INT_{it}$. 
 
 
-```{r, eval=FALSE, echo=TRUE}
+```{r instrument, eval=FALSE, echo=TRUE}
   price.shock <- medicare.puf %>% inner_join(taxid.base, by="npi") %>%
     inner_join(pfs.yearly %>% 
                  select(hcpcs, dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007), 
