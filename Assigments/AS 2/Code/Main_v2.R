@@ -1,17 +1,18 @@
-## ----setup, include=FALSE--------------------------------------------------------------------------------------------------------
+## ----setup, include=FALSE--------------------------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(include = TRUE)
 knitr::opts_chunk$set(cache = F)
 
-## ----load-pack, include=FALSE----------------------------------------------------------------------------------------------------
+
+## ----load-pack, include=FALSE----------------------------------------------------------------------------------------
 # Import the required packages and set the working directory
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm)
+pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally)
 setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
 
 
-## ----Merge_V2, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------------
+## ----Merge_V2, include=TRUE, echo=TRUE-------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 ## Merge the data and select the variables required for the analysis.
 #-----------------------------------------------------------------------------
@@ -21,7 +22,7 @@ here::i_am("Main.Rmd")
 dat<- vroom(here("Output", "dat.csv"))
 
 
-## ----Q1, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------------------
+## ----Q1, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------
 #table 1
   dat %>% 
         ungroup() %>%
@@ -39,7 +40,7 @@ dat<- vroom(here("Output", "dat.csv"))
   table1
 
 
-## ----Q2--------------------------------------------------------------------------------------------------------------------------
+## ----Q2--------------------------------------------------------------------------------------------------------------
 # Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
 # pos_asc -> % of line items delivered in ambulatory surgery center (asc)
 # pos_office ->  % of line items delivered in office
@@ -47,7 +48,8 @@ dat<- vroom(here("Output", "dat.csv"))
 # This variables where used in the creation of INT in the Merge2.R file.
 
 # plot
-dat  %>%  
+dat  %>% 
+  filter(!is.na(int)) %>%
   group_by(Year, int) %>%
   summarise(mean_claims_count = mean(line_srvc_cnt, na.rm = TRUE)) %>%
   ggplot(aes(y=mean_claims_count , x=Year, 
@@ -59,7 +61,7 @@ dat  %>%
   plot1
 
 
-## ----Q3--------------------------------------------------------------------------------------------------------------------------
+## ----Q3--------------------------------------------------------------------------------------------------------------
 # Drop phys that were integrated as of 2012 and run the regression
 reg.dat <- dat %>% 
                filter(!(Year==2012 & int==1)) %>%
@@ -73,9 +75,10 @@ reg.dat <- dat %>%
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
 mod.fe <- modelsummary(mod.ols, output = "modelsummary_list") #store the result is a modelsummary_list to reduce memory space
+rm(mod.ols)
 
 
-## ----Q4--------------------------------------------------------------------------------------------------------------------------
+## ----Q4--------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 ## load robomit
 #-----------------------------------------------------------------------------
@@ -84,10 +87,12 @@ require(robomit)
 #-----------------------------------------------------------------------------
 ## For loop to loop trough \rho (i) and R^2_max (j) -> interested in Delta*
 #-----------------------------------------------------------------------------
+
+table2 <- data.frame()
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
     # estimate delta*
-    print(o_delta(y = "log_y", # dependent variable
+    a <- o_delta(y = "log_y", # dependent variable
             x = "int", # independent treatment variable
             # id = "npi",
             # time = "Year",
@@ -95,39 +100,62 @@ for (i in seq(0,2,0.5)){
             beta = i, # beta
             R2max = j, # maximum R-square
             type = "lm", # model type
-            data = reg.dat)) # data set
+            data = reg.dat) # data set
+    a <- cbind(a[1,], j, i)
+    table2 <- rbind(dat.delta, a)
   }
 }
+#----
+# Clean memory and auxiliary objects
+#----
+rm(a, i, j)
+gc()
+table2
+
+#To do: tidy the table present it in a better format.
 
 #-----------------------------------------------------------------------------
-## Nice graph Just for fun ---> if time permits do a grid for all 
+## Nice graph Just for fun ---> grid for all 
 ##                                \rho (i) and R^2_max (j) combinations
 #-----------------------------------------------------------------------------
-# 
+k=1
+plotlist <- list()
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
-          o_beta_boot_viz(y = "log_y", # dependent variable
-                          x = "int", # independent treatment variable
-                          con = "average_submitted_chrg_amt + average_medicare_payment_amt +npi + Year", # related control variables
-                          delta = 1, # delta
-                          R2max = 0.9, # maximum R-square
-                          type = "lm", # model type
-                          data = reg.dat,
-                          sim = 10,
-                          rep = FALSE,
-                          obs = 10,
-                          CI = 95,
-                          bin = 15) # dataset
+         plotlist[[k]] <- o_delta_boot_viz(y = "log_y",# dependent variable
+                                          x = "int",# independent treatment variable
+                                          con = "average_submitted_chrg_amt + average_medicare_payment_amt + npi + Year",# related control variables
+                                          beta = i,# beta for which delta* should be estimated
+                                          R2max = j,# maximum R-square
+                                          type = "lm",# model type
+                                          data = reg.dat,
+                                          sim = 10,
+                                          rep = FALSE,
+                                          obs = 10,
+                                          CI = 95,
+                                          bin = 15) # dataset
+          k = k + 1
             }
 }
+#----
+# Plot the grid
+#----
+plot2 <- ggmatrix(
+                  plotlist, nrow = 5, ncol = 6,
+                  yAxisLabels = c(seq(0,2,0.5)),
+                  xAxisLabels = c(seq(0.5,1,0.1)),
+                  title = "Visualization of bootstrapped delta*s",
+                  showStrips = FALSE
+                 )
+plot2
+#----
+# Clean memory and auxiliary objects
+#----
+rm(plotlist, k)
+gc()
 
-# To do:
-# how to present this results in a table... and most important what to include?
-# Ask!!!
-# Idea plot the coefficients and stored them in a loop!!
 
-
-## ----instrument, eval=FALSE, echo=TRUE-------------------------------------------------------------------------------------------
+## ----instrument, eval=FALSE, echo=TRUE-------------------------------------------------------------------------------
 ##   price.shock <- medicare.puf %>% inner_join(taxid.base, by="npi") %>%
 ##     inner_join(pfs.yearly %>%
 ##                  select(hcpcs, dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007),
@@ -145,8 +173,4 @@ for (i in seq(0,2,0.5)){
 ##     group_by(tax_id) %>%
 ##     summarize(practice_rev_change=sum(phy_rev_change, na.rm=TRUE)) %>%
 ##     ungroup()
-
-
-## ----Save------------------------------------------------------------------------------------------------------------------------
-knitr::purl("Main.Rmd", documentation = 1, output="Code/Main_V2.R")
 
