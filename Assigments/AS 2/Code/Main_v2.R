@@ -1,10 +1,10 @@
-## ----setup, include=FALSE--------------------------------------------------------------------------------------------
+## ----setup, include=FALSE-----------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(include = TRUE)
 knitr::opts_chunk$set(cache = F)
 
 
-## ----load-pack, include=FALSE----------------------------------------------------------------------------------------
+## ----load-pack, include=FALSE-------------------------------------
 # Import the required packages and set the working directory
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally)
@@ -12,7 +12,7 @@ setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
 
 
-## ----Merge_V2, include=TRUE, echo=TRUE-------------------------------------------------------------------------------
+## ----Merge_V2, include=TRUE, echo=TRUE----------------------------
 #-----------------------------------------------------------------------------
 ## Merge the data and select the variables required for the analysis.
 #-----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ here::i_am("Main.Rmd")
 dat<- vroom(here("Output", "dat.csv"))
 
 
-## ----Q1, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------
+## ----Q1, include=TRUE, echo=TRUE----------------------------------
 #table 1
   dat %>% 
         ungroup() %>%
@@ -40,7 +40,7 @@ dat<- vroom(here("Output", "dat.csv"))
   table1
 
 
-## ----Q2--------------------------------------------------------------------------------------------------------------
+## ----Q2-----------------------------------------------------------
 # Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
 # pos_asc -> % of line items delivered in ambulatory surgery center (asc)
 # pos_office ->  % of line items delivered in office
@@ -51,7 +51,7 @@ dat<- vroom(here("Output", "dat.csv"))
 dat  %>% 
   filter(!is.na(int)) %>%
   group_by(Year, int) %>%
-  summarise(mean_claims_count = mean(line_srvc_cnt, na.rm = TRUE)) %>%
+  summarise(mean_claims_count = mean(Total_Claims, na.rm = TRUE)) %>%
   ggplot(aes(y=mean_claims_count , x=Year, 
              group=factor(int), color=factor(int))) +
   geom_line() +
@@ -61,24 +61,24 @@ dat  %>%
   plot1
 
 
-## ----Q3--------------------------------------------------------------------------------------------------------------
+## ----Q3-----------------------------------------------------------
 # Drop phys that were integrated as of 2012 and run the regression
 reg.dat <- dat %>% 
                filter(!(Year==2012 & int==1)) %>%
-               select(c("Year", "npi", "line_srvc_cnt", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
+               select(c("Year", "npi", "Total_Claims", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
                mutate(
-                        log_y = log(line_srvc_cnt),
-                        y = line_srvc_cnt
-                      ) %>%
-                group_by(Year,npi) %>%
-                summarize_all(mean, na.rm = TRUE)
+                        log_y = log(Total_Claims),
+                        y = Total_Claims
+                      ) #%>%
+               # group_by(Year,npi) %>%
+                #summarize_all(mean, na.rm = TRUE)
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
 mod.fe <- modelsummary(mod.ols, output = "modelsummary_list") #store the result is a modelsummary_list to reduce memory space
 rm(mod.ols)
 
 
-## ----Q4--------------------------------------------------------------------------------------------------------------
+## ----Q4-----------------------------------------------------------
 #-----------------------------------------------------------------------------
 ## load robomit
 #-----------------------------------------------------------------------------
@@ -92,17 +92,17 @@ table2 <- data.frame()
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
     # estimate delta*
-    a <- o_delta(y = "log_y", # dependent variable
+    a <- o_beta(y = "log_y", # dependent variable
             x = "int", # independent treatment variable
             # id = "npi",
             # time = "Year",
             con = "average_submitted_chrg_amt + average_medicare_payment_amt + npi + Year", # related control variables
-            beta = i, # beta
+            delta = i, # beta
             R2max = j, # maximum R-square
             type = "lm", # model type
             data = reg.dat) # data set
     a <- cbind(a[1,], j, i)
-    table2 <- rbind(dat.delta, a)
+    table2 <- rbind(table2, a)
   }
 }
 #----
@@ -151,11 +151,11 @@ plot2
 #----
 # Clean memory and auxiliary objects
 #----
-rm(plotlist, k)
+rm(plotlist, k, i , j)
 gc()
 
 
-## ----instrument, eval=FALSE, echo=TRUE-------------------------------------------------------------------------------
+## ----instrument, eval=FALSE, echo=TRUE----------------------------
 ##   price.shock <- medicare.puf %>% inner_join(taxid.base, by="npi") %>%
 ##     inner_join(pfs.yearly %>%
 ##                  select(hcpcs, dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007),
