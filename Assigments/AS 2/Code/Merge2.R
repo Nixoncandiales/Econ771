@@ -34,7 +34,7 @@ for (i in 2012:2017) {
                  grepl("PUF", dir, ignore.case = TRUE))]
   
   #------
-  #Read the MDPPAS data for the Year i. create and filter out int=NA
+  #Read the MDPPAS data for the Year i. create int as in eq 1
   #------
   a <- vroom(dir.mdppas)
   a$npi = as.character(a$npi) #Make sure npi has the same type 'character' on both data frames
@@ -55,13 +55,21 @@ for (i in 2012:2017) {
             select(npi, nppes_credentials, average_medicare_allowed_amt, average_submitted_chrg_amt, 
                    average_medicare_payment_amt,line_srvc_cnt, bene_unique_cnt) %>%
             filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE)) %>%
+            mutate( #Create temporal variables just to speed the coding. (Check how to calculate the actual variables later)
+              Total_Spending= average_medicare_allowed_amt*line_srvc_cnt, 
+              Total_Claims= line_srvc_cnt, 
+              Total_Patients= bene_unique_cnt
+            ) %>%
             group_by(npi) %>%
             summarise(
-                  line_srvc_cnt                 = sum(line_srvc_cnt, na.rm = TRUE),
-                  bene_unique_cnt               = sum(bene_unique_cnt, na.rm = TRUE),
-                  average_medicare_allowed_amt  = sum(average_medicare_allowed_amt, na.rm = TRUE),
+                  Total_Spending                = sum(Total_Spending, na.rm = TRUE),
+                  Total_Claims                  = sum(Total_Claims, na.rm = TRUE),
+                  Total_Patients                = sum(Total_Patients, na.rm = TRUE),
                   average_submitted_chrg_amt    = sum(average_submitted_chrg_amt, na.rm = TRUE),
-                  average_medicare_payment_amt  = sum(average_medicare_payment_amt, na.rm = TRUE)
+                  average_medicare_payment_amt  = sum(average_medicare_payment_amt, na.rm = TRUE),
+                  average_medicare_allowed_amt  = sum(average_medicare_allowed_amt, na.rm = TRUE),
+                  line_srvc_cnt                 = sum(line_srvc_cnt, na.rm = TRUE),
+                  bene_unique_cnt               = sum(bene_unique_cnt, na.rm = TRUE)
                 )
 
   # Write the inner join of MDPPAS and PUF in Disk in rectangular form for Year i 

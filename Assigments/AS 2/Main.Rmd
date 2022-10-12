@@ -153,7 +153,7 @@ field in the PUF data).
 dat  %>% 
   filter(!is.na(int)) %>%
   group_by(Year, int) %>%
-  summarise(mean_claims_count = mean(line_srvc_cnt, na.rm = TRUE)) %>%
+  summarise(mean_claims_count = mean(Total_Claims, na.rm = TRUE)) %>%
   ggplot(aes(y=mean_claims_count , x=Year, 
              group=factor(int), color=factor(int))) +
   geom_line() +
@@ -180,13 +180,13 @@ dat  %>%
 # Drop phys that were integrated as of 2012 and run the regression
 reg.dat <- dat %>% 
                filter(!(Year==2012 & int==1)) %>%
-               select(c("Year", "npi", "line_srvc_cnt", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
+               select(c("Year", "npi", "Total_Claims", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
                mutate(
-                        log_y = log(line_srvc_cnt),
-                        y = line_srvc_cnt
-                      ) %>%
-                group_by(Year,npi) %>%
-                summarize_all(mean, na.rm = TRUE)
+                        log_y = log(Total_Claims),
+                        y = Total_Claims
+                      ) #%>%
+               # group_by(Year,npi) %>%
+                #summarize_all(mean, na.rm = TRUE)
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
 mod.fe <- modelsummary(mod.ols, output = "modelsummary_list") #store the result is a modelsummary_list to reduce memory space
@@ -234,17 +234,17 @@ table2 <- data.frame()
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
     # estimate delta*
-    a <- o_delta(y = "log_y", # dependent variable
+    a <- o_beta(y = "log_y", # dependent variable
             x = "int", # independent treatment variable
             # id = "npi",
             # time = "Year",
             con = "average_submitted_chrg_amt + average_medicare_payment_amt + npi + Year", # related control variables
-            beta = i, # beta
+            delta = i, # beta
             R2max = j, # maximum R-square
             type = "lm", # model type
             data = reg.dat) # data set
     a <- cbind(a[1,], j, i)
-    table2 <- rbind(dat.delta, a)
+    table2 <- rbind(table2, a)
   }
 }
 #----
@@ -293,7 +293,7 @@ plot2
 #----
 # Clean memory and auxiliary objects
 #----
-rm(plotlist, k)
+rm(plotlist, k, i , j)
 gc()
 ```
 
