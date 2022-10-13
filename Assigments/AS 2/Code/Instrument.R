@@ -74,7 +74,7 @@ for (i in 2012:2017){
 }
 
 # Remove Auxiliary object and clear memory
-rm(i, dir, dir.puf, price.shock.temp, b)
+rm(i, dir, dir.puf, price.shock.temp, b, pfs, taxid.base)
 
 # Clear memory
 gc()
