@@ -88,7 +88,7 @@ The data for this assignment comes from three sources:
 # source(here("Code", "Merge2.R"))
 
 # Read the merged data
-dat<- vroom(here("Output", "dat.csv"))
+dat <- vroom(here("Output", "dat.csv"))
 ```
 
 # Questions
@@ -115,11 +115,7 @@ field in the PUF data).
 #table 1
   dat %>% 
         ungroup() %>%
-        transmute( #Create temporal variables just to speed the coding. (Check how to calculate the actual variables later)
-               Total_Spending= average_medicare_allowed_amt*line_srvc_cnt, 
-               Total_Claims= line_srvc_cnt, 
-               Total_Patients= bene_unique_cnt
-          ) %>%
+        group_by(Year) %>%
         summarise_at(c('Total_Spending', 'Total_Claims', 'Total_Patients'),
                      list(Mean = mean, Std.Dev. = sd, Min = min, Max = max), na.rm=T) %>%
         pivot_longer(cols = everything(),
@@ -329,23 +325,7 @@ really just sum the ratio, but that's the same thing). The resulting
 for $INT_{it}$.
 
 ```{r instrument, eval=FALSE, echo=TRUE}
-  price.shock <- medicare.puf %>% inner_join(taxid.base, by="npi") %>%
-    inner_join(pfs.yearly %>% 
-                 select(hcpcs, dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007), 
-               by=c("hcpcs_code"="hcpcs")) %>%
-    mutate_at(vars(dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007), replace_na, 0) %>%
-    mutate(price_shock = case_when(
-            i<=2013 ~ ((i-2009)/4)*dprice_rel_2010,
-            i>2013  ~ dprice_rel_2010),
-          denom = line_srvc_cnt*price_nonfac_orig_2010,
-          numer = price_shock*line_srvc_cnt*price_nonfac_orig_2010) %>%
-    group_by(npi) %>%
-    summarize(phy_numer=sum(numer, na.rm=TRUE), phy_denom=sum(denom, na.rm=TRUE), tax_id=first(tax_id)) %>%
-    ungroup() %>%
-    mutate(phy_rev_change=phy_numer/phy_denom) %>%    
-    group_by(tax_id) %>%
-    summarize(practice_rev_change=sum(phy_rev_change, na.rm=TRUE)) %>%
-    ungroup()
+source(here("Code", "Instrument.R"))
 ```
 
 Yes, the idea of summing a ratio is a bit odd. But it's easier to think
