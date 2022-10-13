@@ -1,36 +1,32 @@
-## ----setup, include=FALSE-----------------------------------------
+## ----setup, include=FALSE--------------------------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(include = TRUE)
 knitr::opts_chunk$set(cache = F)
 
 
-## ----load-pack, include=FALSE-------------------------------------
+## ----load-pack, include=FALSE----------------------------------------------------------------------------------------
 # Import the required packages and set the working directory
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally)
+pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally, ivreg)
 setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
 
 
-## ----Merge_V2, include=TRUE, echo=TRUE----------------------------
+## ----Merge_V2, include=TRUE, echo=TRUE-------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 ## Merge the data and select the variables required for the analysis.
 #-----------------------------------------------------------------------------
 # source(here("Code", "Merge2.R"))
 
 # Read the merged data
-dat<- vroom(here("Output", "dat.csv"))
+dat <- vroom(here("Output", "dat.csv"))
 
 
-## ----Q1, include=TRUE, echo=TRUE----------------------------------
+## ----Q1, include=TRUE, echo=TRUE-------------------------------------------------------------------------------------
 #table 1
   dat %>% 
         ungroup() %>%
-        transmute( #Create temporal variables just to speed the coding. (Check how to calculate the actual variables later)
-               Total_Spending= average_medicare_allowed_amt*line_srvc_cnt, 
-               Total_Claims= line_srvc_cnt, 
-               Total_Patients= bene_unique_cnt
-          ) %>%
+        group_by(Year) %>%
         summarise_at(c('Total_Spending', 'Total_Claims', 'Total_Patients'),
                      list(Mean = mean, Std.Dev. = sd, Min = min, Max = max), na.rm=T) %>%
         pivot_longer(cols = everything(),
@@ -40,7 +36,7 @@ dat<- vroom(here("Output", "dat.csv"))
   table1
 
 
-## ----Q2-----------------------------------------------------------
+## ----Q2--------------------------------------------------------------------------------------------------------------
 # Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
 # pos_asc -> % of line items delivered in ambulatory surgery center (asc)
 # pos_office ->  % of line items delivered in office
@@ -61,24 +57,26 @@ dat  %>%
   plot1
 
 
-## ----Q3-----------------------------------------------------------
+## ----Q3--------------------------------------------------------------------------------------------------------------
 # Drop phys that were integrated as of 2012 and run the regression
 reg.dat <- dat %>% 
                filter(!(Year==2012 & int==1)) %>%
-               select(c("Year", "npi", "Total_Claims", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt")) %>%
+               select(c("Year", "npi", "Total_Claims", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt", "group1")) %>%
                mutate(
                         log_y = log(Total_Claims),
-                        y = Total_Claims
+                        y = Total_Claims,
+                        npi = as.character(npi)
                       ) #%>%
                # group_by(Year,npi) %>%
                 #summarize_all(mean, na.rm = TRUE)
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
-mod.fe <- modelsummary(mod.ols, output = "modelsummary_list") #store the result is a modelsummary_list to reduce memory space
+mod.fe <- modelsummary(mod.ols, output = "modelsummary_list", stars = TRUE) #store the result is a modelsummary_list to reduce memory space
 rm(mod.ols)
+mod.fe
 
 
-## ----Q4-----------------------------------------------------------
+## ----Q4--------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 ## load robomit
 #-----------------------------------------------------------------------------
@@ -94,8 +92,8 @@ for (i in seq(0,2,0.5)){
     # estimate delta*
     a <- o_beta(y = "log_y", # dependent variable
             x = "int", # independent treatment variable
-            # id = "npi",
-            # time = "Year",
+            #id = "npi",
+            #time = "Year",
             con = "average_submitted_chrg_amt + average_medicare_payment_amt + npi + Year", # related control variables
             delta = i, # beta
             R2max = j, # maximum R-square
@@ -154,23 +152,35 @@ plot2
 rm(plotlist, k, i , j)
 gc()
 
+### Re do this!!!!!! program and use FEOLS. That command actually works on my machine yujuuu!
 
-## ----instrument, eval=FALSE, echo=TRUE----------------------------
-##   price.shock <- medicare.puf %>% inner_join(taxid.base, by="npi") %>%
-##     inner_join(pfs.yearly %>%
-##                  select(hcpcs, dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007),
-##                by=c("hcpcs_code"="hcpcs")) %>%
-##     mutate_at(vars(dprice_rel_2010, price_nonfac_orig_2010, price_nonfac_orig_2007), replace_na, 0) %>%
-##     mutate(price_shock = case_when(
-##             i<=2013 ~ ((i-2009)/4)*dprice_rel_2010,
-##             i>2013  ~ dprice_rel_2010),
-##           denom = line_srvc_cnt*price_nonfac_orig_2010,
-##           numer = price_shock*line_srvc_cnt*price_nonfac_orig_2010) %>%
-##     group_by(npi) %>%
-##     summarize(phy_numer=sum(numer, na.rm=TRUE), phy_denom=sum(denom, na.rm=TRUE), tax_id=first(tax_id)) %>%
-##     ungroup() %>%
-##     mutate(phy_rev_change=phy_numer/phy_denom) %>%
-##     group_by(tax_id) %>%
-##     summarize(practice_rev_change=sum(phy_rev_change, na.rm=TRUE)) %>%
-##     ungroup()
+
+## ----Q5--------------------------------------------------------------------------------------------------------------
+#source(here("Code", "Instrument.R"))
+
+# Append the data
+reg.dat.2sls <- left_join(reg.dat, price.shock, by=c("group1" = "tax_id", "Year" = "Year"))
+
+#mod.2sls <- ivreg(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + factor(npi) + factor(Year) | int | practice_rev_change, data = reg.dat.2sls) ## Too computational ineficient
+
+mod.2sls.plm <- plm(log_y ~ int + average_submitted_chrg_amt + average_medicare_payment_amt  | average_submitted_chrg_amt + average_medicare_payment_amt + practice_rev_change, model = "within", effect = "twoways", index = c("npi","Year"), data = reg.dat.2sls)
+modelsummary(mod.2sls.plm, output = "modelsummary_list", stars = TRUE)
+
+mod.2sls.feols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt  | npi + Year | int ~ practice_rev_change, data = reg.dat.2sls)
+mod.2sls <- modelsummary(summary(mod.2sls.feols, stage = 1:2),stars = TRUE, output = "modelsummary_list")
+# Both plm and feols give me the same coeff, different se
+
+
+## ----Q6--------------------------------------------------------------------------------------------------------------
+
+reg.dat.2sls <- reg.dat.2sls %>% 
+                filter(!(is.na(reg.dat.2sls$practice_rev_change) 
+                       | is.na(reg.dat.2sls$int)))
+
+reg.dat.2sls$v_hat <- feols(int ~ average_submitted_chrg_amt + average_medicare_payment_amt + practice_rev_change | npi + Year, data = reg.dat.2sls)$residuals
+
+mod.DWH <- feols(log_y ~ int + average_submitted_chrg_amt + average_medicare_payment_amt + v_hat | npi + Year, data = reg.dat.2sls)
+
+modelsummary(mod.DWH, output = "markdown", stars = TRUE)
+
 
