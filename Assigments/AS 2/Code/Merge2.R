@@ -62,7 +62,7 @@ for (i in 2012:2017) {
   b <- vroom(dir.puf)
   names(b) = tolower(names(b))
   b <-   b %>%
-            select(npi, nppes_credentials, average_medicare_allowed_amt, average_submitted_chrg_amt, 
+            select(npi, nppes_credentials, hcpcs_code, average_medicare_allowed_amt, average_submitted_chrg_amt, 
                    average_medicare_payment_amt,line_srvc_cnt, bene_unique_cnt) %>%
             filter(grepl("MD|M.D.", nppes_credentials, ignore.case = TRUE)) %>%
             mutate( #Create temporal variables just to speed the coding. (Check how to calculate the actual variables later)
