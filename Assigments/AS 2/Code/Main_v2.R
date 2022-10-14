@@ -10,6 +10,8 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally, ivreg)
 setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
+gc()
+rm(list=ls())
 
 
 ## ----Merge_V2, include=TRUE, echo=TRUE-------------------------------------------------------------------------------
@@ -59,16 +61,19 @@ dat  %>%
 
 ## ----Q3--------------------------------------------------------------------------------------------------------------
 # Drop phys that were integrated as of 2012 and run the regression
-reg.dat <- dat %>% 
-               filter(!(Year==2012 & int==1)) %>%
-               select(c("Year", "npi", "Total_Claims", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt", "group1")) %>%
+
+reg.dat <- dat %>%
+               group_by(npi) %>%
+               mutate(sum_int = sum(int)) %>%
+               filter(!(is.na(sum_int) & sum_int < 6)) %>% ## Drop ALL doctor that where integrated since 2012! thanks onejune.
+               select(c("Year", "npi", "Total_Claims", 
+                        "int", "average_submitted_chrg_amt", 
+                        "average_medicare_payment_amt", "group1")) %>%
                mutate(
                         log_y = log(Total_Claims),
                         y = Total_Claims,
                         npi = as.character(npi)
-                      ) #%>%
-               # group_by(Year,npi) %>%
-                #summarize_all(mean, na.rm = TRUE)
+                      )
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
 mod.fe <- modelsummary(mod.ols, output = "modelsummary_list", stars = TRUE) #store the result is a modelsummary_list to reduce memory space
@@ -86,39 +91,23 @@ require(robomit)
 ## For loop to loop trough \rho (i) and R^2_max (j) -> interested in Delta*
 #-----------------------------------------------------------------------------
 
-mod.ols <- feols(log_y ~ average_submitted_chrg_amt + 
-                         average_medicare_payment_amt + 
-                         int 
-                       | npi + Year, dat = reg.dat)
-
-R2_dx <- r2(mod.ols, type = "ar2")
-delta_dx <- mod.ols[["coefficients"]][["int"]]
-
-rm(mod.ols)
-
-mod.ols <- feols(log_y ~ int, dat = reg.dat)
-R2_d <- r2(mod.ols, type = "ar2")
-delta_d <- mod.ols[["coefficients"]][["int"]]
-rm(mod.ols)
-
-rho <- seq(0,2,0.5)
-R2_max <- seq(0.5,1,0.1)
-
-#delta = delta_dx - rho * (delta_d - delta_dx) *[(R2_max - R2_dx)/ (R2_dx - R2_d)]
-
-delta_star <- c()
-k = 1
+table2 <- data.frame()
 for (i in seq(0,2,0.5)){
   for (j in seq(0.5,1,0.1)) {
-      delta_star[k] = (delta_dx - i*(delta_d - delta_dx)*((j - R2_dx)/ (R2_dx - R2_d)))
-      k = k + 1
+    # estimate delta*
+    a <- o_beta(y = "log_y", # dependent variable
+            x = "int", # independent treatment variable
+            #id = "npi",
+            #time = "Year",
+            con = "average_submitted_chrg_amt + average_medicare_payment_amt + npi + Year", # related control variables
+            delta = i, # beta
+            R2max = j, # maximum R-square
+            type = "lm", # model type
+            data = reg.dat) # data set
+    a <- cbind(a[1,], j, i)
+    table2 <- rbind(table2, a)
   }
 }
-rm(i,j,k)
-
-interval <- cbind(delta_dx, delta_star)
-interval
-
 #----
 # Clean memory and auxiliary objects
 #----
@@ -198,4 +187,5 @@ reg.dat.2sls$v_hat <- feols(int ~ average_submitted_chrg_amt + average_medicare_
 mod.DWH <- feols(log_y ~ int + average_submitted_chrg_amt + average_medicare_payment_amt + v_hat | npi + Year, data = reg.dat.2sls)
 
 modelsummary(mod.DWH, output = "markdown", stars = TRUE)
+
 

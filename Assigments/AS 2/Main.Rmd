@@ -27,6 +27,8 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally, ivreg)
 setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
+gc()
+rm(list=ls())
 ```
 
 # Overview
@@ -179,7 +181,9 @@ reg.dat <- dat %>%
                group_by(npi) %>%
                mutate(sum_int = sum(int)) %>%
                filter(!(is.na(sum_int) & sum_int < 6)) %>% ## Drop ALL doctor that where integrated since 2012! thanks onejune.
-               select(c("Year", "npi", "Total_Claims", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt", "group1")) %>%
+               select(c("Year", "npi", "Total_Claims", 
+                        "int", "average_submitted_chrg_amt", 
+                        "average_medicare_payment_amt", "group1")) %>%
                mutate(
                         log_y = log(Total_Claims),
                         y = Total_Claims,
