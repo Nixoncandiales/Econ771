@@ -78,3 +78,4 @@ rm(i, dir, dir.puf, price.shock.temp, b, pfs, taxid.base)
 
 # Clear memory
 gc()
+vroom_write(price.shock, path = here("Output", "instrument.csv"))
