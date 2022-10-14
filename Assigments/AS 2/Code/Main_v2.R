@@ -7,7 +7,7 @@ knitr::opts_chunk$set(cache = F)
 ## ----load-pack, include=FALSE----------------------------------------------------------------------------------------
 # Import the required packages and set the working directory
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally, ivreg)
+pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally, ivreg, aod)
 setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
 gc()
@@ -77,13 +77,50 @@ reg.dat <- dat %>%
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
 mod.fe <- modelsummary(mod.ols, output = "modelsummary_list", stars = TRUE) #store the result is a modelsummary_list to reduce memory space
-rm(mod.ols)
 mod.fe
 
 
 ## ----Q4--------------------------------------------------------------------------------------------------------------
+
 #-----------------------------------------------------------------------------
-## load robomit
+## Run the regression manually
+#-----------------------------------------------------------------------------
+
+mod.ols <- feols(log_y ~ average_submitted_chrg_amt + 
+                         average_medicare_payment_amt + 
+                         int 
+                       | npi + Year, dat = reg.dat)
+
+R2_dx <- r2(mod.ols, type = "ar2")
+delta_dx <- mod.ols[["coefficients"]][["int"]]
+
+rm(mod.ols)
+
+mod.ols <- feols(log_y ~ int, dat = reg.dat)
+R2_d <- r2(mod.ols, type = "ar2")
+delta_d <- mod.ols[["coefficients"]][["int"]]
+rm(mod.ols)
+
+rho <- seq(0,2,0.5)
+R2_max <- seq(0.5,1,0.1)
+
+delta_star <- c()
+k = 1
+for (i in seq(0,2,0.5)){
+  for (j in seq(0.5,1,0.1)) {
+      delta_star[k] = (delta_dx - i*(delta_d - delta_dx)*((j - R2_dx)/ (R2_dx - R2_d)))
+      k = k + 1
+  }
+}
+
+
+interval <- cbind(delta_dx, delta_star)
+interval
+
+rm(i,j,k, delta_d, delta_dx, delta_star, R2_d, R2_dx, R2_max, rho)
+
+#-----------------------------------------------------------------------------
+## Robomit package
 #-----------------------------------------------------------------------------
 require(robomit)
 
@@ -169,23 +206,43 @@ reg.dat.2sls <- left_join(reg.dat, price.shock, by=c("group1" = "tax_id", "Year"
 #mod.2sls <- ivreg(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + factor(npi) + factor(Year) | int | practice_rev_change, data = reg.dat.2sls) ## Too computational ineficient
 
 mod.2sls.plm <- plm(log_y ~ int + average_submitted_chrg_amt + average_medicare_payment_amt  | average_submitted_chrg_amt + average_medicare_payment_amt + practice_rev_change, model = "within", effect = "twoways", index = c("npi","Year"), data = reg.dat.2sls)
-modelsummary(mod.2sls.plm, output = "modelsummary_list", stars = TRUE)
 
 mod.2sls.feols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt  | npi + Year | int ~ practice_rev_change, data = reg.dat.2sls)
 mod.2sls <- modelsummary(summary(mod.2sls.feols, stage = 1:2),stars = TRUE, output = "modelsummary_list")
+
+modelsummary(mod.2sls.plm, output = "modelsummary_list", stars = TRUE)
+modelsummary(mod.2sls.feols, output = "modelsummary_list", stars = TRUE)
 # Both plm and feols give me the same coeff, different se
 
 
 ## ----Q6--------------------------------------------------------------------------------------------------------------
 
 reg.dat.2sls <- reg.dat.2sls %>% 
-                filter(!(is.na(reg.dat.2sls$practice_rev_change) 
-                       | is.na(reg.dat.2sls$int)))
+                filter(!(is.na(practice_rev_change)))
 
-reg.dat.2sls$v_hat <- feols(int ~ average_submitted_chrg_amt + average_medicare_payment_amt + practice_rev_change | npi + Year, data = reg.dat.2sls)$residuals
+reg.dat.2sls$v_hat <- feols(int ~ average_submitted_chrg_amt + 
+                              average_medicare_payment_amt + 
+                              practice_rev_change | 
+                              npi + Year, data = reg.dat.2sls
+                            )$residuals
 
-mod.DWH <- feols(log_y ~ int + average_submitted_chrg_amt + average_medicare_payment_amt + v_hat | npi + Year, data = reg.dat.2sls)
+mod.DWH <- feols(log_y ~ int + average_submitted_chrg_amt + 
+                         average_medicare_payment_amt + v_hat | 
+                         npi + Year, data = reg.dat.2sls)
 
 modelsummary(mod.DWH, output = "markdown", stars = TRUE)
+
+
+
+## --------------------------------------------------------------------------------------------------------------------
+#perform Wald Test to determine if int predictor variables is  zero
+wald.test(Sigma = vcov(mod.ols), b = coef(mod.ols), Term = 3)
+
+wald.test(Sigma = vcov(mod.2sls.feols), b = coef(mod.2sls.feols), Term = 1)
+
+
+## --------------------------------------------------------------------------------------------------------------------
+
+sample(price.shock$practice_rev_change)
 
 
