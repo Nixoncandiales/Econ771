@@ -174,16 +174,17 @@ dat  %>%
 
 ```{r Q3}
 # Drop phys that were integrated as of 2012 and run the regression
-reg.dat <- dat %>% 
-               filter(!(Year==2012 & int==1)) %>%
+
+reg.dat <- dat %>%
+               group_by(npi) %>%
+               mutate(sum_int = sum(int)) %>%
+               filter(!(is.na(sum_int) & sum_int < 6)) %>% ## Drop ALL doctor that where integrated since 2012! thanks onejune.
                select(c("Year", "npi", "Total_Claims", "int", "average_submitted_chrg_amt", "average_medicare_payment_amt", "group1")) %>%
                mutate(
                         log_y = log(Total_Claims),
                         y = Total_Claims,
                         npi = as.character(npi)
-                      ) #%>%
-               # group_by(Year,npi) %>%
-                #summarize_all(mean, na.rm = TRUE)
+                      )
 
 mod.ols <- feols(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + int | npi + Year, dat = reg.dat)
 mod.fe <- modelsummary(mod.ols, output = "modelsummary_list", stars = TRUE) #store the result is a modelsummary_list to reduce memory space
@@ -424,7 +425,7 @@ modelsummary(mod.DWH, output = "markdown", stars = TRUE)
 9.  Discuss your findings and compare estimates from different
     estimators.
 
-10.  Reflect on this assignment. What did you find most challenging? What
+10. Reflect on this assignment. What did you find most challenging? What
     did you find most surprising?
 
 # References
