@@ -459,6 +459,20 @@ modelsummary(mod.DWH, output = "markdown", stars = TRUE)
     wald.test(Sigma = vcov(mod.ols), b = coef(mod.ols), Term = 3)
 
     wald.test(Sigma = vcov(mod.2sls.feols), b = coef(mod.2sls.feols), Term = 1)
+
+    #------
+    # Lee (2021)
+    #------
+
+    reg <- feols(int~PriceChange | npi+Year, data=reg.dat)
+    t_1S <- reg$coefficients[['PriceChange']]/reg$se[['PriceChange']]
+    F_1S <- t_1S^2
+    print(paste0('First stage F is ',round(F_1S)))
+
+    lower <- reg$coefficients[['PriceChange']] - 1.96*reg$se[['PriceChange']]*correction
+    # see 1S F statistics -> Find F statistics in Table3 -> Read the bottom line
+
+
     ```
 
     -   Going back to your 2SLS results...inflate your 2SLS standard

@@ -27,8 +27,7 @@ dat <- vroom(here("Output", "dat.csv"))
 ## ----Q1, include=TRUE, echo=TRUE--------------------------------------
 #table 1
   dat %>% 
-        ungroup() %>%
-        group_by(Year) %>%
+        ungroup()
         summarise_at(c('Total_Spending', 'Total_Claims', 'Total_Patients'),
                      list(Mean = mean, Std.Dev. = sd, Min = min, Max = max), na.rm=T) %>%
         pivot_longer(cols = everything(),
@@ -256,6 +255,18 @@ wald.test(Sigma = vcov(mod.ols), b = coef(mod.ols), Term = 3)
 
 wald.test(Sigma = vcov(mod.2sls.feols), b = coef(mod.2sls.feols), Term = 1)
 
+#------
+# Lee (2021)
+#------
+
+reg <- feols(int~ practice_rev_change | npi+Year, data=reg.dat.2sls)
+t_1S <- reg$coefficients[['practice_rev_change']]/reg$se[['practice_rev_change']]
+F_1S <- t_1S^2
+print(paste0('First stage F is ',round(F_1S)))
+
+lower <- reg$coefficients[['practice_rev_change']] - 1.96*reg$se[['practice_rev_change']]*1
+# see 1S F statistics -> Find F statistics in Table3 -> Read the bottom line
+
 
 ## ----Q8---------------------------------------------------------------
 # #-----------------------------------------------------------------------------
@@ -277,6 +288,28 @@ reg.dat.2sls.uncentered <- cbind(reg.dat.2sls,
 ## I am getting crazy numbers!
 
 # I am not sure if I fully understood how to create the conterfactuals.... is this randomization across all physicians or is this randomization just among the physician that were affected in our 2019 base line.... not sure yet
+
+# --- Better approach
+
+#source("Code/conterfactuals.R)
+
+mu <- vroom(here(dir_root,'temp','pseudoIV.csv'))
+
+df_temp <- df_temp %>% 
+  left_join(mu, by=c('Year','group1'='tax_id')) %>%
+  mutate(PCcentered = PriceChange - mu)
+gc()
+
+reg <- feols(INT~PCcentered|npi+Year, data=df_temp)
+df_temp$INThat <- reg$fitted.values
+reg <- feols(log_claims~INThat|npi+Year, data=df_temp)
+etable(reg,
+       tex=T, style.tex=style.tex('aer'),
+       file=here(dir_root,'tex','tab_BH.tex'),
+       replace=T)
+print('created tab_BH.tex')
+rm(list=c('mu','piv','reg'))
+gc()
 
 # #-----------------------------------------------------------------------------
 # ## 2sls using de demeaned instrument
