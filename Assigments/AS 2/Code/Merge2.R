@@ -42,12 +42,12 @@ for (i in 2012:2017) {
   a <- vroom(dir.mdppas)
   a$npi = as.character(a$npi) #Make sure npi has the same type 'character' on both data frames
   a <- a %>%
-    select(npi, Year, pos_asc, pos_opd, pos_office, group1, group2) %>%
-    group_by(Year, npi) %>%
-    mutate(
-      int = ifelse( pos_opd / (pos_opd + pos_office + pos_asc) >= 0.75,1,0) #Create int variable for Q2
-    ) %>%
-    select(Year,npi,int, group1, group2)
+          select(npi, Year, pos_asc, pos_opd, pos_office) %>%
+          group_by(Year, npi) %>%
+          mutate(
+                 int = ifelse( pos_opd / (pos_opd + pos_office + pos_asc) >= 0.75,1,0) #Create int variable for Q2
+                ) %>%
+          select(Year,npi,int)
   
   #------
   #Read the PUF data for the Year i. Keep all MD observations. Collapse to Physician level; 1 observation per \{npi ~ Year\}
