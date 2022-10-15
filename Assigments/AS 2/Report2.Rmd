@@ -152,6 +152,13 @@ We do not see evidence of weak instruments as presented in the table.
   -   Consider hypothetical price changes over a set of possible counterfactuals by assuming that the counterfactuals consist of different allocations of the observed relative price changes. For example, take the vector of all relative price changes, reallocate this vector randomly, and assign new hypothetical relative price changes. Do this 100 times. This isn't "all" possible counterfactuals by any means, but it will be fine for our purposes.
   -   Construct the expected revenue change over all possible realizations from previously, $\mu_{it} = E [\Delta P_{it}]= \sum_{s=1}^{100} \sum_{p} g_{pt}^{s} z_{ip}$.
   -   Re-estimate Equation \@ref(eq:ols) by 2SLS when instrumenting for $INT_{it}$ with $\tilde{\Delta} P_{it} = \Delta P_{it} - \mu_{it}$. Intuitively, this re-centering should isolate variation in the instrument that is only due to the policy and remove variation in our instrument that is due to physician practice styles (the latter of which is not a great instrument).
+  
+  ```{r Q8, eval=TRUE,results='asis', include=TRUE , comment=NA, warning=FALSE, message=FALSE,}
+source('Code/Q8.R')
+tab8
+```
+
+Following Borusyak and Hull (2021) working paper, we recenter the instrument variable by the expected value of the pseudo instruments simulations. After re-centering the instrument the treatment effect shrinks but we still have a larger negative effect than in table 2. 
 
 9.  Discuss your findings and compare estimates from different estimators.
 
@@ -160,4 +167,6 @@ After all of the analysis and sensitivity tests we can see how the integration t
 
 10. Reflect on this assignment. What did you find most challenging? What did you find most surprising?
 
-These empirical assignments are a good opportunity to polish the work flow needed to advance our own research. I enjoyed them all so far. I found challenging working with Rmarkdown for the PDF. 
+These empirical assignments are a good opportunity to polish the work flow needed to advance our own research. I enjoyed them all so far. I found working with Rmarkdown for the PDF the most challenging part so far. In this particular case as the objects in memory increased I was constrained by the capacities of my device and as such I am considering on writing the results in a text file and load it later, as is the case when I use latex for the write up. 
+
+But is a good practice to polish my work flow and improve the reproducibility of my research.

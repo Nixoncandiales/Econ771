@@ -5,6 +5,7 @@
 \documentclass[
   12pt,
 ]{article}
+\usepackage{siunitx}
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
 \usepackage{setspace}
@@ -74,6 +75,11 @@
 \date{\today}
 
 \begin{document}
+\sisetup{
+  table-number-alignment = center,
+  table-figures-integer = 2,
+  table-figures-decimal = 3
+}
 \maketitle
 
 \setstretch{1.25}
@@ -150,18 +156,18 @@ The data for this assignment comes from three sources:
   since the data are by service, but that's OK for our purposes.
 \end{enumerate}
 
-\% latex table generated in R 4.2.1 by xtable 1.8-4 package \% Fri Oct
-14 21:16:29 2022
+\% latex table generated in R 4.2.1 by xtable 1.8-4 package \% Sat Oct
+15 00:09:30 2022
 
 \begin{table}[ht]
 \centering
 \begin{tabular}{cccccc}
   \hline
- & colNames & Mean & Std.Dev. & Min & Max \\ 
+ &  & Mean & Std.Dev. & Min & Max \\ 
   \hline
-1 & Spending & 137743.61 & 280251.91 & 0.93 & 26288557.77 \\ 
-  2 & Claims & 2699.64 & 13038.64 & 4.00 & 5750425.00 \\ 
-  3 & Patients & 1013.11 & 1906.22 & 11.00 & 724713.00 \\ 
+ & Spending & 137743.61 & 280251.91 & 0.93 & 26288557.77 \\ 
+   & Claims & 2699.64 & 13038.64 & 4.00 & 5750425.00 \\ 
+   & Patients & 1013.11 & 1906.22 & 11.00 & 724713.00 \\ 
    \hline
 \end{tabular}
 \caption{Summary statistics} 
@@ -218,18 +224,18 @@ physicians we so not observe a change in the trend.
   effects.
 \end{enumerate}
 
-\begingroup
+\begin{table}[ht]
 \centering
 \begin{tabular}{lc}
    \toprule
-                                      & log\_y\\   
+                                      & $\log y$\\   
                                       & (1)\\  
    \midrule 
-   average\_submitted\_chrg\_amt      & $1.04\times 10^{-5}$$^{***}$\\    
+   average submitted charge      & $1.04\times 10^{-5}$$^{***}$\\    
                                       & ($7.89\times 10^{-7}$)\\    
-   average\_medicare\_payment\_amt    & 0.0002$^{***}$\\   
+   average medicare payment    & 0.0002$^{***}$\\   
                                       & ($7.6\times 10^{-6}$)\\    
-   int                                & -0.2624$^{***}$\\   
+   $INT$                                & -0.2624$^{***}$\\   
                                       & (0.0047)\\   
     \\
    Observations                       & 2,565,310\\  
@@ -240,7 +246,8 @@ physicians we so not observe a change in the trend.
    Year fixed effects                 & $\checkmark$\\   
    \bottomrule
 \end{tabular}
-\par\endgroup
+\caption{OLS estimation} 
+\end{table}
 
 The estimation results indicate that integrated physicians submit
 \(0.26\%\) less claims than the unintegrated physicians.
@@ -280,28 +287,27 @@ The estimation results indicate that integrated physicians submit
   \texttt{R}, respectively.
 \end{enumerate}
 
-\% latex table generated in R 4.2.1 by xtable 1.8-4 package \% Fri Oct
-14 21:17:24 2022
+% latex table generated in R 4.2.1 by xtable 1.8-4 package % Sat Oct15 00:10:03 2022
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{ccc}
+\begin{tabular}{lcc}
   \hline
- & \$R\_\{max\}\verb|^|2=0.9\$ & \$R\_\{max\}\verb|^|2=1\$ \\ 
+ &  $R_{max}^2=0.9$ & $R_{max}^2=1$ \\ 
   \hline
-\$ho=0\$ & [-0.36,-0.36] & [-0.36,-0.36] \\ 
-  \$ho=0.5\$ & [-0.36,-0.36] & [-0.36,-0.33] \\ 
-  \$ho=1\$ & [-0.36,-0.36] & [-0.36,-0.31] \\ 
-  \$ho=1.5\$ & [-0.36,-0.36] & [-0.36,-0.29] \\ 
-  \$ho=2\$ & [-0.36,-0.36] & [-0.36,-0.26] \\ 
+$\rho=0$ & [-0.36,-0.36] & [-0.36,-0.36] \\ 
+  $\rho=0.5$ & [-0.36,-0.36] & [-0.36,-0.33] \\ 
+  $\rho=1$ & [-0.36,-0.36] & [-0.36,-0.31] \\ 
+  $\rho=1.5$ & [-0.36,-0.36] & [-0.36,-0.29] \\ 
+  $\rho=2$ & [-0.36,-0.36] & [-0.36,-0.26] \\ 
    \hline
 \end{tabular}
 \caption{Altonji, Elder, and Taber (2005)} 
 \end{table}
 
-used (Mb) gc trigger (Mb) max used (Mb) Ncells 3973315 212.2 10819183
-577.9 9330216 498.3 Vcells 48024996 366.5 145553002 1110.5 145436358
-1109.6
+used (Mb) gc trigger (Mb) limit (Mb) max used (Mb) Ncells 4019019 214.7
+12889335 688.4 NA 9838106 525.5 Vcells 48186612 367.7 145748861 1112.0
+102400 145598160 1110.9
 
 From the regression presented in table 1 we see that the \(R^2_{D,x_1}\)
 was 0.91. Thus, we omit \(R^2_{max} \leq 0.9\). In all the simulations
@@ -328,20 +334,20 @@ incorporates information on the price shock magnitude and baseline
 practice size. Each of these things alone are poor instruments, but
 together for the practice it reflects a ``better'' instrument.
 
-\begingroup
+\begin{table}[ht]
 \centering
 \begin{tabular}{lccc}
    \toprule
-    & int & \multicolumn{2}{c}{log\_y}\\
+    & $INT$ & \multicolumn{2}{c}{$\log y$}\\
                                       & (1)                           & (2)                            & (3)\\  
    \midrule 
-   practice\_rev\_change              & $1.33\times 10^{-5}$$^{***}$  & $-4.29\times 10^{-5}$$^{***}$  &   \\   
+   practice revenue change              & $1.33\times 10^{-5}$$^{***}$  & $-4.29\times 10^{-5}$$^{***}$  &   \\   
                                       & ($6.76\times 10^{-7}$)        & ($1.57\times 10^{-6}$)         &   \\   
-   average\_submitted\_chrg\_amt      &                               & $1.02\times 10^{-5}$$^{***}$   & $1.02\times 10^{-5}$$^{***}$\\    
+   average submitted charge      &                               & $1.02\times 10^{-5}$$^{***}$   & $1.02\times 10^{-5}$$^{***}$\\    
                                       &                               & ($9.29\times 10^{-7}$)         & ($9.29\times 10^{-7}$)\\    
-   average\_medicare\_payment\_amt    &                               & 0.0003$^{***}$                 & 0.0003$^{***}$\\   
+   average medicare payment    &                               & 0.0003$^{***}$                 & 0.0003$^{***}$\\   
                                       &                               & ($8.83\times 10^{-6}$)         & ($8.83\times 10^{-6}$)\\    
-   INThat                             &                               &                                & -3.233$^{***}$\\   
+   $\hat{INT}$                             &                               &                                & -3.233$^{***}$\\   
                                       &                               &                                & (0.1184)\\   
     \\
    Observations                       & 2,176,278                     & 2,176,278                      & 2,176,278\\  
@@ -352,10 +358,11 @@ together for the practice it reflects a ``better'' instrument.
    Year fixed effects                 & $\checkmark$                  & $\checkmark$                   & $\checkmark$\\   
    \bottomrule
 \end{tabular}
-\par\endgroup
+\caption{Two Stage Least Squares estimation}
+\end{table}
 
 Endogeneity can be a threat for identification if the number of claims
-affect the decision to merge. Thus, table4 presents the results of the
+affect the decision to merge. Thus, table 4 presents the results of the
 two stage least squares. We observe how the estimates decrease,
 indicating that the number of claims for unintegrated physicians further
 decline given the price shock.
@@ -375,20 +382,20 @@ decline given the price shock.
   Discuss your results for \(\hat{\kappa}\).
 \end{enumerate}
 
-\begingroup
+\begin{table}[ht]
 \centering
 \begin{tabular}{lc}
    \toprule
-                                      & log\_y\\   
+                                      & $\log y$\\   
                                       & (1)\\  
    \midrule 
-   int                                & -3.444$^{***}$\\   
+   $INT$                                & -3.444$^{***}$\\   
                                       & (0.1253)\\   
-   average\_submitted\_chrg\_amt      & $1.3\times 10^{-5}$$^{***}$\\    
+   average submitted charge      & $1.3\times 10^{-5}$$^{***}$\\    
                                       & ($9.31\times 10^{-7}$)\\    
-   average\_medicare\_payment\_amt    & 0.0002$^{***}$\\   
+   average medicare payment    & 0.0002$^{***}$\\   
                                       & ($9.66\times 10^{-6}$)\\    
-   v\_hat                             & 3.204$^{***}$\\   
+   $\hat{v}$                             & 3.204$^{***}$\\   
                                       & (0.1251)\\   
     \\
    Observations                       & 2,176,278\\  
@@ -399,7 +406,8 @@ decline given the price shock.
    Year fixed effects                 & $\checkmark$\\   
    \bottomrule
 \end{tabular}
-\par\endgroup
+\caption{Durbin-Wu-Hausman Test }
+\end{table}
 
 From the Durbin-Wu-Hausman test with an augmented regression we see how
 \(\hat{v}\), the residuals, is significant which implies that there was
@@ -437,8 +445,8 @@ be bias.
   adjusted standard error.
 \end{itemize}
 
-{[}1{]} ``First stage F is 4013'' \% latex table generated in R 4.2.1 by
-xtable 1.8-4 package \% Fri Oct 14 21:32:46 2022
+ 
+% latex table generated in R 4.2.1 by xtable 1.8-4 package \% Sat Oct 15 00:11:26 2022
 
 \begin{table}[ht]
 \centering
@@ -454,7 +462,7 @@ Anderson-Rubin & -4.11 & -3.84 \\
 \label{tab:ci}
 \end{table}
 
-We do not see evidence of weak instruments as presented in the table.
+The first stage F statistic is 4013. Then, there is no evidence of weak instruments, as presented in the table.
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -494,6 +502,35 @@ We do not see evidence of weak instruments as presented in the table.
   instrument).
 \end{itemize}
 
+%{[}1{]} ``created tab8'' \begingroup \centering
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lc}
+     \toprule
+                        & $\log y$\\   
+                        & (1)\\  
+     \midrule 
+     $\hat{INT}$             & -0.8217$^{***}$\\   
+                        & (0.1355)\\   
+      \\
+     Observations       & 2,176,278\\  
+     R$^2$              & 0.90929\\  
+     Within R$^2$       & 0.00011\\  
+      \\
+     npi fixed effects  & $\checkmark$\\   
+     Year fixed effects & $\checkmark$\\   
+     \bottomrule
+  \end{tabular}
+\caption{ Borusyak and Hull (2021)  estimation} 
+\label{tab:ci}
+\end{table}
+
+Following Borusyak and Hull (2021) working paper, we recenter the
+instrument variable by the expected value of the pseudo instruments
+simulations. After re-centering the instrument the treatment effect
+shrinks but we still have a larger negative effect than in table 2.
+
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \setcounter{enumi}{8}
@@ -517,6 +554,13 @@ claims physician made.
 
 These empirical assignments are a good opportunity to polish the work
 flow needed to advance our own research. I enjoyed them all so far. I
-found challenging working with Rmarkdown for the PDF.
+found working with Rmarkdown for the PDF the most challenging part so
+far. In this particular case as the objects in memory increased I was
+constrained by the capacities of my device and as such I am considering
+on writing the results in a text file and load it later, as is the case
+when I use latex for the write up.
+
+But is a good practice to polish my work flow and improve the
+reproducibility of my research.
 
 \end{document}
