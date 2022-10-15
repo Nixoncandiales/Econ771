@@ -8,7 +8,7 @@ knitr::opts_chunk$set(cache = F)
 # Import the required packages and set the working directory
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally, ivreg, aod)
-setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
+setwd("GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
 gc()
 rm(list=ls())
@@ -27,7 +27,7 @@ dat <- vroom(here("Output", "dat.csv"))
 ## ----Q1, include=TRUE, echo=TRUE--------------------------------------
 #table 1
   dat %>% 
-        ungroup()
+        ungroup() %>%
         summarise_at(c('Total_Spending', 'Total_Claims', 'Total_Patients'),
                      list(Mean = mean, Std.Dev. = sd, Min = min, Max = max), na.rm=T) %>%
         pivot_longer(cols = everything(),
@@ -208,13 +208,13 @@ reg.dat.2sls <- left_join(reg.dat, price.shock, by=c("group1" = "tax_id", "Year"
 
 #mod.2sls <- ivreg(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + factor(npi) + factor(Year) | int | practice_rev_change, data = reg.dat.2sls) ## Too computational ineficient
 
-mod.2sls.plm <- plm(log_y ~ int + average_submitted_chrg_amt + 
-                            average_medicare_payment_amt  | 
-                            average_submitted_chrg_amt + average_medicare_payment_amt + 
-                            practice_rev_change, 
-                            model = "within", effect = "twoways", 
-                            index = c("npi","Year"), data = reg.dat.2sls
-                    )
+# mod.2sls.plm <- plm(log_y ~ int + average_submitted_chrg_amt + 
+#                             average_medicare_payment_amt  | 
+#                             average_submitted_chrg_amt + average_medicare_payment_amt + 
+#                             practice_rev_change, 
+#                             model = "within", effect = "twoways", 
+#                             index = c("npi","Year"), data = reg.dat.2sls
+#                     )
 
 mod.2sls.feols <- feols(log_y ~ average_submitted_chrg_amt + 
                           average_medicare_payment_amt  | 
