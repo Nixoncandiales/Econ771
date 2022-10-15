@@ -68,7 +68,7 @@ Table 1 shows the summary statistics for the total spending, number of claims an
 . Form a proxy for integration using the ratio: \begin{equation}
     INT_{it} = \mathbf{1} \left(\frac{HOPD_{it}}{HOPD_{it} + OFFICE_{it} + ASC_{it}} \geq 0.75\right),
     (\#eq:int)
-    \end{equation} where $HOPD_{it}$ reflects the total number of claims in which physician $i$ bills in a hospital outpatient setting, $OFFICE_{it}$ is the total number of claims billed to an office setting, and $ASC_{it}$ is the total number of claims billed to an ambulatory surgery center. As reflected in Equation \@ref(eq:int), you can assume that any physician with at least 75\% of claims billed in an outpatient setting is integrated with a hospital. Using this 75\% threshold, plot the mean of total physician-level claims for integrated versus non-integrated physicians over time.
+    \end{equation} where $HOPD_{it}$ reflects the total number of claims in which physician $i$ bills in a hospital outpatient setting, $OFFICE_{it}$ is the total number of claims billed to an office setting, and $ASC_{it}$ is the total number of claims billed to an ambulatory surgery center. As reflected in Equation \@ref(eq:int), you can assume that any physician with at least $75\%$ of claims billed in an outpatient setting is integrated with a hospital. Using this $75\%$ threshold, plot the mean of total physician-level claims for integrated versus non-integrated physicians over time.
 
 ```{r Q2, , include=TRUE, echo=FALSE, comment=NA, warning=FALSE, message=FALSE,}
 source("Code/plot1.R")
@@ -79,6 +79,7 @@ We see that after the price shock implementation the total number of claims incr
 \newpage
 3
 ```
+
 . Estimate the relationship between integration on total physician claims using OLS, with the following specification: \begin{equation}
     y_{it} = \delta INT_{it} + \beta x_{it} + \gamma_{i} + \gamma_{t} + \varepsilon_{it}, 
     (\#eq:ols)
@@ -89,12 +90,14 @@ source("Code/mod.ols.R")
 etable(mod.ols,
        tex=T, style.tex=style.tex('aer'))
 ```
+
 The estimation results indicate that integrated physicians submit $0.26\%$ less claims than the unintegrated physicians.
 
 ```{=tex}
 \newpage
 4
 ```
+
 . How much should we be "worried" about endogeneity here? Extending the work of @altonji2005, @oster2019 derives the expression \begin{equation}
     \delta^{*} \approx \hat{\delta}_{D,x_{1}} - \rho \times \left[\hat{\delta}_{D} - \hat{\delta}_{D,x_{1}}\right] \times \frac{R_{max}^{2} - R_{D,x_{1}}^{2}}{R_{D,x_{1}}^{2} - R_{D}^{2}} \xrightarrow{p} \delta,
     (\#eq:oster)
@@ -105,12 +108,14 @@ source('Code/Q4.R')
 tab4
 gc()
 ```
+
 From the regression presented in table 1 we see that the $R^2_{D,x_1}$ was 0.91. Thus, we omit $R^2_{max} \leq 0.9$. In all the simulations the bounds remain negative. Thus 
 
 ```{=tex}
 \newpage
 5
 ```
+
 . Construct the change in Medicare payments achievable for an integrated versus non-integrated physician practice due to the 2010 update to the physician fee schedule, $\Delta P_{it}$. Use this as an instrument for $INT_{it}$ in a 2SLS estimator following the same specification as in Equation \@ref(eq:ols). Present your results along with those of your "first stage" and "reduced form".
 
 Yes, the idea of summing a ratio is a bit odd. But it's easier to think of the instrument as the product of baseline (pre-shock) practice size and the average relative revenue change due to the price shock. In that context, the sum of the ratio is really just an interaction term that incorporates information on the price shock magnitude and baseline practice size. Each of these things alone are poor instruments, but together for the practice it reflects a "better" instrument.
@@ -131,12 +136,14 @@ etable(reg_1S, reg_RF, reg_2S,
        tex=T, style.tex=style.tex('aer'))
 
 ```
+
 Endogeneity can be a threat for identification if the number of claims affect the decision to merge. Thus, table4 presents the results of the two stage least squares. We observe how the estimates decrease, indicating that the number of claims for unintegrated physicians further decline given the price shock.
 
 ```{=tex}
 \newpage
 6
 ```
+
 . Assess the "need" for IV by implementing a Durbin-Wu-Hausman test with an augmented regression. Do this by first estimating the regression, $INT_{it} = \lambda \Delta P_{it} + \beta x_{it} + \gamma_{i} + \gamma_{t} + \varepsilon_{it}$, take the residual $\hat{\nu} = INT_{it} - \hat{INT}_{it}$, and run the regression $$y_{it} = \delta INT_{it} + \beta x_{it} + \gamma_{i} + \gamma_{t} + \kappa \hat{\nu} + \varepsilon_{it}.$$ Discuss your results for $\hat{\kappa}$.
 
 ```{r Q6, eval=TRUE,results='asis', include=TRUE, comment=NA, warning=FALSE, message=FALSE, echo=FALSE}
@@ -144,9 +151,10 @@ source('Code/Q6.R')
 etable(mod.DWH,
        tex=T, style.tex=style.tex('aer'))
 ```
+
 From the Durbin-Wu-Hausman test with an augmented regression we see how $\hat{v}$, the residuals, is significant which implies that there was a systematic component in the error that has not been taken care of and this is also driving the treatment effect. As such, this results might be bias. 
 
-\newpage
+
 7.  Now let's pay attention to potential issues of weak instruments. As we discussed in class, one issue with weak instruments is that our typical critical values (say, 1.96 for a 95\% confidence interval) from the equation of interest (sometimes called the structural equation) are too low in the presence of a weak first-stage. These issues are presented very clearly and more formally in the Andrews, Stock, and Sun (2019) survey article. For this question, you will consider two forms of inference in the presence of weak instruments:
 
   -   Present the results of a test of the null, $H_{0}: \delta=0$, using the Anderson-Rubin Wald statistic. Do your conclusions from this test differ from a traditional t-test following 2SLS estimation of Equation \@ref(eq:ols)?
@@ -158,7 +166,7 @@ table7
 ```
 
 We do not see evidence of weak instruments as presented in the table.
-\newpage
+
 8.  Following the Borusyak and Hull (2021) working paper (BH), we can consider our instrument as a function of some exogenous policy shocks and some possibly endogenous physician characteristics, $\Delta P_{it}=f\left(g_{pt}; z_{ipt}\right)$, where $g_{pt}$ captures overall payment shocks for procedure $p$ at time $t$, and $z_{ip}$ denotes a physician's quantity of different procedures at baseline. We can implement the BH re-centering approach as follows:
 
   -   Consider hypothetical price changes over a set of possible counterfactuals by assuming that the counterfactuals consist of different allocations of the observed relative price changes. For example, take the vector of all relative price changes, reallocate this vector randomly, and assign new hypothetical relative price changes. Do this 100 times. This isn't "all" possible counterfactuals by any means, but it will be fine for our purposes.
@@ -173,4 +181,4 @@ After all of the analysis and sensitivity tests we can see how the integration t
 
 10. Reflect on this assignment. What did you find most challenging? What did you find most surprising?
 
-These empirical assigments are a good opportunity to polish the work flow needed to advance our own research. I enjoyed them all so far. I found challenging working with Rmarkdown for the PDF. 
+These empirical assignments are a good opportunity to polish the work flow needed to advance our own research. I enjoyed them all so far. I found challenging working with Rmarkdown for the PDF. 
