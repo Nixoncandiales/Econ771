@@ -1,2 +1,5 @@
-Report `assignment2.pdf`.
-Code `Code/Main_v2.R`.
+Report `Report2.pdf`. 
+
+Main code `Code/Main_v2.R`,
+
+Supporting scripts `Code/`.
