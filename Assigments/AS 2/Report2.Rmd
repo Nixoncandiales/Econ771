@@ -69,7 +69,7 @@ Table 1 shows the summary statistics for the total spending, number of claims an
     \end{equation} where $HOPD_{it}$ reflects the total number of claims in which physician $i$ bills in a hospital outpatient setting, $OFFICE_{it}$ is the total number of claims billed to an office setting, and $ASC_{it}$ is the total number of claims billed to an ambulatory surgery center. As reflected in Equation \@ref(eq:int), you can assume that any physician with at least $75\%$ of claims billed in an outpatient setting is integrated with a hospital. Using this $75\%$ threshold, plot the mean of total physician-level claims for integrated versus non-integrated physicians over time.
 
 ```{r Q2, , include=TRUE, echo=FALSE, comment=NA, warning=FALSE, message=FALSE,}
-source("Code/plot1.R")
+source("Code/Q2.R")
 plot1
 ```
 
@@ -81,7 +81,7 @@ We see that after the price shock implementation the total number of claims incr
     \end{equation} where $INT_{it}$ is defined in Equation \@ref(eq:int), $x_{it}$ captures time-varying physician characteristics, and $\gamma_{i}$ and $\gamma_{t}$ denote physician and time fixed effects. Please focus on physician's that weren't yet integrated as of 2012, that way we have some pre-integration data for everyone. Impose this restriction for the remaining questions. Feel free to experiment with different covariates in $x_{it}$ or simply omit that term and only include the fixed effects.
 
 ```{r Q3, eval=TRUE,results='asis', include=TRUE, comment=NA, warning=FALSE, message=FALSE, echo=FALSE}
-source("Code/mod.ols.R")
+source("Code/Q3.R")
 etable(mod.ols,
        tex=T, style.tex=style.tex('aer'))
 ```
@@ -141,7 +141,7 @@ From the Durbin-Wu-Hausman test with an augmented regression we see how $\hat{v}
   -   Going back to your 2SLS results...inflate your 2SLS standard errors to form the $tF$ adjusted standard error, following Table 3 in Lee et al. (2021). Repeat the test of the null, $H_{0}: \delta=0$, using standard critical values and the $tF$ adjusted standard error.
 
 ```{r Q7, eval=TRUE,results='asis', include=TRUE , comment=NA, warning=FALSE, message=FALSE,}
-source('Code/Table7.R')
+source('Code/Q7.R')
 table7
 ```
 
