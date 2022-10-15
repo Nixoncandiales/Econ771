@@ -293,21 +293,19 @@ reg.dat.2sls.uncentered <- cbind(reg.dat.2sls,
 
 #source("Code/conterfactuals.R)
 
-mu <- vroom(here(dir_root,'temp','pseudoIV.csv'))
-
+mu <- vroom(here('Output','pseudoIV.csv'))
+df_temp <- reg.dat.2sls %>% filter(!is.na(int)) %>% filter(!is.na(practice_rev_change))
 df_temp <- df_temp %>% 
   left_join(mu, by=c('Year','group1'='tax_id')) %>%
-  mutate(PCcentered = PriceChange - mu)
+  mutate(PCcentered = practice_rev_change - mu)
 gc()
 
-reg <- feols(INT~PCcentered|npi+Year, data=df_temp)
+reg <- feols(int~PCcentered|npi+Year, data=df_temp)
 df_temp$INThat <- reg$fitted.values
-reg <- feols(log_claims~INThat|npi+Year, data=df_temp)
-etable(reg,
-       tex=T, style.tex=style.tex('aer'),
-       file=here(dir_root,'tex','tab_BH.tex'),
-       replace=T)
-print('created tab_BH.tex')
+reg <- feols(log_y~INThat|npi+Year, data=df_temp)
+tab8 <- etable(reg,
+       tex=T, style.tex=style.tex('aer'))
+print('created tab8')
 rm(list=c('mu','piv','reg'))
 gc()
 

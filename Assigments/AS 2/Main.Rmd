@@ -117,7 +117,6 @@ field in the PUF data).
 #table 1
   dat %>% 
         ungroup() %>%
-        group_by(Year) %>%
         summarise_at(c('Total_Spending', 'Total_Claims', 'Total_Patients'),
                      list(Mean = mean, Std.Dev. = sd, Min = min, Max = max), na.rm=T) %>%
         pivot_longer(cols = everything(),
@@ -374,7 +373,7 @@ really just sum the ratio, but that's the same thing). The resulting
 for $INT_{it}$.
 
 ```{r Q5}
-#source(here("Code", "Instrument.R"))
+source(here("Code", "Instrument.R"))
 price.shock <- vroom(here("Output", "instrument.csv"))
 
 # Append the data
@@ -509,6 +508,28 @@ modelsummary(mod.DWH, output = "markdown", stars = TRUE)
     ## I am getting crazy numbers!
 
     # I am not sure if I fully understood how to create the conterfactuals.... is this randomization across all physicians or is this randomization just among the physician that were affected in our 2019 base line.... not sure yet
+
+    # --- Better approach
+
+    #source("Code/conterfactuals.R)
+
+    mu <- vroom(here(dir_root,'temp','pseudoIV.csv'))
+
+    df_temp <- df_temp %>% 
+      left_join(mu, by=c('Year','group1'='tax_id')) %>%
+      mutate(PCcentered = PriceChange - mu)
+    gc()
+
+    reg <- feols(INT~PCcentered|npi+Year, data=df_temp)
+    df_temp$INThat <- reg$fitted.values
+    reg <- feols(log_claims~INThat|npi+Year, data=df_temp)
+    etable(reg,
+           tex=T, style.tex=style.tex('aer'),
+           file=here(dir_root,'tex','tab_BH.tex'),
+           replace=T)
+    print('created tab_BH.tex')
+    rm(list=c('mu','piv','reg'))
+    gc()
 
     # #-----------------------------------------------------------------------------
     # ## 2sls using de demeaned instrument
