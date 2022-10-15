@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.21)  15 OCT 2022 00:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.21)  15 OCT 2022 00:53
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -716,7 +716,7 @@ LaTeX Warning: There were multiply-defined labels.
  ) 
 Here is how much of TeX's memory you used:
  18310 strings out of 478268
- 345756 string characters out of 5846347
+ 345758 string characters out of 5846347
  645083 words of memory out of 5000000
  36091 multiletter control sequences out of 15000+600000
  537281 words of font info for 146 fonts, out of 8000000 for 9000
@@ -738,7 +738,7 @@ b></usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/lo
 cal/texlive/2022/texmf-dist/fonts/type1/public/lm/lmsy8.pfb></usr/local/texlive
 /2022/texmf-dist/fonts/type1/public/lm/lmtt12.pfb></usr/local/texlive/2022/texm
 f-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on Report2.pdf (9 pages, 214630 bytes).
+Output written on Report2.pdf (9 pages, 214673 bytes).
 PDF statistics:
  182 PDF objects out of 1000 (max. 8388607)
  139 compressed objects within 2 object streams
