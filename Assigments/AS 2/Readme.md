@@ -1,4 +1,4 @@
-Report `Report2.pdf`. 
+Report \href[`Report2.pdf`]
 
 Main code `Code/Main_v2.R`,
 
