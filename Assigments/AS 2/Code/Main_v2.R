@@ -1,20 +1,20 @@
-## ----setup, include=FALSE---------------------------------------------
+## ----setup, include=FALSE----
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(include = TRUE)
 knitr::opts_chunk$set(cache = F)
 
 
-## ----load-pack, include=FALSE-----------------------------------------
+## ----load-pack, include=FALSE----
 # Import the required packages and set the working directory
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, vroom, here, sqldf, ggthemes, fixest, modelsummary, plm, GGally, ivreg, aod)
-setwd("GitHub/Econ771/Assigments/AS 2")
+setwd("~/Documents/GitHub/Econ771/Assigments/AS 2")
 here::i_am("Main.Rmd")
 gc()
 rm(list=ls())
 
 
-## ----Merge_V2, include=TRUE, echo=TRUE--------------------------------
+## ----Merge_V2, include=TRUE, echo=TRUE----
 #-----------------------------------------------------------------------------
 ## Merge the data and select the variables required for the analysis.
 #-----------------------------------------------------------------------------
@@ -24,7 +24,7 @@ rm(list=ls())
 dat <- vroom(here("Output", "dat.csv"))
 
 
-## ----Q1, include=TRUE, echo=TRUE--------------------------------------
+## ----Q1, include=TRUE, echo=TRUE----
 #table 1
   dat %>% 
         ungroup() %>%
@@ -37,7 +37,7 @@ dat <- vroom(here("Output", "dat.csv"))
   table1
 
 
-## ----Q2---------------------------------------------------------------
+## ----Q2---------------------
 # Note from the documentation page 14 https://resdac.org/sites/datadocumentation.resdac.org/files/MD-PPAS%20User%20Guide%20-%20Version%202.4.pdf 
 # pos_asc -> % of line items delivered in ambulatory surgery center (asc)
 # pos_office ->  % of line items delivered in office
@@ -58,7 +58,7 @@ dat  %>%
   plot1
 
 
-## ----Q3---------------------------------------------------------------
+## ----Q3---------------------
 # Drop phys that were integrated as of 2012 and run the regression
 reg.dat <- dat %>%
                group_by(npi) %>%
@@ -81,7 +81,7 @@ mod.fe <- modelsummary(mod.ols, output = "modelsummary_list", stars = TRUE) #sto
 mod.fe
 
 
-## ----Q4---------------------------------------------------------------
+## ----Q4---------------------
 #-----------------------------------------------------------------------------
 ## Run the regression manually
 #-----------------------------------------------------------------------------
@@ -199,8 +199,8 @@ rm(i,j,k, delta_d, delta_dx, delta_star, R2_d, R2_dx, R2_max, rho)
 # ### Re do this!!!!!! program and use FEOLS. That command actually works on my machine yujuuu!
 
 
-## ----Q5---------------------------------------------------------------
-#source(here("Code", "Instrument.R"))
+## ----Q5---------------------
+source(here("Code", "Instrument.R"))
 price.shock <- vroom(here("Output", "instrument.csv"))
 
 # Append the data
@@ -208,13 +208,13 @@ reg.dat.2sls <- left_join(reg.dat, price.shock, by=c("group1" = "tax_id", "Year"
 
 #mod.2sls <- ivreg(log_y ~ average_submitted_chrg_amt + average_medicare_payment_amt + factor(npi) + factor(Year) | int | practice_rev_change, data = reg.dat.2sls) ## Too computational ineficient
 
-# mod.2sls.plm <- plm(log_y ~ int + average_submitted_chrg_amt + 
-#                             average_medicare_payment_amt  | 
-#                             average_submitted_chrg_amt + average_medicare_payment_amt + 
-#                             practice_rev_change, 
-#                             model = "within", effect = "twoways", 
-#                             index = c("npi","Year"), data = reg.dat.2sls
-#                     )
+mod.2sls.plm <- plm(log_y ~ int + average_submitted_chrg_amt + 
+                            average_medicare_payment_amt  | 
+                            average_submitted_chrg_amt + average_medicare_payment_amt + 
+                            practice_rev_change, 
+                            model = "within", effect = "twoways", 
+                            index = c("npi","Year"), data = reg.dat.2sls
+                    )
 
 mod.2sls.feols <- feols(log_y ~ average_submitted_chrg_amt + 
                           average_medicare_payment_amt  | 
@@ -230,7 +230,7 @@ modelsummary(mod.2sls.feols, output = "modelsummary_list", stars = TRUE)
 # Both plm and feols give me the same coeff, different se
 
 
-## ----Q6---------------------------------------------------------------
+## ----Q6---------------------
 
 reg.dat.2sls <- reg.dat.2sls %>% 
                 filter(!(is.na(practice_rev_change)))
@@ -249,7 +249,7 @@ modelsummary(mod.DWH, output = "markdown", stars = TRUE)
 
 
 
-## ----Q7-a-------------------------------------------------------------
+## ----Q7-a-------------------
 #perform Wald Test to determine if int predictor variables is  zero
 wald.test(Sigma = vcov(mod.ols), b = coef(mod.ols), Term = 3)
 
@@ -259,16 +259,18 @@ wald.test(Sigma = vcov(mod.2sls.feols), b = coef(mod.2sls.feols), Term = 1)
 # Lee (2021)
 #------
 
-reg <- feols(int~ practice_rev_change | npi+Year, data=reg.dat.2sls)
-t_1S <- reg$coefficients[['practice_rev_change']]/reg$se[['practice_rev_change']]
+reg <- feols(int~PriceChange | npi+Year, data=reg.dat)
+t_1S <- reg$coefficients[['PriceChange']]/reg$se[['PriceChange']]
 F_1S <- t_1S^2
 print(paste0('First stage F is ',round(F_1S)))
 
-lower <- reg$coefficients[['practice_rev_change']] - 1.96*reg$se[['practice_rev_change']]*1
+lower <- reg$coefficients[['PriceChange']] - 1.96*reg$se[['PriceChange']]*correction
 # see 1S F statistics -> Find F statistics in Table3 -> Read the bottom line
 
 
-## ----Q8---------------------------------------------------------------
+
+
+## ----Q8---------------------
 # #-----------------------------------------------------------------------------
 # ## Re-center the instrument
 # #-----------------------------------------------------------------------------
@@ -293,19 +295,21 @@ reg.dat.2sls.uncentered <- cbind(reg.dat.2sls,
 
 #source("Code/conterfactuals.R)
 
-mu <- vroom(here('Output','pseudoIV.csv'))
-df_temp <- reg.dat.2sls %>% filter(!is.na(int)) %>% filter(!is.na(practice_rev_change))
+mu <- vroom(here(dir_root,'temp','pseudoIV.csv'))
+
 df_temp <- df_temp %>% 
   left_join(mu, by=c('Year','group1'='tax_id')) %>%
-  mutate(PCcentered = practice_rev_change - mu)
+  mutate(PCcentered = PriceChange - mu)
 gc()
 
-reg <- feols(int~PCcentered|npi+Year, data=df_temp)
+reg <- feols(INT~PCcentered|npi+Year, data=df_temp)
 df_temp$INThat <- reg$fitted.values
-reg <- feols(log_y~INThat|npi+Year, data=df_temp)
-tab8 <- etable(reg,
-       tex=T, style.tex=style.tex('aer'))
-print('created tab8')
+reg <- feols(log_claims~INThat|npi+Year, data=df_temp)
+etable(reg,
+       tex=T, style.tex=style.tex('aer'),
+       file=here(dir_root,'tex','tab_BH.tex'),
+       replace=T)
+print('created tab_BH.tex')
 rm(list=c('mu','piv','reg'))
 gc()
 

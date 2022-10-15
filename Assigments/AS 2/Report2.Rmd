@@ -170,3 +170,7 @@ After all of the analysis and sensitivity tests we can see how the integration t
 These empirical assignments are a good opportunity to polish the work flow needed to advance our own research. I enjoyed them all so far. I found working with Rmarkdown for the PDF the most challenging part so far. In this particular case as the objects in memory increased I was constrained by the capacities of my device and as such I am considering on writing the results in a text file and load it later, as is the case when I use latex for the write up. 
 
 But is a good practice to polish my work flow and improve the reproducibility of my research.
+
+```{r save, include=FALSE}
+knitr::purl("Report2.Rmd", documentation = 1, output="Code/Report.R")
+```
