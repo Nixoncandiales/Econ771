@@ -1,0 +1,186 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  12pt,
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{setspace}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{subfig}
+\usepackage{booktabs}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Econ771 - Empirical Exercise 3},
+  pdfauthor={Nixon Torres Candiales},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Econ771 - Empirical Exercise 3}
+\author{Nixon Torres Candiales}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\setstretch{1.25}
+\hypertarget{overview}{%
+\section{Overview}\label{overview}}
+
+In this assignment, we're going to work through some applied issues
+related to regression discontinuity designs. We'll cover the basics of
+strict and fuzzy RD, and we'll work through standard specification
+tests. We'll also introduce some more technical aspects of bin and
+bandwidth selection.
+
+Please ``submit'' your answers as a GitHub repository link on Canvas. In
+this repo, please include a final document with your main answers and
+analyses in a PDF. Be sure to include in your repository all of your
+supporting code files. Practice writing good code and showing me only
+what I would need to recreate your results.
+
+\hypertarget{resources-and-data}{%
+\section{Resources and data}\label{resources-and-data}}
+
+The data for this assignment comes from the AEJ: Policy website, where
+Keith Ericson's complete dataset is available. The data are available
+\href{https://www.aeaweb.org/articles?id=10.1257/pol.6.1.38}{here}. I
+will also upload the replication files to our class OneDrive folder.
+
+\hypertarget{questions}{%
+\section{Questions}\label{questions}}
+
+In your GitHub repository, please be sure to clearly address/answer the
+following questions.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Recreate the table of descriptive statistics (Table 1) from
+  @ericson2014.
+\item
+  Recreate Figure 3 from @ericson2014.
+\item
+  @calonico2015 discuss the appropriate partition size for binned
+  scatterplots such as that in Figure 3 of Ericson (2014). More
+  formally, denote by
+  \(\mathcal{P}_{-,n} = \{ P_{-,j} : j=1, 2, ... J_{-, n} \}\) and
+  \(\mathcal{P}_{+,n} = \{ P_{+,j} : j=1, 2, ... J_{+, n} \}\) the
+  partitions of the support of the running variable \(x_{i}\) on the
+  left and right (respectively) of the cutoff, \(\bar{x}\). \(P_{-, j}\)
+  and \(P_{+, n}\) denote the actual supports for each \(j\) partition
+  of size \(J_{-,n}\) and \(J_{+,n}\), such that
+  \([x_{l}, \bar{x}) = \bigcup_{j=1}^{J_{-,n}} P_{-, j}\) and
+  \((\bar{x}, x_{u}] = \bigcup_{j=1}^{J_{+,n}} P_{+, j}\). Individual
+  bins are denoted by \(p_{-,j}\) and \(p_{+,j}\). With this notation in
+  hand, we can write the partitions \(J_{-,n}\) and \(J_{+,n}\) with
+  equally-spaced bins as
+  \[p_{-,j}=x_{l} + j \times \frac{\bar{x} - x_{l}}{J_{-,n}},\] and
+  \[p_{+,j} = \bar{x} + j \times \frac{x_{u} - \bar{x}}{J_{+,n}}.\]
+  Recreate Figure 3 from Ericson (2014) using \(J_{-,n}=J_{+,n}=10\) and
+  \(J_{-,n}=J_{+,n}=30\). Discuss your results and compare them to your
+  figure in Part 2.
+\item
+  With the notation above, @calonico2015 derive the optimal number of
+  partitions for an evenly-spaced (ES) RD plot. They show that
+  \[J_{ES,-,n} = \left\lceil \frac{V_{-}}{\mathcal{V}_{ES,-}} \frac{n}{\text{log}(n)^{2}} \right\rceil\]
+  and
+  \[J_{ES,+,n} = \left\lceil \frac{V_{+}}{\mathcal{V}_{ES,+}} \frac{n}{\text{log}(n)^{2}} \right\rceil,\]
+  where \(V_{-}\) and \(V_{+}\) denote the sample variance of the
+  subsamples to the left and right of the cutoff and
+  \(\mathcal{V}_{ES,.}\) is an integrated variance term derived in the
+  paper. Use the \texttt{rdrobust} package in \texttt{R} (or
+  \texttt{Stata} or \texttt{Python}) to find the optimal number of bins
+  with an evenly-spaced binning strategy. Report this bin count and
+  recreate your binned scatterplots from parts 2 and 3 based on the
+  optimal bin number.
+\item
+  One key underlying assumption for RD design is that agents cannot
+  precisely manipulate the running variable. While ``precisely'' is not
+  very scientific, we can at least test for whether there appears to be
+  a discrete jump in the running variable around the threshold. Evidence
+  of such a jump may suggest that manipulation is present. Provide the
+  results from the manipulation tests described in @cattaneo2018. This
+  test can be implemented with the \texttt{rddensity} package in
+  \texttt{R}, \texttt{Stata}, or \texttt{Python}.
+\item
+  Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.
+\item
+  @calonico2020 show that pre-existing optimal bandwidth calculations
+  (such as those used in @ericson2014) are invalid for appropriate
+  inference. They propose an alternative method to derive minimal
+  coverage error (CE)-optimal bandwidths. Re-estimate your RD results
+  using the CE-optimal bandwidth (\texttt{rdrobust} will do this for
+  you) and compare the bandwidth and RD estimates to that in Table 3 of
+  @ericson2014.
+\item
+  Now let's extend the analysis in Section V of @ericson2014 using IV.
+  Use the presence of Part D low-income subsidy as an IV for market
+  share to examine the effect of market share in 2006 on future premium
+  changes.
+\item
+  Discuss your findings and compare results from different binwidths and
+  bandwidths. Compare your results in part 8 to the invest-then-harvest
+  estimates from Table 4 in @ericson2014.
+\item
+  Reflect on this assignment. What did you find most challenging? What
+  did you find most surprising?
+\end{enumerate}
+
+\hypertarget{references}{%
+\section{References}\label{references}}
+
+\end{document}

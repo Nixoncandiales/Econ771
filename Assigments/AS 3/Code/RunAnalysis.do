@@ -1,4 +1,4 @@
-log using RunAnalysis.log, replace
+*log using RunAnalysis.log, replace
 
 *******************************************************************************
 ***	This file contains code to produce the Tables and Figures
@@ -32,7 +32,7 @@ capture mkdir `dirName'
 			egen inLastSample = max(inLastSampletemp),by(uniqueID)
 		end
 	***Prepare some supplemental data
-		use Data_subsidyinfo.dta, replace
+		use Data/Data_subsidyinfo.dta, replace
 			reshape long s, i(PDPregion) j(year)
 			sort PDPregion year
 			tempfile theSubsidies
@@ -43,7 +43,7 @@ capture mkdir `dirName'
 
 ***PART 2: Prepare main data (create derivative variables used later)
 
-	use Data_main.dta
+	use Data/Data_main.dta
 	
 	***The var "isin" will tell me whether that plan existed in 200x
 		gen isin = 1
@@ -674,5 +674,5 @@ capture mkdir `dirName'
 			graph save `dirName'/Figure4.gph, replace
 	
 	
-log close
+*log close
 
