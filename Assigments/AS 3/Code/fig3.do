@@ -3,6 +3,7 @@
 			local nBinOver2 `1'
 			local h `2'
 			local dirName `3'
+			capture mkdir `dirName'
 			
 			local step = `h'/((`nBinOver2'))
 			dis "StepSize `step'"
@@ -46,6 +47,8 @@
 			predict lnSHatAltPoly if year ==`year'
 		
 			local ytitle = "Log Enrollment Share, 2006"		
-			twoway (scatter lnSHat theBinAl if year ==`year' & RDwindow2006`ScatWin'==1 & `P'benefit =="B") (line lnSHatAlt `P'LISPremium if year ==`year' & RDwindow2006`RegWin'==1 & `P'benefit =="B",sort lpattern(dash) lcolor(gray)) (line lnSHatAltPoly `P'LISPremium if year ==`year' & RDwindow2006`PolyWin'==1 & `P'benefit =="B",sort lpattern(solid) lcolor(black)), legend(order(2 3) label(2 "Local Linear") label(3 "Quartic Polynomial")) xtitle("Monthly Premium - LIS Subsidy, 2006") ytitle("`ytitle'") 
-			graph save `dirName'/Figure3.gph, replace
+			twoway (scatter lnSHat theBinAl if year ==`year' & RDwindow2006`ScatWin'==1 & `P'benefit =="B") ///
+				(line lnSHatAlt `P'LISPremium if year ==`year' & RDwindow2006`RegWin'==1 & `P'benefit =="B",sort lpattern(dash) lcolor(gray)) ///
+				 (line lnSHatAltPoly `P'LISPremium if year ==`year' & RDwindow2006`PolyWin'==1 & `P'benefit =="B",sort lpattern(solid) lcolor(black)), ///legend(order(2 3) label(2 "Local Linear") label(3 "Quartic Polynomial")) xtitle("Monthly Premium - LIS Subsidy, 2006") ytitle("`ytitle'") 
+			graph export "`dirName'/Figure3.png", replace
 	

@@ -21,7 +21,9 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(include = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
 ```
 
 # Overview
@@ -38,7 +40,15 @@ In your GitHub repository, please be sure to clearly address/answer the followin
 
 1. Recreate the table of descriptive statistics (Table 1) from @ericson2014.
 
+```{r Q1}
+source("~/GitHub/Econ771/Assigments/AS 3/Code/Setup.R")
+source("~/GitHub/Econ771/Assigments/AS 3/Code/table1.R")
+stargazer(tab1)
+```
+
 2. Recreate Figure 3 from @ericson2014. 
+
+
 
 3. @calonico2015 discuss the appropriate partition size for binned scatterplots such as that in Figure 3 of Ericson (2014). More formally, denote by $\mathcal{P}_{-,n} = \{ P_{-,j} : j=1, 2, ... J_{-, n} \}$ and $\mathcal{P}_{+,n} = \{ P_{+,j} : j=1, 2, ... J_{+, n} \}$ the partitions of the support of the running variable $x_{i}$ on the left and right (respectively) of the cutoff, $\bar{x}$. $P_{-, j}$ and $P_{+, n}$ denote the actual supports for each $j$ partition of size $J_{-,n}$ and $J_{+,n}$, such that $[x_{l}, \bar{x}) = \bigcup_{j=1}^{J_{-,n}} P_{-, j}$ and $(\bar{x}, x_{u}] = \bigcup_{j=1}^{J_{+,n}} P_{+, j}$. Individual bins are denoted by $p_{-,j}$ and $p_{+,j}$. With this notation in hand, we can write the partitions $J_{-,n}$ and $J_{+,n}$ with equally-spaced bins as $$p_{-,j}=x_{l} + j \times \frac{\bar{x} - x_{l}}{J_{-,n}},$$ and $$p_{+,j} = \bar{x} + j \times \frac{x_{u} - \bar{x}}{J_{+,n}}.$$ Recreate Figure 3 from Ericson (2014) using $J_{-,n}=J_{+,n}=10$ and $J_{-,n}=J_{+,n}=30$. Discuss your results and compare them to your figure in Part 2.
 

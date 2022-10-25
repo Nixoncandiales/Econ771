@@ -1,4 +1,5 @@
 clear
+
 cd  "~/Documents/Github/Econ771/Assigments/As 3/"
 
 use Data/Data.dta, clear

@@ -7,21 +7,16 @@
 
 # Preliminaries -----------------------------------------------------------
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, vroom, here, haven)
+pacman::p_load(tidyverse, vroom, here, haven, stargazer)
 
 source(here("Assigments", "AS 3", "Code", "set.mydir.R"))
 
 # Load the data -----------------------------------------------------------
-
-dat <- read_dta("Data/Data_main.dta")
+dat <- vroom("Data/Data.csv")
 
 # Pat 1 replication -------------------------------------------------------
-dat %>% group_by(orgParentCode) %>% mutate(firmID = cur_group_id())
+source("Code/table1.R")
 
-dat %>% group_by(uniqueID) %>% mutate(uniqueIDNum = cur_group_id())
-
-prueba <- function(var, name){
-
-dat %>% group_by({var}) %>% transmute({name} = cur_group_id())
-
-}
+# Pat 2 replication -------------------------------------------------------
+# Replicated in Stata. Run main.do
+# It will run the do file fig3 and save the graph on disk on Output/fig/Fig3.png

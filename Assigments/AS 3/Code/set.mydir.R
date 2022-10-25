@@ -11,6 +11,7 @@ set.mydir <- function(name="nixon") {
         if (temp['sysname']=="Windows"){
             setwd("~/Github/Econ771/Assigments/AS 3")
         #   here::i_am(Setmydir.R)
+
             return(print(paste0("Hello ", temp['nodename'], 
                                 " you are in ", temp['sysname'], 
                                 " and your root directory is: ", getwd()
