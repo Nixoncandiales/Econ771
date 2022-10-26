@@ -14,9 +14,11 @@ source(here("Assigments", "AS 3", "Code", "set.mydir.R"))
 # Load the data -----------------------------------------------------------
 dat <- vroom("Data/Data.csv")
 
-# Pat 1 replication -------------------------------------------------------
+# Part 1 replication -------------------------------------------------------
 source("Code/table1.R")
 
-# Pat 2 replication -------------------------------------------------------
+# Part 2 replication -------------------------------------------------------
 # Replicated in Stata. Run main.do
-# It will run the do file fig3 and save the graph on disk on Output/fig/Fig3.png
+# It will run the do file fig3 and save the graph on disk on Output/fig/Figure3.png
+
+# Part 3 replication -------------------------------------------------------
