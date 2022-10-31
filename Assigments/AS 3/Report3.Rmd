@@ -128,23 +128,52 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
 
 6. Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.
 
-7. @calonico2020 show that pre-existing optimal bandwidth calculations
+```{=latex}
+\begin{table}
+
+\caption{Effect of LIS Benchmark Status in 2006 on Plan Enrollment}
+\centering
+\begin{tabular}[t]{lccccc}
+\toprule
+  & 2006 & 2007 & 2008 & 2009 & 2010\\
+\midrule
+Below benchmark, 2006 & 2.224*** & 1.332*** & 0.902** & 0.803* & 0.677\\
+ & (0.283) & (0.267) & (0.248) & (0.362) & (0.481)\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{Premium—subsidy, 2006}\\
+\hspace{1em}Below benchmark & -0.014 & -0.077 & -0.073 & -0.170 & -0.215*\\
+\hspace{1em} & (0.032) & (0.088) & (0.116) & (0.105) & (0.088)\\
+\hspace{1em}Above benchmark & -0.142+ & -0.033 & 0.049 & 0.074 & 0.049\\
+\hspace{1em} & (0.078) & (0.110) & (0.163) & (0.170) & (0.202)\\
+Num.Obs. & 306 & 299 & 298 & 246 & 212\\
+R2 & 0.576 & 0.325 & 0.131 & 0.141 & 0.124\\
+\midrule
+Below benchmark, 2006 & 2.464*** & 1.364*** & 0.872** & 0.351 & -0.277\\
+ & (0.219) & (0.317) & (0.243) & (0.321) & (0.298)\\
+Num.Obs. & 306 & 299 & 298 & 246 & 212\\
+\bottomrule
+\multicolumn{6}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
+\end{tabular}
+\end{table}
+```
+
+1. @calonico2020 show that pre-existing optimal bandwidth calculations
     (such as those used in @ericson2014) are invalid for appropriate
     inference. They propose an alternative method to derive minimal
     coverage error (CE)-optimal bandwidths. Re-estimate your RD results
     using the CE-optimal bandwidth (`rdrobust` will do this for you) and
     compare the bandwidth and RD estimates to that in Table 3 of @ericson2014.
 
-8. Now let's extend the analysis in Section V of @ericson2014 using IV.
+2. Now let's extend the analysis in Section V of @ericson2014 using IV.
     Use the presence of Part D low-income subsidy as an IV for market
     share to examine the effect of market share in 2006 on future
     premium changes.
 
-9. Discuss your findings and compare results from different binwidths
+3. Discuss your findings and compare results from different binwidths
     and bandwidths. Compare your results in part 8 to the
     invest-then-harvest estimates from Table 4 in @ericson2014.
 
-10. Reflect on this assignment. What did you find most challenging? What
+4.  Reflect on this assignment. What did you find most challenging? What
     did you find most surprising?
 
 # References

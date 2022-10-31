@@ -16,7 +16,7 @@ source(here("Assigments", "AS 3", "Code", "set.mydir.R"))
 dat <- vroom("Data/Data.csv")
 
 # Part 1 replication -------------------------------------------------------
-source("Code/table1.R")
+source("Code/Q1.R")
 
 # Part 2 replication -------------------------------------------------------
 # Replicated in Stata. Run main.do
@@ -43,57 +43,27 @@ fig4.a
 
 # Part 5 replication -------------------------------------------------------
 
-rddensity
+rddensity(lnS, LISPremium)
 
 
 # Part 6 replication -------------------------------------------------------
 
-# To do
-# Create the Lagged Variables.
-# Run the regressions on lagged variables and year.
-# Do it iterative...
-# Save each model in a list.
-
-###
-#data(base_did)
-# We need to set up the panel with the arg. panel.id
-#est1 = feols(y ~ l(x1, 0:1), base_did, panel.id = ~id+period)
-#est2 = feols(f(y) ~ l(x1, -1:1), base_did, panel.id = ~id+period)
-#etable(est1, est2, order = "f", drop="Int")
-##
-
-
-#Reg Data
-reg.dat.6 <- dat %>% filter(RDwindow20062==1 & year==2006)
-reg.dat.6 <- panel(reg.dat.6, ~ orgParentCode + year)
-# Panel A
-modelsummary(
-            feols(lnS ~ belowBench2006 + LISPremiumNeg + 
-                        LISPremiumPos, 
-                        cluster="firmID", 
-                        dat=reg.dat.6), 
+source("Code/Q6.R")
+options("modelsummary_format_numeric_latex" = "plain")
+modelsummary(panel.a, 
             "markdown", stars = TRUE, drop = "Int", 
-            gof_map = c("nobs", "r.squared"))
+            gof_map = c("nobs", "r.squared"), 
+            coef_map = c("belowBench2006"="Below benchmark, 2006", 
+                         "LISPremiumNeg"="Below benchmark", 
+                         "LISPremiumPos"="Above benchmark"),
+            title="Effect of LIS Benchmark Status in 2006 on Plan Enrollment",
+            booktabs=TRUE) %>% 
+            kableExtra::pack_rows("Premium—subsidy, 2006", 3, 6)
 
-
-#Panel B
-modelsummary(
-            feols(lnS ~ belowBench2006 +
-                        LISPremium +
-                        LISPremiumNeg +
-                        LISPremiumPos +
-                        LISPremiumNegSq +
-                        LISPremiumPosSq |
-                        state + firmID + L0btypedetail +
-                        L0btypedetail[L0BA_0] +
-                        L0btypedetail[L0BA_1_99] +
-                        L0btypedetail[L0BA_101_99] +
-                        L0btypedetail[L0BA_200_49] +
-                        L0btypedetail[L0BA_250Up],
-                    dat = reg.dat.6,
-                    cluster = "firmID"),
-            "markdown", stars = TRUE, keep = "belowBench2006", 
-            gof_map = c("nobs", "r.squared"))
+modelsummary(panel.b,
+          "markdown", stars = TRUE, keep = "belowBench2006",
+          coef_map = c("belowBench2006"="Below benchmark, 2006"),
+          gof_map = c("nobs", "r.squared"), title = "Effect of LIS Benchmark Status in 2006 on Plan Enrollment")
 
 # Part 7 replication -------------------------------------------------------
 mod.rd <- rdrobust(lnS, LISPremium)
