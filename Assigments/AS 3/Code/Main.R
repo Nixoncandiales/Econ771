@@ -7,7 +7,8 @@
 
 # Preliminaries -----------------------------------------------------------
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, vroom, here, haven, stargazer)
+pacman::p_load(tidyverse, vroom, here, haven, stargazer,
+               rdrobust, rddensity, modelsummary, fixest)
 
 source(here("Assigments", "AS 3", "Code", "set.mydir.R"))
 
@@ -22,3 +23,83 @@ source("Code/table1.R")
 # It will run the do file fig3 and save the graph on disk on Output/fig/Figure3.png
 
 # Part 3 replication -------------------------------------------------------
+
+dat %>% filter(year == 2006) %>% summarise(prueba = mean(LISPremium, na.rm=T))
+
+hist(dat$LISPremium)
+
+# Part 4 replication -------------------------------------------------------
+lnS <- dat %>% pull(lnS) 
+LISPremium <- dat %>% pull(LISPremium) 
+
+fig4.a <- rdplot(y = lnS, 
+                 x = LISPremium,
+                 title = "RD Plot",
+                 x.label = "Running Variable",
+                 y.label = "Outcome")
+fig4.a
+
+# Part B missing.
+
+# Part 5 replication -------------------------------------------------------
+
+rddensity
+
+
+# Part 6 replication -------------------------------------------------------
+
+# To do
+# Create the Lagged Variables.
+# Run the regressions on lagged variables and year.
+# Do it iterative...
+# Save each model in a list.
+
+###
+#data(base_did)
+# We need to set up the panel with the arg. panel.id
+#est1 = feols(y ~ l(x1, 0:1), base_did, panel.id = ~id+period)
+#est2 = feols(f(y) ~ l(x1, -1:1), base_did, panel.id = ~id+period)
+#etable(est1, est2, order = "f", drop="Int")
+##
+
+
+#Reg Data
+reg.dat.6 <- dat %>% filter(RDwindow20062==1 & year==2006)
+
+# Panel A
+modelsummary(
+    feols(lnS ~ belowBench2006 + LISPremiumNeg + 
+                LISPremiumPos, 
+                cluster="firmID", 
+                dat=reg.dat.6), 
+    "markdown", stars = TRUE, drop = "Int", 
+    gof_map = c("nobs", "r.squared"))
+
+
+#Panel B
+modelsummary(
+            feols(lnS ~ belowBench2006 +
+                        LISPremium +
+                        LISPremiumNeg +
+                        LISPremiumPos +
+                        LISPremiumNegSq +
+                        LISPremiumPosSq |
+                        state + firmID + L0btypedetail +
+                        L0btypedetail[L0BA_0] +
+                        L0btypedetail[L0BA_1_99] +
+                        L0btypedetail[L0BA_101_99] +
+                        L0btypedetail[L0BA_200_49] +
+                        L0btypedetail[L0BA_250Up],
+                    dat = reg.dat.6,
+                    cluster = "firmID"),
+            "markdown", stars = TRUE, keep = "belowBench2006", 
+            gof_map = c("nobs", "r.squared"))
+
+# Part 7 replication -------------------------------------------------------
+mod.rd <- rdrobust(lnS, LISPremium)
+summary(mod.rd)
+# Part 8 replication -------------------------------------------------------
+
+# Part 9 replication -------------------------------------------------------
+
+# Part 10 replication -------------------------------------------------------
