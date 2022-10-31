@@ -65,15 +65,15 @@ rddensity
 
 #Reg Data
 reg.dat.6 <- dat %>% filter(RDwindow20062==1 & year==2006)
-
+reg.dat.6 <- panel(reg.dat.6, ~ orgParentCode + year)
 # Panel A
 modelsummary(
-    feols(lnS ~ belowBench2006 + LISPremiumNeg + 
-                LISPremiumPos, 
-                cluster="firmID", 
-                dat=reg.dat.6), 
-    "markdown", stars = TRUE, drop = "Int", 
-    gof_map = c("nobs", "r.squared"))
+            feols(lnS ~ belowBench2006 + LISPremiumNeg + 
+                        LISPremiumPos, 
+                        cluster="firmID", 
+                        dat=reg.dat.6), 
+            "markdown", stars = TRUE, drop = "Int", 
+            gof_map = c("nobs", "r.squared"))
 
 
 #Panel B
