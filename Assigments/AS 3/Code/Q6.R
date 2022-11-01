@@ -189,3 +189,42 @@ panel.b <- append(panel.b, list(feols(lnS ~ belowBench2006 +
 # Rename lists to years
 names(panel.a) <- seq(2006,2010,1)
 names(panel.b) <- seq(2006,2010,1)
+
+# Write the tables
+options("modelsummary_format_numeric_latex" = "plain")
+
+modelsummary(panel.a, 
+            "Output/tab/tab6.a.tex", stars = TRUE, drop = "Int", 
+            gof_map = c("nobs", "r.squared"), 
+            coef_map = c("belowBench2006"="Below benchmark, 2006", 
+                         "LISPremiumNeg"="Below benchmark", 
+                         "LISPremiumPos"="Above benchmark"),
+            title="Effect of LIS Benchmark Status in 2006 on Plan Enrollment",
+            booktabs=TRUE) %>% 
+            kableExtra::pack_rows("Premium—subsidy, 2006", 3, 6)
+
+print("Table6.panel.a was written on Disk on Output/tab/tab6.a.tex")
+
+panel.a <- modelsummary(panel.a, 
+            "markdown", stars = TRUE, drop = "Int", 
+            gof_map = c("nobs", "r.squared"), 
+            coef_map = c("belowBench2006"="Below benchmark, 2006", 
+                         "LISPremiumNeg"="Below benchmark", 
+                         "LISPremiumPos"="Above benchmark"),
+            title="Effect of LIS Benchmark Status in 2006 on Plan Enrollment",
+            booktabs=TRUE) %>% 
+            kableExtra::pack_rows("Premium—subsidy, 2006", 3, 6)
+
+
+modelsummary(panel.b,
+          "Output/tab/tab6.b.tex", stars = TRUE, keep = "belowBench2006",
+          coef_map = c("belowBench2006"="Below benchmark, 2006"),
+          gof_map = c("nobs", "r.squared"), title = "Effect of LIS Benchmark Status in 2006 on Plan Enrollment")
+
+
+print("Table6.panel.b was written on Disk on Output/tab/tab6.b.tex")
+
+panel.b <- modelsummary(panel.b,
+          "markdown", stars = TRUE, keep = "belowBench2006",
+          coef_map = c("belowBench2006"="Below benchmark, 2006"),
+          gof_map = c("nobs", "r.squared"), title = "Effect of LIS Benchmark Status in 2006 on Plan Enrollment")

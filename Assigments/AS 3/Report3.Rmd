@@ -79,10 +79,15 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
 \bottomrule
 \end{tabular}
 \end{table}
+\pagebreak 
 ```
+
+
 2. Recreate Figure 3 from @ericson2014.
 
     ![](Output/fig/Figure3.png)
+
+\newpage
 
 3. @calonico2015 discuss the appropriate partition size for binned
     scatterplots such as that in Figure 3 of Ericson (2014). More
@@ -122,21 +127,24 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
     very scientific, we can at least test for whether there appears to
     be a discrete jump in the running variable around the threshold.
     Evidence of such a jump may suggest that manipulation is present.
-    Provide the results from the manipulation tests described in
-    @cattaneo2018. This test can be implemented with the `rddensity`
+    Provide the results from the manipulation tests described in @cattaneo2018. This test can be implemented with the `rddensity`
     package in `R`, `Stata`, or `Python`.
 
-6. Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.
+\newpage
 
+6. Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.\newline
+
+We recreate the table as follows, note the standard errors differs at the third decimal. This discrepancy might be due to a different default parameter in R when calculating the standard errors.
 ```{=latex}
+\begin{center}
 \begin{table}
-
 \caption{Effect of LIS Benchmark Status in 2006 on Plan Enrollment}
 \centering
 \begin{tabular}[t]{lccccc}
 \toprule
-  & 2006 & 2007 & 2008 & 2009 & 2010\\
+ $\ln s_t$ & 2006 & 2007 & 2008 & 2009 & 2010\\
 \midrule
+\multicolumn{6}{l}{\textit{Panel A. Local linear, bandwidth \$4}}\\
 Below benchmark, 2006 & 2.224*** & 1.332*** & 0.902** & 0.803* & 0.677\\
  & (0.283) & (0.267) & (0.248) & (0.362) & (0.481)\\
 \addlinespace[0.3em]
@@ -147,33 +155,40 @@ Below benchmark, 2006 & 2.224*** & 1.332*** & 0.902** & 0.803* & 0.677\\
 \hspace{1em} & (0.078) & (0.110) & (0.163) & (0.170) & (0.202)\\
 Num.Obs. & 306 & 299 & 298 & 246 & 212\\
 R2 & 0.576 & 0.325 & 0.131 & 0.141 & 0.124\\
-\midrule
+\\
+\multicolumn{6}{l}{\textit{Panel B. Polynomial with controls, bandwidth \$4}}\\
 Below benchmark, 2006 & 2.464*** & 1.364*** & 0.872** & 0.351 & -0.277\\
  & (0.219) & (0.317) & (0.243) & (0.321) & (0.298)\\
+Premium--subsidy, 2006 & Quadratic & Quadratic & Quadratic & Quadratic & Quadratic\\
 Num.Obs. & 306 & 299 & 298 & 246 & 212\\
+R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
+
 \bottomrule
 \multicolumn{6}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
 \end{tabular}
 \end{table}
+\end{center}
 ```
 
-1. @calonico2020 show that pre-existing optimal bandwidth calculations
+\newpage
+
+7. @calonico2020 show that pre-existing optimal bandwidth calculations
     (such as those used in @ericson2014) are invalid for appropriate
     inference. They propose an alternative method to derive minimal
     coverage error (CE)-optimal bandwidths. Re-estimate your RD results
     using the CE-optimal bandwidth (`rdrobust` will do this for you) and
     compare the bandwidth and RD estimates to that in Table 3 of @ericson2014.
 
-2. Now let's extend the analysis in Section V of @ericson2014 using IV.
+8. Now let's extend the analysis in Section V of @ericson2014 using IV.
     Use the presence of Part D low-income subsidy as an IV for market
     share to examine the effect of market share in 2006 on future
     premium changes.
 
-3. Discuss your findings and compare results from different binwidths
+9. Discuss your findings and compare results from different binwidths
     and bandwidths. Compare your results in part 8 to the
     invest-then-harvest estimates from Table 4 in @ericson2014.
 
-4.  Reflect on this assignment. What did you find most challenging? What
+10.  Reflect on this assignment. What did you find most challenging? What
     did you find most surprising?
 
 # References

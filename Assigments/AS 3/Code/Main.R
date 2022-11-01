@@ -47,23 +47,9 @@ rddensity(lnS, LISPremium)
 
 
 # Part 6 replication -------------------------------------------------------
-
 source("Code/Q6.R")
-options("modelsummary_format_numeric_latex" = "plain")
-modelsummary(panel.a, 
-            "markdown", stars = TRUE, drop = "Int", 
-            gof_map = c("nobs", "r.squared"), 
-            coef_map = c("belowBench2006"="Below benchmark, 2006", 
-                         "LISPremiumNeg"="Below benchmark", 
-                         "LISPremiumPos"="Above benchmark"),
-            title="Effect of LIS Benchmark Status in 2006 on Plan Enrollment",
-            booktabs=TRUE) %>% 
-            kableExtra::pack_rows("Premium—subsidy, 2006", 3, 6)
-
-modelsummary(panel.b,
-          "markdown", stars = TRUE, keep = "belowBench2006",
-          coef_map = c("belowBench2006"="Below benchmark, 2006"),
-          gof_map = c("nobs", "r.squared"), title = "Effect of LIS Benchmark Status in 2006 on Plan Enrollment")
+panel.a
+panel.b
 
 # Part 7 replication -------------------------------------------------------
 mod.rd <- rdrobust(lnS, LISPremium)
