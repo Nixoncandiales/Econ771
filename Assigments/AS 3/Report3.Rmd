@@ -26,6 +26,10 @@ knitr::opts_chunk$set(include = TRUE)
 knitr::opts_chunk$set(cache = TRUE)
 ```
 
+```{r setup2, include=FALSE, message=FALSE, warning=FALSE, comment=NA}
+source("Code/Main.R")
+```
+
 # Overview
 
 In this assignment, we're going to work through some applied issues
@@ -85,7 +89,7 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
 
 2. Recreate Figure 3 from @ericson2014.
 
-    ![](Output/fig/Figure3.png)
+    ![](Output/fig/Q2.png)
 
 \newpage
 
@@ -109,6 +113,10 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
     $J_{-,n}=J_{+,n}=30$. Discuss your results and compare them to your
     figure in Part 2.
 
+   ![](Output/fig/Q3A.png)
+   
+   ![](Output/fig/Q3B.png)    
+
 4. With the notation above, @calonico2015 derive the optimal number of
     partitions for an evenly-spaced (ES) RD plot. They show that
     $$J_{ES,-,n} = \left\lceil \frac{V_{-}}{\mathcal{V}_{ES,-}} \frac{n}{\text{log}(n)^{2}} \right\rceil$$
@@ -122,14 +130,16 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
     strategy. Report this bin count and recreate your binned
     scatterplots from parts 2 and 3 based on the optimal bin number.
 
-5. One key underlying assumption for RD design is that agents cannot
-    precisely manipulate the running variable. While "precisely" is not
-    very scientific, we can at least test for whether there appears to
-    be a discrete jump in the running variable around the threshold.
-    Evidence of such a jump may suggest that manipulation is present.
-    Provide the results from the manipulation tests described in @cattaneo2018. This test can be implemented with the `rddensity`
-    package in `R`, `Stata`, or `Python`.
+![](Output/fig/Q4A.png)
+![](Output/fig/Q4B.png)
+\pagebreak
 
+5. 
+    ```{r Q5, message=FALSE, warning=FALSE, comment=NA}
+    summary(rdbwdensity(X = dat$LISPremium, vce="jackknife"))
+    ```
+      
+    ![](Output/fig/Q5.png)
 \newpage
 
 6. Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.\newline

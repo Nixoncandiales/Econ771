@@ -79,8 +79,7 @@ tab1.tex <- knitr::kable(tab1, "latex", booktabs = T, align = "c",
 #    kableExtra::footnote(general = "Plan characteristics are taken from the year the plan was introduced (e.g., premium in plan's first year). Standard deviations in parentheses.")
 
 cat(tab1.tex, file = 'Output/tab/table1.tex') # Write the table on disk
-print(tab1)
-print(tab1.tex)
-rm(tab1)
-print("Table 1 was written on Disk in latex format in Output/tab/table1.tex")
 
+print("Table 1 was written on Disk in latex format in Output/tab/table1.tex")
+print(tab1)
+rm(tab1, tab1.tex)

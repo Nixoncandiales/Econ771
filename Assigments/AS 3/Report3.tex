@@ -146,7 +146,7 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
 \item
   Recreate Figure 3 from @ericson2014.
 
-  \includegraphics{Output/fig/Figure3.png}
+  \includegraphics{Output/fig/Q2.png}
 \end{enumerate}
 
 \newpage
@@ -174,6 +174,10 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
   Recreate Figure 3 from Ericson (2014) using \(J_{-,n}=J_{+,n}=10\) and
   \(J_{-,n}=J_{+,n}=30\). Discuss your results and compare them to your
   figure in Part 2.
+
+  \includegraphics{Output/fig/Q3A.png}
+
+  \includegraphics{Output/fig/Q3B.png}
 \item
   With the notation above, @calonico2015 derive the optimal number of
   partitions for an evenly-spaced (ES) RD plot. They show that
@@ -188,23 +192,38 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
   with an evenly-spaced binning strategy. Report this bin count and
   recreate your binned scatterplots from parts 2 and 3 based on the
   optimal bin number.
-\item
-  One key underlying assumption for RD design is that agents cannot
-  precisely manipulate the running variable. While ``precisely'' is not
-  very scientific, we can at least test for whether there appears to be
-  a discrete jump in the running variable around the threshold. Evidence
-  of such a jump may suggest that manipulation is present. Provide the
-  results from the manipulation tests described in @cattaneo2018. This
-  test can be implemented with the \texttt{rddensity} package in
-  \texttt{R}, \texttt{Stata}, or \texttt{Python}.
 \end{enumerate}
 
-\newpage
+\includegraphics{Output/fig/Q4A.png}
+\includegraphics{Output/fig/Q4B.png} \pagebreak
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\setcounter{enumi}{5}
-\tightlist
+\setcounter{enumi}{4}
+\item
+\begin{verbatim}
+
+Bandwidth selection for manipulation testing.
+
+Number of obs =     4276
+Model =             unrestricted
+Kernel =            triangular
+VCE method =        jackknife
+
+Cutoff c = 0        Left of c           Right of c          
+Number of obs       1944                2332                
+Min Running var.    -31.24              0.01                
+Max Running var.    0                   82.53               
+Order est. (p)      2                   2                   
+
+Target              Bandwidth           Variance            Bias^2              
+left density        5.0449              0.3916              0                   
+right density       3.832               0.3455              0                   
+diff. densities     3.7562              0.7371              0                   
+sum densities       6.0582              0.7371              0                   
+\end{verbatim}
+
+  \includegraphics{Output/fig/Q5.png} \newpage
 \item
   Recreate Table 3 of @ericson2014 using the same bandwidth of
   \$4.00.\newline
