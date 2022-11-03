@@ -6,9 +6,12 @@
 ## Description:   Analysis file for empirical exercise 3
 
 # Preliminaries -----------------------------------------------------------
+rm(list=ls())
+gc()
+
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, vroom, here, haven, stargazer,
-               rdrobust, rddensity, modelsummary, fixest)
+               rdrobust, rddensity, modelsummary, fixest, purrr)
 
 source(here("Assigments", "AS 3", "Code", "set.mydir.R"))
 
@@ -42,9 +45,8 @@ source("Code/Q5.R")
 summary(rd.test)
 
 # Part 6 replication -------------------------------------------------------
-source("Code/Q6.R")
-panel.a
-panel.b
+
+source("Code/Q6.2.R")
 
 # Part 7 replication -------------------------------------------------------
 mod.rd <- rdrobust(dat$lnS, dat$LISPremium)
