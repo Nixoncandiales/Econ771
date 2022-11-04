@@ -281,7 +281,6 @@ R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
   @ericson2014.
 
   \begin{table}
-
   \caption{Rdrobust estimation with optimal bandwith}
   \centering
   \begin{tabular}[t]{lccccc}
@@ -290,29 +289,39 @@ R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
   \midrule
   \addlinespace[0.3em]
   \multicolumn{6}{l}{\textit{Panel A. Local linear}}\\
-  \hspace{1em}Conventional estimate & -2.310 & 1.273 & -0.373 & -1.531 & -1.320\\
-  \hspace{1em} & (0.543) & (0.639) & (0.485) & (0.560) & (0.832)\\
+  \hspace{1em}Conventional estimate & -2.29 & 0.70 & 0.25 & -1.23 & -1.07\\
+  \hspace{1em} & (0.55) & (0.69) & (0.48) & (0.59) & (0.88)\\
   \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{3} 128\\
+  \hspace{1em}H & 0.75 & 1.92 & 2.38 & 2.12 & 1.95\\
+  \hspace{1em}Bin & 1.59 & 4.88 & 7.00 & 4.89 & 4.85\\
   \hspace{1em}Kernel & Uniform & Uniform & Uniform & Uniform & \vphantom{1} Uniform\\
-  \hspace{1em}Conventional estimate & -2.386 & 1.158 & 0.248 & -1.349 & -1.196\\
-  \hspace{1em} & (0.507) & (0.683) & (0.465) & (0.605) & (0.606)\\
+  \\
+  \hspace{1em}Conventional estimate & -2.51 & 0.96 & 0.48 & -1.20 & -1.17\\
+  \hspace{1em} & (0.52) & (0.72) & (0.49) & (0.65) & (0.63)\\
   \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{2} 128\\
+  \hspace{1em}H & 0.91 & 2.24 & 2.29 & 2.79 & 4.41\\
+  \hspace{1em}Bin & 1.72 & 4.49 & 6.24 & 5.35 & 9.67\\
   \hspace{1em}Kernel & Triangular & Triangular & Triangular & Triangular & \vphantom{1} Triangular\\
-  \addlinespace[0.3em] \\
+  \addlinespace[0.3em]
   \multicolumn{6}{l}{\textit{Panel B. Quadratic Polinomial}}\\
-  \hspace{1em}Conventional estimate & -2.245 & 1.172 & 0.075 & -1.202 & -1.490\\
-  \hspace{1em} & (0.600) & (0.790) & (0.614) & (0.814) & (0.987)\\
+  \hspace{1em}Conventional estimate & -2.58 & 0.77 & 1.13 & -0.67 & -0.84\\
+  \hspace{1em} & (0.62) & (0.89) & (0.67) & (0.94) & (1.04)\\
   \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{1} 128\\
+  \hspace{1em}H & 1.02 & 2.61 & 2.79 & 2.52 & 3.20\\
+  \hspace{1em}Bin & 2.07 & 5.36 & 6.96 & 5.27 & 6.13\\
   \hspace{1em}Kernel & Uniform & Uniform & Uniform & Uniform & Uniform\\
-  \hspace{1em}Conventional estimate & -2.551 & 0.976 & 0.687 & -0.696 & -1.128\\
-  \hspace{1em} & (0.594) & (0.873) & (0.641) & (1.088) & (0.986)\\
+  \\
+  \hspace{1em}Conventional estimate & -2.89 & 0.93 & 0.92 & -0.64 & -1.06\\
+  \hspace{1em} & (0.62) & (0.99) & (0.75) & (1.19) & (1.01)\\
   \hspace{1em}Observations & 306 & 245 & 200 & 143 & 128\\
+  \hspace{1em}H & 1.04 & 2.62 & 2.77 & 2.35 & 4.02\\
+  \hspace{1em}Bin & 1.99 & 5.10 & 6.02 & 4.33 & 6.64\\
   \hspace{1em}Kernel & Triangular & Triangular & Triangular & Triangular & Triangular\\
   \bottomrule
   \bottomrule
   \multicolumn{6}{l}{\textit{Note:} Robust standard erros in parenthesis}\\
-      \end{tabular}
-      \end{table}
+  \end{tabular}
+  \end{table}
 \item
   Now let's extend the analysis in Section V of @ericson2014 using IV.
   Use the presence of Part D low-income subsidy as an IV for market
