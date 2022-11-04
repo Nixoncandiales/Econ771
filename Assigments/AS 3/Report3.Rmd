@@ -234,10 +234,38 @@ R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
     \end{table}
     ```
 
+\newpage
 8. Now let's extend the analysis in Section V of @ericson2014 using IV.
     Use the presence of Part D low-income subsidy as an IV for market
     share to examine the effect of market share in 2006 on future
     premium changes.
+    
+```{=latex}
+\begin{table}
+\caption{Effect of Market Share in 2006 on Future Premium Changes}
+\centering
+\begin{tabular}[t]{lc}
+\midrule
+\addlinespace[0.3em]
+  & ln(monthly premium)\\
+\midrule
+$\hat{lnS}$ & -0.149***\\
+  & (0.023)\\
+\multicolumn{1}{l}{Year of plan existence}\\
+\hspace{1em} ... 2nd year & -0.214***\\
+ & (0.055)\\
+\hspace{1em} ... 3rd year & -0.078\\
+ & (0.065)\\
+\hspace{1em} ... 4th year & 0.063\\
+ & (0.067)\\
+\hspace{1em} ... 5th year & 0.173**\\
+ & (0.061)\\
+Num.Obs. & 4123\\
+R2 & -0.091\\
+\bottomrule
+\end{tabular}
+\end{table}
+```
 
 9. Discuss your findings and compare results from different binwidths
     and bandwidths. Compare your results in part 8 to the
@@ -246,4 +274,3 @@ R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
 10.  Reflect on this assignment. What did you find most challenging? What
     did you find most surprising?
 
-# References

@@ -49,7 +49,8 @@ knitr::kable(tab7, "latex", booktabs = T, align = "lccccc",
             kableExtra::pack_rows("Panel B. Quadratic Polinomial", 13, 24)
 
 # Part 8 replication -------------------------------------------------------
-
+source("Code/Q8.R")
+tab8.tex
 # Part 9 replication -------------------------------------------------------
 
 # Part 10 replication -------------------------------------------------------
