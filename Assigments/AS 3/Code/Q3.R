@@ -1,7 +1,6 @@
 #########################################################################
 # J-=J+=10
 #########################################################################
-
 Q3.a <- rdplot( y = lnS, 
                 x = LISPremium,
                 title = "The Effect of 2006 Benchmark Status on 2006 Enrollment",
@@ -63,3 +62,9 @@ plot.bin <- bin.avg %>%
 
 ggsave("Output/fig/Q3B.png")
 print("Figure Q3B.png has been written in Disk on Output/fig/Q3B.png")
+
+#---------------------------------------------------------------
+# Clear Memory
+#---------------------------------------------------------------
+rm(bin.avg, plot.bin, Q3.a, Q3.b)
+gc()

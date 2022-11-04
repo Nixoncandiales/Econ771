@@ -11,4 +11,11 @@ png(file="Output/fig/Q5.png",
 
 print("Figure Q5.png has been written in Disk on Output/fig/Q5.png")
 
-summary(rdbwdensity(X = dat$LISPremium, vce="jackknife"))
+print(summary(rdbwdensity(X = dat$LISPremium, vce="jackknife")))
+print(summary(rd.test))
+
+#---------------------------------------------------------------
+# Clear Memory
+#---------------------------------------------------------------
+rm(rd.test, plotQ5)
+gc()

@@ -19,7 +19,7 @@
 ***	File is most easily viewed using a text editor with indent-based folding
 *******************************************************************************
 set matsize 400
-local dirName = "Analysis_output"
+local dirName `1'
 capture mkdir `dirName'
 
 ***PART 1: Prepare program and supplemental data
@@ -675,4 +675,3 @@ capture mkdir `dirName'
 	
 	
 *log close
-

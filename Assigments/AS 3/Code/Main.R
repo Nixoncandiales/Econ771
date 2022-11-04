@@ -23,36 +23,34 @@ lnS <- dat %>% pull(lnS)
 LISPremium <- dat %>% pull(LISPremium) 
 
 # Part 1 replication -------------------------------------------------------
-
 source("Code/Q1.R")
 
 # Part 2 replication -------------------------------------------------------
-
 # Replicated in Stata. Run main.do
 # It will run the do file Q2.do and save the graph on disk on Output/fig/Q2.png
 
 # Part 3 replication -------------------------------------------------------
-
 source("Code/Q3.R")
 
 # Part 4 replication -------------------------------------------------------
-
 source("Code/Q4.R")
 
 # Part 5 replication -------------------------------------------------------
-
 source("Code/Q5.R")
-summary(rd.test)
 
 # Part 6 replication -------------------------------------------------------
-
 source("Code/Q6.2.R")
 
 # Part 7 replication -------------------------------------------------------
-mod.rd <- rdrobust(dat$lnS, dat$LISPremium)
-summary(mod.rd)
+source("Code/Q7.R")
+knitr::kable(tab7, "latex", booktabs = T, align = "lccccc",
+                   caption = "Rdrobust estimation with optimal bandwith") %>% 
+            kableExtra::pack_rows("Panel A. Local linear", 1, 8) %>%
+            kableExtra::pack_rows("Panel B. Quadratic Polinomial", 9, 16)
+
 # Part 8 replication -------------------------------------------------------
 
 # Part 9 replication -------------------------------------------------------
 
 # Part 10 replication -------------------------------------------------------
+

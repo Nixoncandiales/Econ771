@@ -194,8 +194,8 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
   optimal bin number.
 \end{enumerate}
 
-\includegraphics{Output/fig/Q4A.png}
-\includegraphics{Output/fig/Q4B.png} \pagebreak
+\includegraphics{Output/fig/Q4B.png}
+\includegraphics{Output/fig/Q4A.png} \pagebreak
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -259,7 +259,7 @@ Below benchmark, 2006 & 2.464*** & 1.364*** & 0.872** & 0.351 & -0.277\\
 Premium--subsidy, 2006 & Quadratic & Quadratic & Quadratic & Quadratic & Quadratic\\
 Num.Obs. & 306 & 299 & 298 & 246 & 212\\
 R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
-
+\bottomrule
 \bottomrule
 \multicolumn{6}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
 \end{tabular}
@@ -279,6 +279,40 @@ R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
   using the CE-optimal bandwidth (\texttt{rdrobust} will do this for
   you) and compare the bandwidth and RD estimates to that in Table 3 of
   @ericson2014.
+
+  \begin{table}
+
+  \caption{Rdrobust estimation with optimal bandwith}
+  \centering
+  \begin{tabular}[t]{lccccc}
+  \toprule
+  $\ln s_t$ & 2006 & 2007 & 2008 & 2009 & 2010\\
+  \midrule
+  \addlinespace[0.3em]
+  \multicolumn{6}{l}{\textit{Panel A. Local linear}}\\
+  \hspace{1em}Conventional estimate & -2.310 & 1.273 & -0.373 & -1.531 & -1.320\\
+  \hspace{1em} & (0.543) & (0.639) & (0.485) & (0.560) & (0.832)\\
+  \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{3} 128\\
+  \hspace{1em}Kernel & Uniform & Uniform & Uniform & Uniform & \vphantom{1} Uniform\\
+  \hspace{1em}Conventional estimate & -2.386 & 1.158 & 0.248 & -1.349 & -1.196\\
+  \hspace{1em} & (0.507) & (0.683) & (0.465) & (0.605) & (0.606)\\
+  \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{2} 128\\
+  \hspace{1em}Kernel & Triangular & Triangular & Triangular & Triangular & \vphantom{1} Triangular\\
+  \addlinespace[0.3em] \\
+  \multicolumn{6}{l}{\textit{Panel B. Quadratic Polinomial}}\\
+  \hspace{1em}Conventional estimate & -2.245 & 1.172 & 0.075 & -1.202 & -1.490\\
+  \hspace{1em} & (0.600) & (0.790) & (0.614) & (0.814) & (0.987)\\
+  \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{1} 128\\
+  \hspace{1em}Kernel & Uniform & Uniform & Uniform & Uniform & Uniform\\
+  \hspace{1em}Conventional estimate & -2.551 & 0.976 & 0.687 & -0.696 & -1.128\\
+  \hspace{1em} & (0.594) & (0.873) & (0.641) & (1.088) & (0.986)\\
+  \hspace{1em}Observations & 306 & 245 & 200 & 143 & 128\\
+  \hspace{1em}Kernel & Triangular & Triangular & Triangular & Triangular & Triangular\\
+  \bottomrule
+  \bottomrule
+  \multicolumn{6}{l}{\textit{Note:} Robust standard erros in parenthesis}\\
+      \end{tabular}
+      \end{table}
 \item
   Now let's extend the analysis in Section V of @ericson2014 using IV.
   Use the presence of Part D low-income subsidy as an IV for market

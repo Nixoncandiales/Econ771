@@ -106,3 +106,9 @@ My_reg <- function(){
 
        return(list(reg.panel.a,reg.panel.b))
 }
+
+# Add a parenthesis to SE
+addparentheses <- function(x){paste0("(",x,")")}
+
+# Add a dollar sign to display in latex
+format.dollar <- function(x, ...) paste0( "$", unclass(x))

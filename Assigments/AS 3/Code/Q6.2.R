@@ -49,4 +49,8 @@ print(modelsummary(panel_b,
 
 print("Table6.panel.b was written on Disk on Output/tab/tab6.b.tex")
 
-rm(panel_a,panel_b)
+#---------------------------------------------------------------
+# Clear Memory and delete aux objects
+#---------------------------------------------------------------
+rm(panel_a,panel_b, i, t, list_temp, My_reg, My_lag)
+gc()
