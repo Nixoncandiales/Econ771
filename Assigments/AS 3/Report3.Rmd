@@ -134,7 +134,7 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
 ![](Output/fig/Q4A.png)
 \pagebreak
 
-5. 
+5. Although in the online appendix we see evidence of a small discontinuity at the cutoff, after correcting by the optimal bin selection we reject the hypothesis of manipulation in the running variable. 
     ```{r Q5, message=FALSE, warning=FALSE, comment=NA}
     summary(rdbwdensity(X = dat$LISPremium, vce="jackknife"))
     ```
@@ -234,6 +234,10 @@ R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
     \end{table}
     ```
 
+Although the coefficients seems to flip signs, this is due to the way the package reports the results.
+We see how the bin choice increases when the number of observations decreases as well as the bandwidth.
+The choice of the kernel also affects the optimal bin selection as shown in the table.
+
 \newpage
 8. Now let's extend the analysis in Section V of @ericson2014 using IV.
     Use the presence of Part D low-income subsidy as an IV for market
@@ -267,10 +271,20 @@ R2 & -0.091\\
 \end{table}
 ```
 
+
+\newpage
 9. Discuss your findings and compare results from different binwidths
     and bandwidths. Compare your results in part 8 to the
     invest-then-harvest estimates from Table 4 in @ericson2014.
 
+We found similar results than those in table 4 in Ericson (2014). The invest-then-harvest hypothesis since to explain the price behavior in older plans (on their 5th year). Also, we found that for plans in the second year they seem to decrease in price which can be seen as and "investing" or increasing the market share to in later periods increase prices. Finally, with regards to market share, we found a negative effect, which might be in line with the hypotesis that new plans are priced lower.
+
+
 10.  Reflect on this assignment. What did you find most challenging? What
     did you find most surprising?
+    
+I still find working with the tables in Rmarkdown challenging but definitely I have seen improvements on my workflow.
+On the specifics of this assignment, the Fuzzy RD was challenge to implement. having acces to the paper code and online appendix made the difference in the replication. 
+
+
 
