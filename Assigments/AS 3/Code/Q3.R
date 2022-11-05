@@ -28,8 +28,18 @@ plot.bin <- bin.avg %>%
               caption = "Dots are local averages with a equally spaced bin size")
 
 ggsave("Output/fig/Q3A.png")
-print("Figure Q3A.png has been written in Disk on Output/fig/Q3A.png")                 
+print("Figure Q3A.png has been written in Disk on Output/fig/Q3A.png")       
 
+Q3.a <- rdplot( y = lnS, 
+                x = LISPremium,
+                title = "The Effect of 2006 Benchmark Status on 2006 Enrollment",
+                x.label = "Monthly premium − LIS subsidy, 2006",
+                y.label = "log enrollment share, 2006",
+                 n=10,
+                 scale=1,
+                 x.lim=c(-10,10),
+                 h=10)
+ggsave("Output/fig/Q3A2.png")
 #########################################################################
 # J-=J+=30
 #########################################################################
@@ -62,6 +72,15 @@ plot.bin <- bin.avg %>%
 
 ggsave("Output/fig/Q3B.png")
 print("Figure Q3B.png has been written in Disk on Output/fig/Q3B.png")
+Q3.b <- rdplot( y = lnS, 
+                x = LISPremium,
+                title = "The Effect of 2006 Benchmark Status on 2006 Enrollment",
+                x.label = "Monthly premium − LIS subsidy, 2006",
+                y.label = "log enrollment share, 2006",
+                 n=30,
+                 scale=1,
+                 x.lim=c(-10,10))
+ggsave("Output/fig/Q3B2.png")
 
 #---------------------------------------------------------------
 # Clear Memory

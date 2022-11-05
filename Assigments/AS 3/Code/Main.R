@@ -19,8 +19,8 @@ source(here("Assigments", "AS 3", "Code", "set.mydir.R"))
 
 dat <- vroom("Data/Data.csv")
 
-lnS <- dat %>% pull(lnS) 
-LISPremium <- dat %>% pull(LISPremium) 
+lnS <- dat  %>% pull(lnS) 
+LISPremium <- dat %>%  pull(LISPremium) 
 
 # Part 1 replication -------------------------------------------------------
 source("Code/Q1.R")
@@ -51,7 +51,3 @@ knitr::kable(tab7, "latex", booktabs = T, align = "lccccc",
 # Part 8 replication -------------------------------------------------------
 source("Code/Q8.R")
 tab8.tex
-# Part 9 replication -------------------------------------------------------
-
-# Part 10 replication -------------------------------------------------------
-

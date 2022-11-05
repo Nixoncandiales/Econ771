@@ -176,8 +176,11 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
   figure in Part 2.
 
   \includegraphics{Output/fig/Q3A.png}
+  \includegraphics{Output/fig/Q3A2.png}
 
   \includegraphics{Output/fig/Q3B.png}
+
+  \includegraphics{Output/fig/Q3B2.png}
 \item
   With the notation above, @calonico2015 derive the optimal number of
   partitions for an evenly-spaced (ES) RD plot. They show that
@@ -200,35 +203,42 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \setcounter{enumi}{4}
+\tightlist
 \item
   Although in the online appendix we see evidence of a small
   discontinuity at the cutoff, after correcting by the optimal bin
   selection we reject the hypothesis of manipulation in the running
   variable.
+\end{enumerate}
 
-\begin{verbatim}
+\includegraphics{Output/fig/Q5.png}
 
-Bandwidth selection for manipulation testing.
+  \begin{table}
+  \caption{Rddensity Test for Different Windows}
+  \centering
+  \begin{tabular}[t]{cc}
+  \toprule
+  Window & P-Value\\
+  \midrule
+  0.03 & 0.50\\
+  0.06 & 0.42\\
+  0.09 & 0.42\\
+  0.12 & 0.81\\
+  0.15 & 0.74\\
+  0.18 & 0.92\\
+  0.21 & 1.00\\
+  0.24 & 0.86\\
+  0.27 & 0.87\\
+  0.30 & 0.75\\
+  \bottomrule
+  \end{tabular}
+  \end{table}
 
-Number of obs =     4276
-Model =             unrestricted
-Kernel =            triangular
-VCE method =        jackknife
+\newpage
 
-Cutoff c = 0        Left of c           Right of c          
-Number of obs       1944                2332                
-Min Running var.    -31.24              0.01                
-Max Running var.    0                   82.53               
-Order est. (p)      2                   2                   
-
-Target              Bandwidth           Variance            Bias^2              
-left density        5.0449              0.3916              0                   
-right density       3.832               0.3455              0                   
-diff. densities     3.7562              0.7371              0                   
-sum densities       6.0582              0.7371              0                   
-\end{verbatim}
-
-  \includegraphics{Output/fig/Q5.png} \newpage
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
 \item
   Recreate Table 3 of @ericson2014 using the same bandwidth of
   \$4.00.\newline
@@ -336,46 +346,70 @@ choice of the kernel also affects the optimal bin selection as shown in
 the table.
 
 \newpage
-8
 
-. Now let's extend the analysis in Section V of @ericson2014 using IV.
-Use the presence of Part D low-income subsidy as an IV for market share
-to examine the effect of market share in 2006 on future premium changes.
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Now let's extend the analysis in Section V of @ericson2014 using IV.
+  Use the presence of Part D low-income subsidy as an IV for market
+  share to examine the effect of market share in 2006 on future premium
+  changes.
+\end{enumerate}
+
+\begin{table}
+\caption{ Effect of LIS Benchmark Status in 2006 on Premiums in Later Year}
+\centering
+\begin{tabular}[t]{lcccc}
+\toprule
+Premium - Subsidy & 2007 & 2008 & 2009 & 2010\\
+\midrule
+Conventional Coef &-0.935 & 1.267 & 2.276 & 0.629\\
+Confidence Interval & [-2.764,1.225] & [-1.927,5.173] & [-0.537,6.863] & [-4.478,8.157]\\
+Observations & 569 & 512 & 378 & 322\\
+\bottomrule
+\multicolumn{5}{l}{\textit{Note:} Replicaton table A.7 Online Appendix. Fuzzy Regression Discontinuity}\\
+\end{tabular}
+\end{table}
 
 \begin{table}
 \caption{Effect of Market Share in 2006 on Future Premium Changes}
 \centering
 \begin{tabular}[t]{lc}
-\midrule
-\addlinespace[0.3em]
+\toprule
   & ln(monthly premium)\\
 \midrule
-$\hat{lnS}$ & -0.149***\\
-  & (0.023)\\
-\multicolumn{1}{l}{Year of plan existence}\\
-\hspace{1em} ... 2nd year & -0.214***\\
- & (0.055)\\
-\hspace{1em} ... 3rd year & -0.078\\
- & (0.065)\\
-\hspace{1em} ... 4th year & 0.063\\
- & (0.067)\\
-\hspace{1em} ... 5th year & 0.173**\\
- & (0.061)\\
+$\hat{lnS}$ & -0.165***\\
+ & (0.024)\\
+\midrule
 Num.Obs. & 4123\\
-R2 & -0.091\\
+State FE & X \\
+Year FE & X\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\newpage
-9
+Note table 5 presents the estimates for the Fuzzy Regression
+discontinuity emulating table A7 in the online appendix. Under this
+setting we find no evidence whether falling above or below the benchmark
+in 2006 had any effect on average premiums in the subsequent years, as
+mentioned in Ericson (2014).
 
-. Discuss your findings and compare results from different binwidths and
-bandwidths. Compare your results in part 8 to the invest-then-harvest
-estimates from Table 4 in @ericson2014.
+\newpage
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Discuss your findings and compare results from different binwidths and
+  bandwidths. Compare your results in part 8 to the invest-then-harvest
+  estimates from Table 4 in @ericson2014.
+\end{enumerate}
 
 We found similar results than those in table 4 in Ericson (2014). The
-invest-then-harvest hypothesis since to explain the price behavior in
+invest-then-harvest hypothesis seems to explain the price behavior in
 older plans (on their 5th year). Also, we found that for plans in the
 second year they seem to decrease in price which can be seen as and
 ``investing'' or increasing the market share to in later periods
@@ -392,9 +426,18 @@ plans are priced lower.
   did you find most surprising?
 \end{enumerate}
 
+While reading the paper's online appendix I found there was a small
+discontinuity around the cutoff. However, after testing for manipulation
+in the forcing variable using the optimal binwidht implemented in
+rdrobust I found there was no evidence of bunching. This result was nos
+expected and I need to run further checks and confirm I use the correct
+sintax on my code to be on the safe there are no code mistakes tat biase
+my estimates. Overall, the intuition of the RD designs is straight
+forward.
+
 I still find working with the tables in Rmarkdown challenging but
 definitely I have seen improvements on my workflow. On the specifics of
-this assignment, the Fuzzy RD was challenge to implement. having acces
+this assignment, the Fuzzy RD was challenging to implement. Having acces
 to the paper code and online appendix made the difference in the
 replication.
 
