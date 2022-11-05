@@ -2,7 +2,7 @@
 
 ## Author:        Nixon Candiales
 ## Date Created:  10/19/2022
-## Date Edited:   10/31/2022
+## Date Edited:   11/04/2022
 ## Description:   Analysis file for empirical exercise 3
 
 # Preliminaries -----------------------------------------------------------
