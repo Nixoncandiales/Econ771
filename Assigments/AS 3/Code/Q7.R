@@ -79,7 +79,7 @@
                         as_tibble())
 
 var_names <- rep(c("Conventional estimate", "", "Observations", "H", "Bin", "Kernel"),4)
-names(tab7) <- 2006:2010
+names(tab7) <- sequence(2006,2010,1)
 
 tab7 <- cbind(tab7, var_names) %>% relocate(var_names)
 
@@ -87,18 +87,15 @@ for(i in c(2,8,14,20)){
     tab7[i,] <- addparentheses(tab7[i,])
 }
 
-tab7
 tab7_tex <- knitr::kable(tab7, "latex", booktabs = T, align = "lccccc",
                    caption = "Rdrobust estimation with optimal bandwith") %>% 
             kableExtra::pack_rows("Panel A. Local linear", 1, 12) %>%
             kableExtra::pack_rows("Panel B. Quadratic Polinomial", 13, 24)
-tab7_tex
-cat(tab7_tex, file = 'Output/tab/table7.tex') # Write the table on disk
 
+cat(tab7_tex, file = 'Output/tab/table7.tex') # Write the table on disk
+print("Table 7 was written in Disk on 'Output/tab/table7.tex'")
 #---------------------------------------------------------------
 # Clear Memory and delete aux objects 
 #---------------------------------------------------------------
-rm(tab7_tex) 
-
-rm(My_lag, My_reg, i, j, k, t, n, b, se.rb, years, lags, rows, kernel, var_names, dat.temp, df, mod.rd)
+rm(My_lag, My_reg, i, j, k, t, n, b, se.rb, years, lags, rows, kernel, var_names, dat.temp, df, mod.rd, bin, h, tab7_tex)
 gc()          

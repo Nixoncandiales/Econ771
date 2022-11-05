@@ -2,15 +2,16 @@
 # Same as Q6 but using functions
 #######################################
 
-
+# Source functions to global environment
 source("Code/my_functions.R") 
 
+# Parameters to enter the loop
 years<-2006:2010
 lags<-0:4
 panel_a <- list()
 panel_b <- list()
 
-# Iterative store the regressions in a list
+# Store regressions iterative in a list
 for (i in 1:5){
     dat.temp <- My_lag(years[i],lags[i])
 
@@ -26,7 +27,10 @@ rm(dat.temp,years,lags)
 names(panel_a) <- seq(2006,2010,1)
 names(panel_b) <- seq(2006,2010,1)
 
-# Write the tables
+
+#---------------------------------------------------------------
+# Write and Format Tables
+#---------------------------------------------------------------
 options("modelsummary_format_numeric_latex" = "plain")
 
 print(modelsummary(panel_a, 

@@ -1,7 +1,7 @@
 ---
 title: "Econ771 - Empirical Exercise 3"
 author: "Nixon Torres Candiales"
-date: \today
+date: "November 4,2022"
 output: 
   pdf_document:
     latex_engine: lualatex

@@ -43,11 +43,7 @@ source("Code/Q6.2.R")
 
 # Part 7 replication -------------------------------------------------------
 source("Code/Q7.R")
-knitr::kable(tab7, "latex", booktabs = T, align = "lccccc",
-                   caption = "Rdrobust estimation with optimal bandwith") %>% 
-            kableExtra::pack_rows("Panel A. Local linear", 1, 12) %>%
-            kableExtra::pack_rows("Panel B. Quadratic Polinomial", 13, 24)
 
 # Part 8 replication -------------------------------------------------------
 source("Code/Q8.R")
-tab8.tex
+
