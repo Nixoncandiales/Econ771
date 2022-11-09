@@ -19,8 +19,8 @@ source(here("Assigments", "AS 3", "Code", "set.mydir.R"))
 
 dat <- vroom("Data/Data.csv")
 
-lnS <- dat  %>% pull(lnS) 
-LISPremium <- dat %>%  pull(LISPremium) 
+lnS <- dat %>% filter(year==2006 & LISPremium>=-10 & LISPremium<=10) %>% pull(lnS) 
+LISPremium <- dat %>% filter(year==2006 & LISPremium>=-10 & LISPremium<=10) %>%  pull(LISPremium) 
 
 # Part 1 replication -------------------------------------------------------
 source("Code/Q1.R")
@@ -46,4 +46,14 @@ source("Code/Q7.R")
 
 # Part 8 replication -------------------------------------------------------
 source("Code/Q8.R")
+
+
+
+
+
+
+
+
+
+
 

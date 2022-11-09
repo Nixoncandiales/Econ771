@@ -140,36 +140,13 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
 5. Although in the online appendix we see evidence of a small discontinuity at the cutoff, after correcting by the optimal bin selection we reject the hypothesis of manipulation in the running variable. 
 
   ![](Output/fig/Q5.png)
-
-```{=latex}
-  \begin{table}
-  \caption{Rddensity Test for Different Windows}
-  \centering
-  \begin{tabular}[t]{cc}
-  \toprule
-  Window & P-Value\\
-  \midrule
-  0.03 & 0.50\\
-  0.06 & 0.42\\
-  0.09 & 0.42\\
-  0.12 & 0.81\\
-  0.15 & 0.74\\
-  0.18 & 0.92\\
-  0.21 & 1.00\\
-  0.24 & 0.86\\
-  0.27 & 0.87\\
-  0.30 & 0.75\\
-  \bottomrule
-  \end{tabular}
-  \end{table}
-```
-      
+\input{Output/tab/table5.tex}
 
 \newpage
 
-1. Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.\newline
+6.    Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.\newline
 
-We recreate the table as follows, note the standard errors differs at the third decimal. This discrepancy might be due to a different default parameter in R when calculating the standard errors.
+We recreate the table as follows, note the standard errors differs at the third decimal. This discrepancy might be due to a different default parameter in R when calculating the standard errors. 
 ```{=latex}
 \begin{center}
 \begin{table}

@@ -7,7 +7,8 @@ Q3.a <- rdplot( y = lnS,
                 x.label = "Monthly premium − LIS subsidy, 2006",
                 y.label = "log enrollment share, 2006",
                 hide=TRUE,
-                n = 10)
+                n = 10, 
+                p=4)
 
 bin.avg <- as_tibble(Q3.a$vars_bins)
 
@@ -38,7 +39,8 @@ Q3.a <- rdplot( y = lnS,
                  n=10,
                  scale=1,
                  x.lim=c(-10,10),
-                 h=10)
+                 h=10,
+                 p=4)
 ggsave("Output/fig/Q3A2.png")
 
 #---------------------------------------------------------------
@@ -51,7 +53,8 @@ Q3.b <- rdplot( y = lnS,
                 x.label = "Monthly premium − LIS subsidy, 2006",
                 y.label = "log enrollment share, 2006",
                 hide=TRUE, 
-                n = 30)
+                n = 30,
+                p=4)
 
 bin.avg <- as_tibble(Q3.b$vars_bins)
 
@@ -80,7 +83,8 @@ Q3.b <- rdplot( y = lnS,
                 y.label = "log enrollment share, 2006",
                  n=30,
                  scale=1,
-                 x.lim=c(-10,10))
+                 x.lim=c(-10,10),
+                 p=4)
 ggsave("Output/fig/Q3B2.png")
 
 #---------------------------------------------------------------
