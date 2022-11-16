@@ -55,7 +55,7 @@ rm(dat.tab1)
 gc()
 
 #---------------------------------------------------------------
-# Format
+# Format Table
 #---------------------------------------------------------------
 
 # Add a dollar sign to display in latex
@@ -82,4 +82,9 @@ cat(tab1.tex, file = 'Output/tab/table1.tex') # Write the table on disk
 
 print("Table 1 was written on Disk in latex format in Output/tab/table1.tex")
 print(tab1)
-rm(tab1, tab1.tex)
+
+#---------------------------------------------------------------
+# Clear Memory
+#---------------------------------------------------------------
+rm(tab1, tab1.tex, addparentheses, format.dollar, i)
+gc()

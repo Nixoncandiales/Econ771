@@ -1,7 +1,7 @@
 ---
 title: "Econ771 - Empirical Exercise 3"
 author: "Nixon Torres Candiales"
-date: \today
+date: "November 4,2022"
 output: 
   pdf_document:
     latex_engine: lualatex
@@ -114,8 +114,11 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
     figure in Part 2.
 
    ![](Output/fig/Q3A.png)
+   ![](Output/fig/Q3A2.png)
    
-   ![](Output/fig/Q3B.png)    
+   ![](Output/fig/Q3B.png)
+   
+   ![](Output/fig/Q3B2.png)
 
 4. With the notation above, @calonico2015 derive the optimal number of
     partitions for an evenly-spaced (ES) RD plot. They show that
@@ -130,21 +133,20 @@ Number of plans & 1429 & 658 & 202 & 68 & 107\\
     strategy. Report this bin count and recreate your binned
     scatterplots from parts 2 and 3 based on the optimal bin number.
 
-![](Output/fig/Q4A.png)
 ![](Output/fig/Q4B.png)
+![](Output/fig/Q4A.png)
 \pagebreak
 
-5. 
-    ```{r Q5, message=FALSE, warning=FALSE, comment=NA}
-    summary(rdbwdensity(X = dat$LISPremium, vce="jackknife"))
-    ```
-      
-    ![](Output/fig/Q5.png)
+5. Although in the online appendix we see evidence of a small discontinuity at the cutoff, after correcting by the optimal bin selection we reject the hypothesis of manipulation in the running variable. 
+
+  ![](Output/fig/Q5.png)
+\input{Output/tab/table5.tex}
+
 \newpage
 
-6. Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.\newline
+6.    Recreate Table 3 of @ericson2014 using the same bandwidth of \$4.00.\newline
 
-We recreate the table as follows, note the standard errors differs at the third decimal. This discrepancy might be due to a different default parameter in R when calculating the standard errors.
+We recreate the table as follows, note the standard errors differs at the third decimal. This discrepancy might be due to a different default parameter in R when calculating the standard errors. 
 ```{=latex}
 \begin{center}
 \begin{table}
@@ -172,7 +174,7 @@ Below benchmark, 2006 & 2.464*** & 1.364*** & 0.872** & 0.351 & -0.277\\
 Premium--subsidy, 2006 & Quadratic & Quadratic & Quadratic & Quadratic & Quadratic\\
 Num.Obs. & 306 & 299 & 298 & 246 & 212\\
 R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
-
+\bottomrule
 \bottomrule
 \multicolumn{6}{l}{\rule{0pt}{1em}+ p $<$ 0.1, * p $<$ 0.05, ** p $<$ 0.01, *** p $<$ 0.001}\\
 \end{tabular}
@@ -188,17 +190,115 @@ R2 & 0.794 & 0.576 & 0.472 & 0.535 & 0.685\\
     coverage error (CE)-optimal bandwidths. Re-estimate your RD results
     using the CE-optimal bandwidth (`rdrobust` will do this for you) and
     compare the bandwidth and RD estimates to that in Table 3 of @ericson2014.
+    
+    ```{=latex}
+    \begin{table}
+    \caption{Rdrobust estimation with optimal bandwith}
+    \centering
+    \begin{tabular}[t]{lccccc}
+    \toprule
+    $\ln s_t$ & 2006 & 2007 & 2008 & 2009 & 2010\\
+    \midrule
+    \addlinespace[0.3em]
+    \multicolumn{6}{l}{\textit{Panel A. Local linear}}\\
+    \hspace{1em}Conventional estimate & -2.29 & 0.70 & 0.25 & -1.23 & -1.07\\
+    \hspace{1em} & (0.55) & (0.69) & (0.48) & (0.59) & (0.88)\\
+    \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{3} 128\\
+    \hspace{1em}H & 0.75 & 1.92 & 2.38 & 2.12 & 1.95\\
+    \hspace{1em}Bin & 1.59 & 4.88 & 7.00 & 4.89 & 4.85\\
+    \hspace{1em}Kernel & Uniform & Uniform & Uniform & Uniform & \vphantom{1} Uniform\\
+    \\
+    \hspace{1em}Conventional estimate & -2.51 & 0.96 & 0.48 & -1.20 & -1.17\\
+    \hspace{1em} & (0.52) & (0.72) & (0.49) & (0.65) & (0.63)\\
+    \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{2} 128\\
+    \hspace{1em}H & 0.91 & 2.24 & 2.29 & 2.79 & 4.41\\
+    \hspace{1em}Bin & 1.72 & 4.49 & 6.24 & 5.35 & 9.67\\
+    \hspace{1em}Kernel & Triangular & Triangular & Triangular & Triangular & \vphantom{1} Triangular\\
+    \addlinespace[0.3em]
+    \multicolumn{6}{l}{\textit{Panel B. Quadratic Polinomial}}\\
+    \hspace{1em}Conventional estimate & -2.58 & 0.77 & 1.13 & -0.67 & -0.84\\
+    \hspace{1em} & (0.62) & (0.89) & (0.67) & (0.94) & (1.04)\\
+    \hspace{1em}Observations & 306 & 245 & 200 & 143 & \vphantom{1} 128\\
+    \hspace{1em}H & 1.02 & 2.61 & 2.79 & 2.52 & 3.20\\
+    \hspace{1em}Bin & 2.07 & 5.36 & 6.96 & 5.27 & 6.13\\
+    \hspace{1em}Kernel & Uniform & Uniform & Uniform & Uniform & Uniform\\
+    \\
+    \hspace{1em}Conventional estimate & -2.89 & 0.93 & 0.92 & -0.64 & -1.06\\
+    \hspace{1em} & (0.62) & (0.99) & (0.75) & (1.19) & (1.01)\\
+    \hspace{1em}Observations & 306 & 245 & 200 & 143 & 128\\
+    \hspace{1em}H & 1.04 & 2.62 & 2.77 & 2.35 & 4.02\\
+    \hspace{1em}Bin & 1.99 & 5.10 & 6.02 & 4.33 & 6.64\\
+    \hspace{1em}Kernel & Triangular & Triangular & Triangular & Triangular & Triangular\\
+    \bottomrule
+    \bottomrule
+    \multicolumn{6}{l}{\textit{Note:} Robust standard erros in parenthesis}\\
+    \end{tabular}
+    \end{table}
+    ```
+
+Although the coefficients seems to flip signs, this is due to the way the package reports the results.
+We see how the bin choice increases when the number of observations decreases as well as the bandwidth.
+The choice of the kernel also affects the optimal bin selection as shown in the table.
+
+\newpage
 
 8. Now let's extend the analysis in Section V of @ericson2014 using IV.
-    Use the presence of Part D low-income subsidy as an IV for market
-    share to examine the effect of market share in 2006 on future
-    premium changes.
+  Use the presence of Part D low-income subsidy as an IV for market
+  share to examine the effect of market share in 2006 on future
+  premium changes.
 
-9. Discuss your findings and compare results from different binwidths
-    and bandwidths. Compare your results in part 8 to the
-    invest-then-harvest estimates from Table 4 in @ericson2014.
+```{=latex}
+\begin{table}
+\caption{ Effect of LIS Benchmark Status in 2006 on Premiums in Later Year}
+\centering
+\begin{tabular}[t]{lcccc}
+\toprule
+Premium - Subsidy & 2007 & 2008 & 2009 & 2010\\
+\midrule
+Conventional Coef &-0.935 & 1.267 & 2.276 & 0.629\\
+Confidence Interval & [-2.764,1.225] & [-1.927,5.173] & [-0.537,6.863] & [-4.478,8.157]\\
+Observations & 569 & 512 & 378 & 322\\
+\bottomrule
+\multicolumn{5}{l}{\textit{Note:} Replicaton table A.7 Online Appendix. Fuzzy Regression Discontinuity}\\
+\end{tabular}
+\end{table}
+```    
 
-10.  Reflect on this assignment. What did you find most challenging? What
-    did you find most surprising?
+```{=latex}
+\begin{table}
+\caption{Effect of Market Share in 2006 on Future Premium Changes}
+\centering
+\begin{tabular}[t]{lc}
+\toprule
+  & ln(monthly premium)\\
+\midrule
+$\hat{lnS}$ & -0.165***\\
+ & (0.024)\\
+\midrule
+Num.Obs. & 4123\\
+State FE & X \\
+Year FE & X\\
+\bottomrule
+\end{tabular}
+\end{table}
+```
 
-# References
+Note table 5 presents the estimates for the Fuzzy Regression discontinuity emulating table A7 in the online appendix. Under this setting we find no evidence whether falling above or below the benchmark in 2006 had any effect on average premiums in the subsequent years, as mentioned in Ericson (2014).
+
+
+\newpage
+
+9. Discuss your findings and compare results from different binwidths and bandwidths. Compare your results in part 8 to the invest-then-harvest estimates from Table 4 in @ericson2014.
+    
+We found similar results than those in table 4 in Ericson (2014). The invest-then-harvest hypothesis seems to explain the price behavior in older plans (on their 5th year). Also, we found that for plans in the second year they seem to decrease in price which can be seen as and "investing" or increasing the market share to in later periods increase prices. Finally, with regards to market share, we found a negative effect, which might be in line with the hypotesis that new plans are priced lower.
+
+
+10. Reflect on this assignment. What did you find most challenging? What did you find most surprising?
+    
+While reading the paper's online appendix I found there was a small discontinuity around the cutoff. However, after testing for manipulation in the forcing variable using the optimal binwidht implemented in rdrobust I found there was no evidence of bunching. This result was nos expected and I need to run further checks and confirm I use the correct sintax on my code to be on the safe there are no code mistakes tat biase my estimates. Overall, the intuition of the RD designs is straight forward.   
+
+I still find working with the tables in Rmarkdown challenging but definitely I have seen improvements on my workflow.
+On the specifics of this assignment, the Fuzzy RD was challenging to implement. Having acces to the paper code and online appendix made the difference in the replication.
+
+
+
