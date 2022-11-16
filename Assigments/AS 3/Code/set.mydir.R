@@ -4,12 +4,13 @@ rm(list=ls())
 gc()
 
 # Create a function to set the Working Directory no matter the os.
-set.mydir <- function(name="Nixon") {
+set.mydir <- function(name="Nixon", as=3) {
 
     temp <- Sys.info()
 
         if (temp['sysname']=="Darwin"){
-            setwd("/Users/nix/Documents/GitHub/Econ771/Assigments/AS 3")
+            dir_temp = paste0("/Users/nix/Documents/GitHub/Econ771/Assigments/AS ", as)
+            setwd(dir_temp)
             return(print(paste0("Hello ", name, 
                     " you are in ", temp['sysname'], 
                     " and your root directory is: ", getwd()
@@ -18,7 +19,8 @@ set.mydir <- function(name="Nixon") {
                    )
         }
         if (temp['sysname']=="Windows"){
-            setwd("~/Github/Econ771/Assigments/AS 3")
+            dir_temp = paste0("~/GitHub/Econ771/Assigments/AS ", as)
+            setwd(dir_temp)
         #   here::i_am(Setmydir.R)
 
             return(print(paste0("Hello ", temp['nodename'], 
@@ -29,5 +31,3 @@ set.mydir <- function(name="Nixon") {
                     )
         }
 }
-
-set.mydir()
